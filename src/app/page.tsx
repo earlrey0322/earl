@@ -137,6 +137,7 @@ export default function Home() {
               playClick();
               router.push("/login");
             }}
+            suppressHydrationWarning
             className="px-5 py-2 text-sm font-medium text-amber-400 border border-amber-400/30 rounded-lg hover:bg-amber-400/10 transition-all"
           >
             Log In
@@ -146,6 +147,7 @@ export default function Home() {
               playClick();
               router.push("/signup");
             }}
+            suppressHydrationWarning
             className="px-5 py-2 text-sm font-medium text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg hover:shadow-lg hover:shadow-amber-500/25 transition-all"
           >
             Sign Up
@@ -176,6 +178,7 @@ export default function Home() {
               playClick();
               router.push("/signup");
             }}
+            suppressHydrationWarning
             className="px-8 py-3 text-lg font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl hover:shadow-xl hover:shadow-amber-500/30 transition-all hover:scale-105"
           >
             Get Started
@@ -185,6 +188,7 @@ export default function Home() {
               playClick();
               router.push("/login");
             }}
+            suppressHydrationWarning
             className="px-8 py-3 text-lg font-medium text-amber-400 border border-amber-400/30 rounded-xl hover:bg-amber-400/10 transition-all"
           >
             I Have an Account
@@ -266,6 +270,7 @@ export default function Home() {
               playClick();
               router.push("/signup");
             }}
+            suppressHydrationWarning
             className="px-10 py-4 text-lg font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-xl hover:shadow-xl hover:shadow-green-500/30 transition-all hover:scale-105"
           >
             Create Account

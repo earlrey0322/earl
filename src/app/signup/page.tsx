@@ -189,7 +189,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-8 space-y-5" suppressHydrationWarning>
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-400 text-sm">
               {error}
@@ -445,6 +445,7 @@ export default function SignupPage() {
             playClick();
             router.push("/");
           }}
+          suppressHydrationWarning
           className="mt-6 w-full text-center text-sm text-slate-500 hover:text-slate-300 transition-colors"
         >
           Back to Home

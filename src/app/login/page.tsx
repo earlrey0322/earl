@@ -135,7 +135,7 @@ export default function LoginPage() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleLogin} className="glass-card rounded-2xl p-8 space-y-5">
+        <form onSubmit={handleLogin} className="glass-card rounded-2xl p-8 space-y-5" suppressHydrationWarning>
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-400 text-sm">
               {error}
@@ -149,6 +149,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              suppressHydrationWarning
               className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
               placeholder="your@email.com"
             />
@@ -161,6 +162,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              suppressHydrationWarning
               className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
               placeholder="••••••••"
             />
@@ -169,6 +171,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
+            suppressHydrationWarning
             className="w-full py-3 text-lg font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg hover:shadow-lg hover:shadow-amber-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Logging in..." : "Log In"}
@@ -182,6 +185,7 @@ export default function LoginPage() {
                 playClick();
                 router.push("/signup");
               }}
+              suppressHydrationWarning
               className="text-amber-400 hover:underline"
             >
               Sign Up
@@ -194,6 +198,7 @@ export default function LoginPage() {
             playClick();
             router.push("/");
           }}
+          suppressHydrationWarning
           className="mt-6 w-full text-center text-sm text-slate-500 hover:text-slate-300 transition-colors"
         >
           Back to Home
