@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch } from "@/lib/api-fetch";
 
 function playClick() {
   try {
@@ -105,9 +106,8 @@ export function SubscriptionCard({
   async function confirmPayment() {
     setProcessing(true);
     try {
-      const res = await fetch("/api/subscription", {
+      const res = await apiFetch("/api/subscription", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ gcashNumber: "09469086926" }),
       });
 

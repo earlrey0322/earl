@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap } from "@/components/StationMap";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Station {
   id: number;
@@ -79,8 +80,8 @@ export default function BranchOwnerDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/auth/me").then((r) => r.json()),
-      fetch("/api/stations").then((r) => r.json()),
+      apiFetch("/api/auth/me").then((r) => r.json()),
+      apiFetch("/api/stations").then((r) => r.json()),
     ]).then(([userData, stationsData]) => {
       if (userData.user) setUser(userData.user);
       if (stationsData.stations) setStations(stationsData.stations);
@@ -90,9 +91,8 @@ export default function BranchOwnerDashboard() {
   async function toggleStationStatus(station: Station) {
     playClick();
     try {
-      await fetch("/api/stations", {
+      await apiFetch("/api/stations", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: station.id, isActive: !station.isActive }),
       });
       setStations((prev) =>
@@ -107,9 +107,8 @@ export default function BranchOwnerDashboard() {
   async function addStation() {
     playClick();
     try {
-      const res = await fetch("/api/stations", {
+      const res = await apiFetch("/api/stations", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newStation,
           contactNumber: newStation.contactNumber || user?.contactNumber,
@@ -134,7 +133,7 @@ export default function BranchOwnerDashboard() {
   }
 
   function handleSubscribe() {
-    fetch("/api/auth/me")
+    apiFetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
         if (data.user) setUser(data.user);

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap } from "@/components/StationMap";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Station {
   id: number;
@@ -92,10 +93,10 @@ export default function CompanyOwnerDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/auth/me").then((r) => r.json()),
-      fetch("/api/stations").then((r) => r.json()),
-      fetch("/api/users").then((r) => r.json()),
-      fetch("/api/notifications").then((r) => r.json()),
+      apiFetch("/api/auth/me").then((r) => r.json()),
+      apiFetch("/api/stations").then((r) => r.json()),
+      apiFetch("/api/users").then((r) => r.json()),
+      apiFetch("/api/notifications").then((r) => r.json()),
     ]).then(([userData, stationsData, usersDataRes, notifsData]) => {
       if (userData.user) setUser(userData.user);
       if (stationsData.stations) setStations(stationsData.stations);
@@ -107,9 +108,8 @@ export default function CompanyOwnerDashboard() {
   async function toggleStationStatus(station: Station) {
     playClick();
     try {
-      await fetch("/api/stations", {
+      await apiFetch("/api/stations", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: station.id, isActive: !station.isActive }),
       });
       setStations((prev) =>
@@ -123,12 +123,11 @@ export default function CompanyOwnerDashboard() {
   async function seedData() {
     playClick();
     try {
-      const res = await fetch("/api/seed", { method: "POST" });
+      const res = await apiFetch("/api/seed", { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         alert(data.message);
-        // Refresh stations
-        const stationsRes = await fetch("/api/stations");
+        const stationsRes = await apiFetch("/api/stations");
         const stationsData = await stationsRes.json();
         if (stationsData.stations) setStations(stationsData.stations);
       }
@@ -138,7 +137,7 @@ export default function CompanyOwnerDashboard() {
   }
 
   function handleSubscribe() {
-    fetch("/api/auth/me")
+    apiFetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
         if (data.user) setUser(data.user);

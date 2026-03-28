@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface Station {
   id: number;
@@ -50,9 +51,9 @@ export default function CustomerDashboard() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/auth/me").then((r) => r.json()),
-      fetch("/api/stations").then((r) => r.json()),
-      fetch("/api/sessions").then((r) => r.json()),
+      apiFetch("/api/auth/me").then((r) => r.json()),
+      apiFetch("/api/stations").then((r) => r.json()),
+      apiFetch("/api/sessions").then((r) => r.json()),
     ]).then(([userData, stationsData, sessionsData]) => {
       if (userData.user) setUser(userData.user);
       if (stationsData.stations) {
@@ -76,9 +77,8 @@ export default function CustomerDashboard() {
     durationMinutes: number;
   }) {
     try {
-      const res = await fetch("/api/sessions", {
+      const res = await apiFetch("/api/sessions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (res.ok) {
@@ -94,8 +94,7 @@ export default function CustomerDashboard() {
   }
 
   function handleSubscribe() {
-    // Refresh user data
-    fetch("/api/auth/me")
+    apiFetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
         if (data.user) setUser(data.user);

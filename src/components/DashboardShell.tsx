@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api-fetch";
 
 interface User {
   id: number;
@@ -33,8 +34,11 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
+    apiFetch("/api/auth/me")
+      .then((r) => {
+        if (!r.ok) throw new Error("Not authenticated");
+        return r.json();
+      })
       .then((data) => {
         if (data.user) setUser(data.user);
         else router.push("/login");
@@ -44,7 +48,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
 
   async function handleLogout() {
     playClick();
-    await fetch("/api/auth/me", { method: "POST" });
+    await apiFetch("/api/auth/me", { method: "POST" });
     router.push("/");
   }
 
