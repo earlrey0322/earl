@@ -82,12 +82,6 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function getWorklifeHint() {
-    if (form.role === "company_owner") return 'Must answer "SUSTAINABILITY"';
-    if (form.role === "branch_owner") return 'Must answer "ENVIRONMENT"';
-    return "Any answer accepted";
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     playClick();
@@ -348,20 +342,13 @@ export default function SignupPage() {
                 <label className="block text-sm font-medium text-slate-300 mb-1">
                   What is your worklife focus?
                 </label>
-                <p className="text-xs text-amber-400 mb-2">{getWorklifeHint()}</p>
                 <input
                   type="text"
                   value={form.worklifeAnswer}
                   onChange={(e) => updateForm("worklifeAnswer", e.target.value)}
                   required
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors uppercase"
-                  placeholder={
-                    form.role === "company_owner"
-                      ? "SUSTAINABILITY"
-                      : form.role === "branch_owner"
-                      ? "ENVIRONMENT"
-                      : "Your answer"
-                  }
+                  placeholder="Enter your worklife focus"
                 />
               </div>
 
