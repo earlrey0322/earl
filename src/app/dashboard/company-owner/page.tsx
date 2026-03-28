@@ -22,18 +22,6 @@ interface Station {
   contactNumber: string | null;
 }
 
-interface UserData {
-  id: number;
-  email: string;
-  fullName: string;
-  role: string;
-  contactNumber: string | null;
-  address: string | null;
-  isSubscribed: boolean;
-  subscriptionExpiry: string | null;
-  createdAt: string;
-}
-
 interface Notification {
   id: number;
   recipientEmail: string;
@@ -52,7 +40,7 @@ interface CompanyUser {
   isSubscribed: boolean;
 }
 
-interface User {
+interface UserData {
   id: number;
   email: string;
   fullName: string;
@@ -77,7 +65,7 @@ function playClick() {
 }
 
 export default function CompanyOwnerDashboard() {
-  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [usersData, setUsersData] = useState<{
     totalUsers: number;
@@ -90,19 +78,37 @@ export default function CompanyOwnerDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "users" | "stations" | "subscription">("overview");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      apiFetch("/api/auth/me").then((r) => r.json()),
-      apiFetch("/api/stations").then((r) => r.json()),
-      apiFetch("/api/users").then((r) => r.json()),
-      apiFetch("/api/notifications").then((r) => r.json()),
-    ]).then(([userData, stationsData, usersDataRes, notifsData]) => {
-      if (userData.user) setUser(userData.user);
-      if (stationsData.stations) setStations(stationsData.stations);
-      if (usersDataRes.totalUsers !== undefined) setUsersData(usersDataRes);
-      if (notifsData.notifications) setNotifications(notifsData.notifications);
-    });
+    async function loadData() {
+      try {
+        const results = await Promise.allSettled([
+          apiFetch("/api/auth/me").then((r) => r.json()),
+          apiFetch("/api/stations").then((r) => r.json()),
+          apiFetch("/api/users").then((r) => r.json()),
+          apiFetch("/api/notifications").then((r) => r.json()),
+        ]);
+
+        const [meRes, stationsRes, usersRes, notifsRes] = results;
+
+        if (meRes.status === "fulfilled" && meRes.value.user) {
+          setUserData(meRes.value.user);
+        }
+        if (stationsRes.status === "fulfilled" && stationsRes.value.stations) {
+          setStations(stationsRes.value.stations);
+        }
+        if (usersRes.status === "fulfilled" && usersRes.value.totalUsers !== undefined) {
+          setUsersData(usersRes.value);
+        }
+        if (notifsRes.status === "fulfilled" && notifsRes.value.notifications) {
+          setNotifications(notifsRes.value.notifications);
+        }
+      } catch {
+        setError("Failed to load dashboard data");
+      }
+    }
+    loadData();
   }, []);
 
   async function toggleStationStatus(station: Station) {
@@ -136,12 +142,13 @@ export default function CompanyOwnerDashboard() {
     }
   }
 
-  function handleSubscribe() {
+  function handleRefresh() {
     apiFetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
-        if (data.user) setUser(data.user);
-      });
+        if (data.user) setUserData(data.user);
+      })
+      .catch(() => {});
   }
 
   const branchOwners = usersData?.users?.filter((u) => u.role === "branch_owner") || [];
@@ -150,15 +157,19 @@ export default function CompanyOwnerDashboard() {
   return (
     <DashboardShell title="Company Owner Dashboard">
       <div className="space-y-6">
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Welcome */}
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 via-orange-500/5 to-red-500/5">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">
-                KLEOXM 111 Management
-              </h2>
+              <h2 className="text-2xl font-bold text-white">KLEOXM 111 Management</h2>
               <p className="text-slate-400 mt-1">
-                Welcome back, {user?.fullName || "Company Owner"}. Monitor your entire PSPCS network.
+                Welcome back, {userData?.fullName || "Company Owner"}. Monitor your entire PSPCS network.
               </p>
             </div>
             <button
@@ -222,7 +233,6 @@ export default function CompanyOwnerDashboard() {
         {/* Overview Tab */}
         {activeTab === "overview" && (
           <div className="space-y-6 slide-in">
-            {/* Notifications */}
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-bold text-white mb-4">
                 Notifications ({notifications.filter((n) => !n.isRead).length} unread)
@@ -262,11 +272,10 @@ export default function CompanyOwnerDashboard() {
                 </div>
               )}
               <p className="text-xs text-slate-500 mt-3">
-                📧 All notifications are also sent to earlrey0322@gmail.com
+                All notifications are also sent to earlrey0322@gmail.com
               </p>
             </div>
 
-            {/* GCash Revenue */}
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-bold text-white mb-4">GCash Revenue</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -290,34 +299,25 @@ export default function CompanyOwnerDashboard() {
                   <div className="text-xs text-slate-500 mt-1">₱50/month each</div>
                 </div>
               </div>
-              <p className="text-xs text-slate-500 mt-4">
-                Payments are directed to GCash: 09469086926 (Earl Christian Rey) when users click upgrade.
-              </p>
             </div>
 
-            {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="glass-card rounded-2xl p-6">
                 <h3 className="font-bold text-white mb-4">Station Activity</h3>
                 <div className="space-y-3">
-                  {stations.slice(0, 5).map((station) => (
-                    <div
-                      key={station.id}
-                      className="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-2 h-2 rounded-full ${
-                            station.isActive ? "bg-green-400" : "bg-red-400"
-                          }`}
-                        />
-                        <span className="text-sm text-white">{station.name}</span>
+                  {stations.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">No stations yet. Click &quot;Load Sample Data&quot; to add some.</p>
+                  ) : (
+                    stations.slice(0, 5).map((station) => (
+                      <div key={station.id} className="flex items-center justify-between p-2 bg-slate-800/50 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${station.isActive ? "bg-green-400" : "bg-red-400"}`} />
+                          <span className="text-sm text-white">{station.name}</span>
+                        </div>
+                        <span className="text-xs text-slate-400">{station.totalSessions} sessions</span>
                       </div>
-                      <span className="text-xs text-slate-400">
-                        {station.totalSessions} sessions
-                      </span>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
               <div className="glass-card rounded-2xl p-6">
@@ -331,10 +331,7 @@ export default function CompanyOwnerDashboard() {
                     { label: "Final Output", value: "3.6VDC Rotary" },
                     { label: "Rate", value: "1 Peso = 5 Min" },
                   ].map((spec) => (
-                    <div
-                      key={spec.label}
-                      className="flex justify-between py-1 border-b border-slate-700/50"
-                    >
+                    <div key={spec.label} className="flex justify-between py-1 border-b border-slate-700/50">
                       <span className="text-slate-400">{spec.label}</span>
                       <span className="text-amber-400 font-medium">{spec.value}</span>
                     </div>
@@ -348,15 +345,10 @@ export default function CompanyOwnerDashboard() {
         {/* Users Tab */}
         {activeTab === "users" && (
           <div className="space-y-6 slide-in">
-            {/* Branch Owners */}
             <div className="glass-card rounded-2xl p-6">
-              <h3 className="font-bold text-white mb-4">
-                Branch Owners ({branchOwners.length})
-              </h3>
+              <h3 className="font-bold text-white mb-4">Branch Owners ({branchOwners.length})</h3>
               {branchOwners.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">
-                  No branch owners registered yet.
-                </p>
+                <p className="text-sm text-slate-400 text-center py-4">No branch owners registered yet.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -365,7 +357,6 @@ export default function CompanyOwnerDashboard() {
                         <th className="text-left py-2 text-slate-400 font-medium">Name</th>
                         <th className="text-left py-2 text-slate-400 font-medium">Email</th>
                         <th className="text-left py-2 text-slate-400 font-medium">Subscription</th>
-                        <th className="text-left py-2 text-slate-400 font-medium">Contact</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -374,17 +365,10 @@ export default function CompanyOwnerDashboard() {
                           <td className="py-3 text-white">{bo.fullName}</td>
                           <td className="py-3 text-slate-400">{bo.email}</td>
                           <td className="py-3">
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${
-                                bo.isSubscribed
-                                  ? "bg-amber-400/10 text-amber-400"
-                                  : "bg-slate-700 text-slate-400"
-                              }`}
-                            >
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${bo.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>
                               {bo.isSubscribed ? "★ Premium" : "Free"}
                             </span>
                           </td>
-                          <td className="py-3 text-slate-400">{(bo as CompanyUser & { contactNumber?: string }).contactNumber || "N/A"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -393,15 +377,10 @@ export default function CompanyOwnerDashboard() {
               )}
             </div>
 
-            {/* Customers */}
             <div className="glass-card rounded-2xl p-6">
-              <h3 className="font-bold text-white mb-4">
-                Customers ({customers.length})
-              </h3>
+              <h3 className="font-bold text-white mb-4">Customers ({customers.length})</h3>
               {customers.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">
-                  No customers registered yet.
-                </p>
+                <p className="text-sm text-slate-400 text-center py-4">No customers registered yet.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -418,13 +397,7 @@ export default function CompanyOwnerDashboard() {
                           <td className="py-3 text-white">{c.fullName}</td>
                           <td className="py-3 text-slate-400">{c.email}</td>
                           <td className="py-3">
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full ${
-                                c.isSubscribed
-                                  ? "bg-amber-400/10 text-amber-400"
-                                  : "bg-slate-700 text-slate-400"
-                              }`}
-                            >
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${c.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>
                               {c.isSubscribed ? "★ Premium" : "Free"}
                             </span>
                           </td>
@@ -447,51 +420,43 @@ export default function CompanyOwnerDashboard() {
               selectedId={selectedStation?.id}
               showAllBrands={true}
             />
-
-            {/* Manage Stations */}
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-bold text-white mb-4">Manage Stations</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {stations.map((station) => (
-                  <div key={station.id} className="bg-slate-800/50 rounded-xl p-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h4 className="font-bold text-white text-sm">{station.name}</h4>
-                        <p className="text-xs text-slate-400 mt-1">{station.address}</p>
-                        <p className="text-[10px] text-slate-500 mt-1">
-                          Brand: {station.brand} | {station.solarWatts}W
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <div
-                          className={`text-lg font-bold ${
-                            (station.batteryLevel || 0) > 50
-                              ? "text-green-400"
-                              : "text-amber-400"
-                          }`}
-                        >
-                          {station.batteryLevel || 0}%
+              {stations.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-4">No stations yet. Click &quot;Load Sample Data&quot; above.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {stations.map((station) => (
+                    <div key={station.id} className="bg-slate-800/50 rounded-xl p-4">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-bold text-white text-sm">{station.name}</h4>
+                          <p className="text-xs text-slate-400 mt-1">{station.address}</p>
+                          <p className="text-[10px] text-slate-500 mt-1">Brand: {station.brand} | {station.solarWatts}W</p>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-lg font-bold ${(station.batteryLevel || 0) > 50 ? "text-green-400" : "text-amber-400"}`}>
+                            {station.batteryLevel || 0}%
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
+                        <span className="text-[10px] text-slate-500">{station.totalSessions} sessions</span>
+                        <button
+                          onClick={() => toggleStationStatus(station)}
+                          className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all ${
+                            station.isActive
+                              ? "bg-green-400/10 text-green-400 hover:bg-green-400/20"
+                              : "bg-red-400/10 text-red-400 hover:bg-red-400/20"
+                          }`}
+                        >
+                          {station.isActive ? "Active" : "Inactive"}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
-                      <span className="text-[10px] text-slate-500">
-                        {station.totalSessions} sessions
-                      </span>
-                      <button
-                        onClick={() => toggleStationStatus(station)}
-                        className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all ${
-                          station.isActive
-                            ? "bg-green-400/10 text-green-400 hover:bg-green-400/20"
-                            : "bg-red-400/10 text-red-400 hover:bg-red-400/20"
-                        }`}
-                      >
-                        {station.isActive ? "Active" : "Inactive"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -502,12 +467,10 @@ export default function CompanyOwnerDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <SubscriptionCard
                 role="company_owner"
-                isSubscribed={user?.isSubscribed || false}
-                onSubscribe={handleSubscribe}
+                isSubscribed={userData?.isSubscribed || false}
+                onSubscribe={handleRefresh}
               />
-
               <div className="space-y-6">
-                {/* GCash Details */}
                 <div className="glass-card rounded-2xl p-6">
                   <h3 className="font-bold text-white mb-4">GCash Payment Details</h3>
                   <div className="space-y-3">
@@ -524,16 +487,7 @@ export default function CompanyOwnerDashboard() {
                       <span className="text-amber-400 font-bold">₱50.00</span>
                     </div>
                   </div>
-                  <div className="mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                    <p className="text-xs text-blue-400">
-                      When branch owners or customers click &quot;Upgrade&quot;, they are directed to GCash
-                      (09469086926) to pay ₱50/month. Once they confirm payment, their account is
-                      upgraded to Premium.
-                    </p>
-                  </div>
                 </div>
-
-                {/* Subscription Stats */}
                 <div className="glass-card rounded-2xl p-6">
                   <h3 className="font-bold text-white mb-4">Subscription Overview</h3>
                   <div className="space-y-4">
@@ -548,11 +502,7 @@ export default function CompanyOwnerDashboard() {
                         <div
                           className="h-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full transition-all"
                           style={{
-                            width: `${
-                              (usersData?.totalBranchOwners || 0) > 0
-                                ? ((usersData?.subscribedBranchOwners || 0) / (usersData?.totalBranchOwners || 1)) * 100
-                                : 0
-                            }%`,
+                            width: `${(usersData?.totalBranchOwners || 0) > 0 ? ((usersData?.subscribedBranchOwners || 0) / (usersData?.totalBranchOwners || 1)) * 100 : 0}%`,
                           }}
                         />
                       </div>
@@ -568,11 +518,7 @@ export default function CompanyOwnerDashboard() {
                         <div
                           className="h-2 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all"
                           style={{
-                            width: `${
-                              (usersData?.totalCustomers || 0) > 0
-                                ? ((usersData?.subscribedCustomers || 0) / (usersData?.totalCustomers || 1)) * 100
-                                : 0
-                            }%`,
+                            width: `${(usersData?.totalCustomers || 0) > 0 ? ((usersData?.subscribedCustomers || 0) / (usersData?.totalCustomers || 1)) * 100 : 0}%`,
                           }}
                         />
                       </div>

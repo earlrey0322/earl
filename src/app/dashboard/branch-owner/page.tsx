@@ -22,7 +22,7 @@ interface Station {
   contactNumber: string | null;
 }
 
-interface User {
+interface UserData {
   id: number;
   email: string;
   fullName: string;
@@ -66,7 +66,7 @@ function playSuccess() {
 }
 
 export default function BranchOwnerDashboard() {
-  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAddStation, setShowAddStation] = useState(false);
@@ -77,15 +77,27 @@ export default function BranchOwnerDashboard() {
     longitude: 120.9842,
     contactNumber: "",
   });
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      apiFetch("/api/auth/me").then((r) => r.json()),
-      apiFetch("/api/stations").then((r) => r.json()),
-    ]).then(([userData, stationsData]) => {
-      if (userData.user) setUser(userData.user);
-      if (stationsData.stations) setStations(stationsData.stations);
-    });
+    async function loadData() {
+      try {
+        const [meRes, stationsRes] = await Promise.allSettled([
+          apiFetch("/api/auth/me").then((r) => r.json()),
+          apiFetch("/api/stations").then((r) => r.json()),
+        ]);
+
+        if (meRes.status === "fulfilled" && meRes.value.user) {
+          setUserData(meRes.value.user);
+        }
+        if (stationsRes.status === "fulfilled" && stationsRes.value.stations) {
+          setStations(stationsRes.value.stations);
+        }
+      } catch {
+        setError("Failed to load dashboard data");
+      }
+    }
+    loadData();
   }, []);
 
   async function toggleStationStatus(station: Station) {
@@ -111,7 +123,7 @@ export default function BranchOwnerDashboard() {
         method: "POST",
         body: JSON.stringify({
           ...newStation,
-          contactNumber: newStation.contactNumber || user?.contactNumber,
+          contactNumber: newStation.contactNumber || userData?.contactNumber,
         }),
       });
       if (res.ok) {
@@ -132,24 +144,31 @@ export default function BranchOwnerDashboard() {
     }
   }
 
-  function handleSubscribe() {
+  function handleRefresh() {
     apiFetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
-        if (data.user) setUser(data.user);
-      });
+        if (data.user) setUserData(data.user);
+      })
+      .catch(() => {});
   }
 
-  const myStations = stations.filter((s) => s.ownerId === user?.id);
+  const myStations = stations.filter((s) => s.ownerId === userData?.id);
   const allPSPCS = stations.filter((s) => s.brand === "PSPCS" || s.name.includes("PSPCS"));
 
   return (
     <DashboardShell title="Branch Owner Dashboard">
       <div className="space-y-6">
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Welcome */}
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-green-400/10 to-emerald-500/5">
           <h2 className="text-2xl font-bold text-white">
-            Welcome, {user?.fullName || "Station Owner"}!
+            Welcome, {userData?.fullName || "Station Owner"}!
           </h2>
           <p className="text-slate-400 mt-1">
             Manage your PSPCS charging stations, add map markers, and monitor performance.
@@ -314,7 +333,7 @@ export default function BranchOwnerDashboard() {
             stations={allPSPCS}
             onSelect={(s: Station) => setSelectedStation(s)}
             selectedId={selectedStation?.id}
-            showAllBrands={user?.isSubscribed || false}
+            showAllBrands={userData?.isSubscribed || false}
           />
         </section>
 
@@ -324,8 +343,8 @@ export default function BranchOwnerDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <SubscriptionCard
               role="branch_owner"
-              isSubscribed={user?.isSubscribed || false}
-              onSubscribe={handleSubscribe}
+              isSubscribed={userData?.isSubscribed || false}
+              onSubscribe={handleRefresh}
             />
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-bold text-white mb-4">GCash Payment Info</h3>

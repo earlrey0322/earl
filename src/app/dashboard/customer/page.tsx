@@ -34,7 +34,7 @@ interface Session {
   createdAt: string;
 }
 
-interface User {
+interface UserData {
   id: number;
   email: string;
   fullName: string;
@@ -44,28 +44,42 @@ interface User {
 }
 
 export default function CustomerDashboard() {
-  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    Promise.all([
-      apiFetch("/api/auth/me").then((r) => r.json()),
-      apiFetch("/api/stations").then((r) => r.json()),
-      apiFetch("/api/sessions").then((r) => r.json()),
-    ]).then(([userData, stationsData, sessionsData]) => {
-      if (userData.user) setUser(userData.user);
-      if (stationsData.stations) {
-        const filtered = userData.user?.isSubscribed
-          ? stationsData.stations
-          : stationsData.stations.filter(
-              (s: Station) => s.brand === "PSPCS" || s.name.includes("PSPCS")
-            );
-        setStations(filtered);
+    async function loadData() {
+      try {
+        const [meRes, stationsRes, sessionsRes] = await Promise.allSettled([
+          apiFetch("/api/auth/me").then((r) => r.json()),
+          apiFetch("/api/stations").then((r) => r.json()),
+          apiFetch("/api/sessions").then((r) => r.json()),
+        ]);
+
+        if (meRes.status === "fulfilled" && meRes.value.user) {
+          setUserData(meRes.value.user);
+        }
+
+        if (stationsRes.status === "fulfilled" && stationsRes.value.stations) {
+          const user = meRes.status === "fulfilled" ? meRes.value.user : null;
+          const all = stationsRes.value.stations;
+          const filtered = user?.isSubscribed
+            ? all
+            : all.filter((s: Station) => s.brand === "PSPCS" || s.name.includes("PSPCS"));
+          setStations(filtered);
+        }
+
+        if (sessionsRes.status === "fulfilled" && sessionsRes.value.sessions) {
+          setSessions(sessionsRes.value.sessions);
+        }
+      } catch {
+        setError("Failed to load dashboard data");
       }
-      if (sessionsData.sessions) setSessions(sessionsData.sessions);
-    });
+    }
+    loadData();
   }, []);
 
   async function handleStartSession(data: {
@@ -93,21 +107,28 @@ export default function CustomerDashboard() {
     }
   }
 
-  function handleSubscribe() {
+  function handleRefresh() {
     apiFetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
-        if (data.user) setUser(data.user);
-      });
+        if (data.user) setUserData(data.user);
+      })
+      .catch(() => {});
   }
 
   return (
     <DashboardShell title="Customer Dashboard">
       <div className="space-y-6">
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Welcome */}
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 to-orange-500/5">
           <h2 className="text-2xl font-bold text-white">
-            Welcome, {user?.fullName || "Customer"}!
+            Welcome, {userData?.fullName || "Customer"}!
           </h2>
           <p className="text-slate-400 mt-1">
             Find PSPCS charging stations, calculate your charging cost, and start a session.
@@ -137,11 +158,11 @@ export default function CustomerDashboard() {
             stations={stations}
             onSelect={(s: Station) => setSelectedStation(s)}
             selectedId={selectedStation?.id}
-            showAllBrands={user?.isSubscribed || false}
+            showAllBrands={userData?.isSubscribed || false}
           />
         </section>
 
-        {/* Calculator & Selected Station */}
+        {/* Calculator & Recent Sessions */}
         <section id="sessions" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ChargingCalculator
             stationId={selectedStation?.id}
@@ -196,8 +217,8 @@ export default function CustomerDashboard() {
           <div className="max-w-md">
             <SubscriptionCard
               role="customer"
-              isSubscribed={user?.isSubscribed || false}
-              onSubscribe={handleSubscribe}
+              isSubscribed={userData?.isSubscribed || false}
+              onSubscribe={handleRefresh}
             />
           </div>
         </section>

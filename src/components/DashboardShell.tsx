@@ -32,34 +32,47 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     apiFetch("/api/auth/me")
-      .then((r) => {
-        if (!r.ok) throw new Error("Not authenticated");
-        return r.json();
-      })
+      .then((r) => r.json())
       .then((data) => {
-        if (data.user) setUser(data.user);
-        else router.push("/login");
+        if (cancelled) return;
+        if (data.user) {
+          setUser(data.user);
+        } else {
+          router.replace("/login");
+        }
       })
-      .catch(() => router.push("/login"));
+      .catch(() => {
+        if (cancelled) return;
+        router.replace("/login");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [router]);
 
   async function handleLogout() {
     playClick();
-    await apiFetch("/api/auth/me", { method: "POST" });
-    router.push("/");
+    try {
+      await apiFetch("/api/auth/me", { method: "POST" });
+    } catch {}
+    setUser(null);
+    router.replace("/login");
   }
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <svg className="w-8 h-8 animate-spin text-amber-400" viewBox="0 0 24 24" fill="none">
+        <div className="flex flex-col items-center gap-4">
+          <svg className="w-10 h-10 animate-spin text-amber-400" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
           </svg>
-          <span className="text-slate-400">Loading...</span>
+          <span className="text-slate-400 text-sm">Loading dashboard...</span>
         </div>
       </div>
     );
