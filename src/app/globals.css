@@ -1,1 +1,86 @@
 @import "tailwindcss";
+
+@theme {
+  --color-solar-gold: #f59e0b;
+  --color-solar-yellow: #fbbf24;
+  --color-solar-orange: #f97316;
+  --color-eco-green: #22c55e;
+  --color-eco-dark: #15803d;
+  --color-pspcs-blue: #3b82f6;
+  --color-pspcs-dark: #1e3a5f;
+  --color-dark-bg: #0f172a;
+  --color-dark-card: #1e293b;
+  --color-dark-border: #334155;
+  --color-dark-text: #e2e8f0;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background: var(--color-dark-bg);
+    color: var(--color-dark-text);
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-dark-bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-dark-border);
+    border-radius: 4px;
+  }
+}
+
+@layer utilities {
+  .solar-gradient {
+    background: linear-gradient(135deg, #f59e0b, #f97316, #ef4444);
+  }
+
+  .eco-gradient {
+    background: linear-gradient(135deg, #22c55e, #15803d);
+  }
+
+  .glass-card {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 65, 85, 0.5);
+  }
+
+  .glow-solar {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+
+  .pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+}

@@ -1,4 +1,4 @@
-# Technical Context: Next.js Starter Template
+# Technical Context: PSPCS Application
 
 ## Technology Stack
 
@@ -9,135 +9,87 @@
 | TypeScript   | 5.9.x   | Type-safe JavaScript            |
 | Tailwind CSS | 4.x     | Utility-first CSS               |
 | Bun          | Latest  | Package manager & runtime       |
+| Drizzle ORM  | 0.45.x  | Database ORM (SQLite)           |
+| bcryptjs     | 3.x     | Password hashing                |
+| jose         | 6.x     | JWT authentication              |
 
-## Development Environment
-
-### Prerequisites
-
-- Bun installed (`curl -fsSL https://bun.sh/install | bash`)
-- Node.js 20+ (for compatibility)
-
-### Commands
+## Development Commands
 
 ```bash
 bun install        # Install dependencies
-bun dev            # Start dev server (http://localhost:3000)
+bun dev            # Start dev server (auto-handled by sandbox)
 bun build          # Production build
 bun start          # Start production server
 bun lint           # Run ESLint
 bun typecheck      # Run TypeScript type checking
+bun db:generate    # Generate database migrations
+bun db:migrate     # Run migrations (sandbox handles automatically)
 ```
 
-## Project Configuration
+## Database Schema
 
-### Next.js Config (`next.config.ts`)
+### Tables
+- `users` - User accounts (customer, branch_owner, company_owner)
+- `charging_stations` - PSPCS station locations and status
+- `charging_sessions` - Individual charging sessions
+- `notifications` - Email notifications for company owner
 
-- App Router enabled
-- Default settings for flexibility
+## API Routes
 
-### TypeScript Config (`tsconfig.json`)
-
-- Strict mode enabled
-- Path alias: `@/*` → `src/*`
-- Target: ESNext
-
-### Tailwind CSS 4 (`postcss.config.mjs`)
-
-- Uses `@tailwindcss/postcss` plugin
-- CSS-first configuration (v4 style)
-
-### ESLint (`eslint.config.mjs`)
-
-- Uses `eslint-config-next`
-- Flat config format
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/auth/login` | POST | User login |
+| `/api/auth/signup` | POST | User registration with verification |
+| `/api/auth/me` | GET/POST | Get user info / Logout |
+| `/api/stations` | GET/POST/PATCH | Station CRUD |
+| `/api/sessions` | GET/POST/PATCH | Session management |
+| `/api/subscription` | GET/POST | GCash subscription |
+| `/api/notifications` | GET/PATCH | Notification management |
+| `/api/users` | GET | User list (company owner) |
+| `/api/seed` | POST | Load sample data |
 
 ## Key Dependencies
 
-### Production Dependencies
-
 ```json
 {
-  "next": "^16.1.3", // Framework
-  "react": "^19.2.3", // UI library
-  "react-dom": "^19.2.3" // React DOM
-}
-```
-
-### Dev Dependencies
-
-```json
-{
-  "typescript": "^5.9.3",
-  "@types/node": "^24.10.2",
-  "@types/react": "^19.2.7",
-  "@types/react-dom": "^19.2.3",
-  "@tailwindcss/postcss": "^4.1.17",
-  "tailwindcss": "^4.1.17",
-  "eslint": "^9.39.1",
-  "eslint-config-next": "^16.0.0"
+  "next": "^16.1.3",
+  "react": "^19.2.3",
+  "drizzle-orm": "^0.45.2",
+  "bcryptjs": "^3.0.3",
+  "jose": "^6.2.2"
 }
 ```
 
 ## File Structure
 
 ```
-/
-├── .gitignore              # Git ignore rules
-├── package.json            # Dependencies and scripts
-├── bun.lock                # Bun lockfile
-├── next.config.ts          # Next.js configuration
-├── tsconfig.json           # TypeScript configuration
-├── postcss.config.mjs      # PostCSS (Tailwind) config
-├── eslint.config.mjs       # ESLint configuration
-├── public/                 # Static assets
-│   └── .gitkeep
-└── src/                    # Source code
-    └── app/                # Next.js App Router
-        ├── layout.tsx      # Root layout
-        ├── page.tsx        # Home page
-        ├── globals.css     # Global styles
-        └── favicon.ico     # Site icon
+src/
+├── app/
+│   ├── page.tsx                    # Landing page
+│   ├── login/page.tsx              # Login
+│   ├── signup/page.tsx             # Signup (3-step)
+│   ├── dashboard/
+│   │   ├── customer/page.tsx       # Customer dashboard
+│   │   ├── branch-owner/page.tsx   # Branch owner dashboard
+│   │   └── company-owner/page.tsx  # Company owner dashboard
+│   └── api/                        # API routes
+├── components/
+│   ├── DashboardShell.tsx          # Dashboard layout
+│   ├── StationMap.tsx              # Map with markers
+│   ├── ChargingCalculator.tsx      # Cost calculator
+│   └── SubscriptionCard.tsx        # GCash subscription
+├── db/
+│   ├── schema.ts                   # Drizzle schema
+│   ├── index.ts                    # Database client
+│   └── migrations/                 # Auto-generated
+└── lib/
+    ├── auth.ts                     # JWT utilities
+    ├── charging.ts                 # Charging logic
+    └── sample-data.ts              # Sample stations
 ```
 
-## Technical Constraints
+## Environment Variables
 
-### Starting Point
-
-- Minimal structure - expand as needed
-- No database by default (use recipe to add)
-- No authentication by default (add when needed)
-
-### Browser Support
-
-- Modern browsers (ES2020+)
-- No IE11 support
-
-## Performance Considerations
-
-### Image Optimization
-
-- Use Next.js `Image` component for optimization
-- Place images in `public/` directory
-
-### Bundle Size
-
-- Tree-shaking enabled by default
-- Tailwind CSS purges unused styles
-
-### Core Web Vitals
-
-- Server Components reduce client JavaScript
-- Streaming and Suspense for better UX
-
-## Deployment
-
-### Build Output
-
-- Server-rendered pages by default
-- Can be configured for static export
-
-### Environment Variables
-
-- None required for base template
-- Add as needed for features
-- Use `.env.local` for local development
+- `DB_URL` - Database URL (auto-provided by sandbox)
+- `DB_TOKEN` - Database token (auto-provided by sandbox)
+- `JWT_SECRET` - JWT signing secret (has default fallback)

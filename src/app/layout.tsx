@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -7,14 +7,11 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Next.js Template",
-  description: "A minimal Next.js starter template",
+  title: "PSPCS - Powered Solar Piso Charging Station | KLEOXM 111",
+  description:
+    "KLEOXM 111's Powered Solar Piso Charging Station (PSPCS) - Solar-powered charging for all devices. 1 peso = 5 minutes. Find active stations, calculate charging costs, and subscribe for premium features.",
+  keywords: "solar charging, piso charging, KLEOXM 111, PSPCS, solar panel, charging station",
 };
 
 export default function RootLayout({
@@ -24,9 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} antialiased`}>
         {children}
       </body>
     </html>

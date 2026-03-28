@@ -1,120 +1,91 @@
-# System Patterns: Next.js Starter Template
+# System Patterns: PSPCS Application
 
 ## Architecture Overview
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx          # Root layout + metadata
-│   ├── page.tsx            # Home page
-│   ├── globals.css         # Tailwind imports + global styles
-│   └── favicon.ico         # Site icon
-└── (expand as needed)
-    ├── components/         # React components (add when needed)
-    ├── lib/                # Utilities and helpers (add when needed)
-    └── db/                 # Database files (add via recipe)
+├── app/
+│   ├── page.tsx                    # Landing page
+│   ├── login/page.tsx              # Login
+│   ├── signup/page.tsx             # Signup (3-step)
+│   ├── dashboard/
+│   │   ├── customer/page.tsx       # Customer dashboard
+│   │   ├── branch-owner/page.tsx   # Branch owner dashboard
+│   │   └── company-owner/page.tsx  # Company owner dashboard
+│   └── api/
+│       ├── auth/login/route.ts     # Login API
+│       ├── auth/signup/route.ts    # Signup API
+│       ├── auth/me/route.ts        # Session + Logout
+│       ├── stations/route.ts       # Station CRUD
+│       ├── sessions/route.ts       # Session CRUD
+│       ├── subscription/route.ts   # GCash subscription
+│       ├── notifications/route.ts  # Notifications
+│       ├── users/route.ts          # User list
+│       └── seed/route.ts           # Sample data
+├── components/
+│   ├── DashboardShell.tsx          # Shared dashboard layout
+│   ├── StationMap.tsx              # Map with markers
+│   ├── ChargingCalculator.tsx      # Cost calculator
+│   └── SubscriptionCard.tsx        # GCash subscription
+├── db/
+│   ├── schema.ts                   # Drizzle schema
+│   ├── index.ts                    # Lazy DB client
+│   └── migrations/                 # Auto-generated SQL
+└── lib/
+    ├── auth.ts                     # JWT utilities
+    ├── api-auth.ts                 # API route auth helper
+    ├── charging.ts                 # Charging calculation
+    └── sample-data.ts              # Sample stations
 ```
 
 ## Key Design Patterns
 
-### 1. App Router Pattern
+### 1. Role-Based Access Control
+Three roles with different dashboards:
+- `customer` → `/dashboard/customer`
+- `branch_owner` → `/dashboard/branch-owner`
+- `company_owner` → `/dashboard/company-owner`
 
-Uses Next.js App Router with file-based routing:
-```
-src/app/
-├── page.tsx           # Route: /
-├── about/page.tsx     # Route: /about
-├── blog/
-│   ├── page.tsx       # Route: /blog
-│   └── [slug]/page.tsx # Route: /blog/:slug
-└── api/
-    └── route.ts       # API Route: /api
-```
+### 2. JWT Authentication
+- Token stored in httpOnly cookie
+- Verified in API routes via `getAuthUser()`
+- 7-day expiration
 
-### 2. Component Organization Pattern (When Expanding)
+### 3. Worklife Verification
+Signup validates worklife answer based on role:
+- Company Owner: "SUSTAINABILITY"
+- Branch Owner: "ENVIRONMENT"
+- Customer: any
 
-```
-src/components/
-├── ui/                # Reusable UI components (Button, Card, etc.)
-├── layout/            # Layout components (Header, Footer)
-├── sections/          # Page sections (Hero, Features, etc.)
-└── forms/             # Form components
-```
-
-### 3. Server Components by Default
-
-All components are Server Components unless marked with `"use client"`:
-```tsx
-// Server Component (default) - can fetch data, access DB
-export default function Page() {
-  return <div>Server rendered</div>;
-}
-
-// Client Component - for interactivity
-"use client";
-export default function Counter() {
-  const [count, setCount] = useState(0);
-  return <button onClick={() => setCount(c => c + 1)}>{count}</button>;
-}
+### 4. Lazy Database
+Database client uses Proxy pattern to defer initialization:
+```typescript
+export const db = new Proxy({} as ReturnType<typeof createDatabase>, {
+  get(_target, prop) {
+    const database = getDb();
+    return Reflect.get(database, prop);
+  },
+});
 ```
 
-### 4. Layout Pattern
-
-Layouts wrap pages and can be nested:
-```tsx
-// src/app/layout.tsx - Root layout
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}
-
-// src/app/dashboard/layout.tsx - Nested layout
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex">
-      <Sidebar />
-      <main>{children}</main>
-    </div>
-  );
-}
-```
+### 5. Sound Effects
+Web Audio API for UI feedback:
+- Click: 800Hz sine tone (0.15s)
+- Success: 523-659-784Hz ascending arpeggio
+- Error: 200Hz sawtooth (0.4s)
+- Calculator: 1200Hz short sine
 
 ## Styling Conventions
 
-### Tailwind CSS Usage
-- Utility classes directly on elements
-- Component composition for repeated patterns
-- Responsive: `sm:`, `md:`, `lg:`, `xl:`
+- Dark theme: `#0f172a` background, `#1e293b` cards
+- Accent: Amber/orange gradient for solar feel
+- Green for active/success states
+- Glass morphism cards: `glass-card` utility class
+- Animations: `slide-in`, `float`, `pulse-slow`
 
-### Common Patterns
-```tsx
-// Container
-<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+## File Naming
 
-// Responsive grid
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-// Flexbox centering
-<div className="flex items-center justify-center">
-```
-
-## File Naming Conventions
-
-- Components: PascalCase (`Button.tsx`, `Header.tsx`)
-- Utilities: camelCase (`utils.ts`, `helpers.ts`)
-- Pages/Routes: lowercase (`page.tsx`, `layout.tsx`)
-- Directories: kebab-case (`api-routes/`) or lowercase (`components/`)
-
-## State Management
-
-For simple needs:
-- `useState` for local component state
-- `useContext` for shared state
-- Server Components for data fetching
-
-For complex needs (add when necessary):
-- Zustand for client state
-- React Query for server state
+- Pages: `page.tsx` (lowercase)
+- Components: PascalCase (`StationMap.tsx`)
+- API routes: `route.ts`
+- Utilities: camelCase (`charging.ts`)

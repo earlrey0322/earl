@@ -1,48 +1,58 @@
-# Project Brief: Next.js Starter Template
+# Project Brief: PSPCS - Powered Solar Piso Charging Station
 
 ## Purpose
 
-This is a minimal Next.js starter template designed for AI-assisted development. It provides a clean foundation that can be extended to build any type of web application through interaction with an AI assistant.
+A comprehensive web application for KLEOXM 111's Powered Solar Piso Charging Station (PSPCS) business. The app enables customers to find charging stations, calculate charging costs, and subscribe to premium features. It also provides management tools for station owners and the company owner.
 
 ## Target Users
 
-- Developers wanting a clean Next.js starting point
-- Users building applications through AI-assisted coding
-- Teams needing a standardized, modern Next.js setup
+- **Customers**: People who want to charge their phones at PSPCS stations
+- **Branch/Station Owners**: Individuals who own PSPCS charging stations
+- **Company Owners**: KLEOXM 111 management team
 
 ## Core Use Case
 
-Users describe what they want to build to an AI assistant, which then expands this template by:
-
-1. Adding components and pages as needed
-2. Installing additional dependencies
-3. Setting up databases, authentication, etc. using recipes
-4. Customizing styling and branding
+1. Customers find nearby PSPCS stations on a map
+2. They calculate how much it costs to charge their phone (battery % to 100%)
+3. Station owners manage their stations (add, activate/deactivate, monitor)
+4. Company owner sees all users, stations, subscriptions, and revenue
 
 ## Key Requirements
 
 ### Must Have
+- Three-role authentication (Customer, Branch Owner, Company Owner)
+- Worklife verification during signup
+- Charging station map with markers
+- Charging calculator (1 peso = 5 minutes)
+- GCash subscription (₱50/month to 09469086926)
+- Email notification to earlrey0322@gmail.com on new accounts
+- Sound effects for UI interactions
 
-- Modern Next.js 16 setup with App Router
-- TypeScript for type safety
-- Tailwind CSS 4 for styling
-- ESLint for code quality
-- Clean, minimal starting structure
-- Bun as package manager
+### Technical Specs
+- Solar Panel with Rectifier Bridge-type Diode
+- DC Voltage for Battery Charging
+- Inverter Output: 220VAC
+- Converter Transformer: 12VAC
+- Final Output: 3.6VDC Rotary (charges all phone types)
+- Rate: 1 Peso = 5 Minutes
 
-### Nice to Have
-
-- Recipe system for common additions (database, auth)
-- Memory bank for AI context persistence
-- Clear development guidelines
+### Account Verification
+- Company Owner must answer "SUSTAINABILITY"
+- Branch Owner must answer "ENVIRONMENT"
+- Customer can answer anything
 
 ## Success Metrics
 
 - Clean, zero-error TypeScript setup
 - Passing lint and type checks
+- Working authentication flow
+- Functional charging calculator
+- Subscription system with GCash integration
 
 ## Constraints
 
-- Minimal dependencies by default
 - Framework: Next.js 16 + React 19 + Tailwind CSS 4
+- Database: SQLite with Drizzle ORM
 - Package manager: Bun
+- GCash payment: 09469086926 (Earl Christian Rey)
+- Company email: earlrey0322@gmail.com
