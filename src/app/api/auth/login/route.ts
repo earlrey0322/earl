@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { store } from "@/lib/store";
 import { createToken } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -11,43 +8,24 @@ export async function POST(request: Request) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
-    const user = await db.select().from(users).where(eq(users.email, email));
-    if (user.length === 0) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+    const user = store.findUserByEmail(email);
+    if (!user) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
-    const validPassword = await bcrypt.compare(password, user[0].password);
-    if (!validPassword) {
-      return NextResponse.json(
-        { error: "Invalid email or password" },
-        { status: 401 }
-      );
+    const valid = await store.verifyPassword(password, user.password);
+    if (!valid) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
-    const token = await createToken({
-      userId: user[0].id,
-      email: user[0].email,
-      role: user[0].role,
-    });
+    const token = await createToken({ userId: user.id, email: user.email, role: user.role });
 
     const response = NextResponse.json({
       success: true,
-      user: {
-        id: user[0].id,
-        email: user[0].email,
-        fullName: user[0].fullName,
-        role: user[0].role,
-        isSubscribed: user[0].isSubscribed,
-      },
+      user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role, isSubscribed: user.isSubscribed },
     });
 
     response.cookies.set("auth_token", token, {
@@ -61,9 +39,6 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     console.error("Login error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

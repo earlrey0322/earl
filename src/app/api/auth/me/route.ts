@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { store } from "@/lib/store";
 import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
@@ -11,35 +9,30 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await db
-      .select({
-        id: users.id,
-        email: users.email,
-        fullName: users.fullName,
-        role: users.role,
-        phoneBrand: users.phoneBrand,
-        phoneBattery: users.phoneBattery,
-        contactNumber: users.contactNumber,
-        address: users.address,
-        isSubscribed: users.isSubscribed,
-        subscriptionExpiry: users.subscriptionExpiry,
-        gcashNumber: users.gcashNumber,
-        createdAt: users.createdAt,
-      })
-      .from(users)
-      .where(eq(users.id, auth.userId));
-
-    if (user.length === 0) {
+    const user = store.findUserById(auth.userId);
+    if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ user: user[0] });
+    return NextResponse.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        phoneBrand: user.phoneBrand,
+        phoneBattery: user.phoneBattery,
+        contactNumber: user.contactNumber,
+        address: user.address,
+        isSubscribed: user.isSubscribed,
+        subscriptionExpiry: user.subscriptionExpiry,
+        gcashNumber: user.gcashNumber,
+        createdAt: user.createdAt,
+      },
+    });
   } catch (error) {
     console.error("Me error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 

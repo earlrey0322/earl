@@ -1,20 +1,26 @@
 import { createDatabase } from "@kilocode/app-builder-db";
 import * as schema from "./schema";
 
-// Lazy database initialization to avoid build-time errors
 let _db: ReturnType<typeof createDatabase> | null = null;
+let _dbFailed = false;
 
 export function getDb() {
-  if (!_db) {
+  if (_dbFailed) throw new Error("Database unavailable");
+  if (_db) return _db;
+  try {
     _db = createDatabase(schema);
+    return _db;
+  } catch (e) {
+    _dbFailed = true;
+    throw e;
   }
-  return _db;
 }
 
-// Proxy to allow lazy access via `db` import
 export const db = new Proxy({} as ReturnType<typeof createDatabase>, {
   get(_target, prop) {
     const database = getDb();
-    return Reflect.get(database, prop);
+    const val = Reflect.get(database, prop);
+    if (typeof val === "function") return val.bind(database);
+    return val;
   },
 });
