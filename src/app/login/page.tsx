@@ -85,16 +85,16 @@ export default function LoginPage() {
 
       playSuccess();
 
-      // Redirect based on role
+      // Redirect based on role (full reload to ensure cookie is set)
       switch (data.user.role) {
         case "company_owner":
-          router.push("/dashboard/company-owner");
+          window.location.href = "/dashboard/company-owner";
           break;
         case "branch_owner":
-          router.push("/dashboard/branch-owner");
+          window.location.href = "/dashboard/branch-owner";
           break;
         default:
-          router.push("/dashboard/customer");
+          window.location.href = "/dashboard/customer";
       }
     } catch {
       playError();

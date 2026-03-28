@@ -129,20 +129,19 @@ export default function SignupPage() {
 
       playSuccess();
 
-      // Notify about email notification
       alert(
         `Account created successfully! A notification has been sent to earlrey0322@gmail.com.\n\nWelcome to PSPCS by KLEOXM 111!`
       );
 
       switch (data.user.role) {
         case "company_owner":
-          router.push("/dashboard/company-owner");
+          window.location.href = "/dashboard/company-owner";
           break;
         case "branch_owner":
-          router.push("/dashboard/branch-owner");
+          window.location.href = "/dashboard/branch-owner";
           break;
         default:
-          router.push("/dashboard/customer");
+          window.location.href = "/dashboard/customer";
       }
     } catch {
       playError();

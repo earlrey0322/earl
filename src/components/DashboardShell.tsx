@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface User {
@@ -29,43 +28,43 @@ function playClick() {
 }
 
 export function DashboardShell({ children, title }: { children: React.ReactNode; title: string }) {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+
     apiFetch("/api/auth/me")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Not authenticated");
+        return r.json();
+      })
       .then((data) => {
-        if (cancelled) return;
         if (data.user) {
           setUser(data.user);
         } else {
-          router.replace("/login");
+          window.location.href = "/login";
         }
       })
       .catch(() => {
-        if (cancelled) return;
-        router.replace("/login");
+        window.location.href = "/login";
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       });
-    return () => { cancelled = true; };
-  }, [router]);
+  }, []);
 
-  async function handleLogout() {
+  function handleLogout() {
     playClick();
-    try {
-      await apiFetch("/api/auth/me", { method: "POST" });
-    } catch {}
-    setUser(null);
-    router.replace("/login");
+    apiFetch("/api/auth/me", { method: "POST" }).catch(() => {});
+    document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    window.location.href = "/login";
   }
 
-  if (loading || !user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -76,6 +75,10 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
         </div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   const roleLabels: Record<string, string> = {
