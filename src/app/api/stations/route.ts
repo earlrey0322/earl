@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStations, addStation, updateStation, deleteStation, findUserById } from "@/lib/database";
+import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
 function toStation(s: any) {
@@ -16,9 +16,17 @@ function toStation(s: any) {
 export async function GET() {
   try {
     const auth = await getAuthUser();
-    const stations = getStations();
-    const result = (auth?.role === "company_owner") ? stations : stations.filter((s: any) => s.company_name === "KLEOXM 111");
-    return NextResponse.json({ stations: result.map(toStation) });
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "Database not set up" });
+
+    let query = supabase.from("charging_stations").select("*").order("id");
+    if (!auth || auth.role !== "company_owner") {
+      query = query.eq("company_name", "KLEOXM 111");
+    }
+
+    const { data, error } = await query;
+    if (error) return NextResponse.json({ error: error.message });
+    return NextResponse.json({ stations: (data || []).map(toStation) });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
   }
@@ -34,19 +42,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Name, address, latitude, longitude required" });
     }
 
-    const user = findUserById(auth.id);
-    const station = addStation({
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "Database not set up" });
+
+    // Get owner name
+    const { data: profile } = await supabase.from("users").select("full_name").eq("id", auth.id).single();
+
+    const { data, error } = await supabase.from("charging_stations").insert({
       name: body.name.trim(),
       company_name: auth.role === "company_owner" ? (body.company || "KLEOXM 111") : "KLEOXM 111",
-      brand: "PSPCS", owner_id: auth.id, owner_name: user?.full_name || "Unknown",
-      latitude: Number(body.latitude), longitude: Number(body.longitude),
-      location: (body.location || "").trim(), address: body.address.trim(),
-      is_active: body.active !== false, solar_watts: 50, battery_level: 100, total_visits: 0, revenue: 0,
-      cable_type_c: Number(body.cableTypeC) || 0, cable_iphone: Number(body.cableIPhone) || 0,
-      cable_universal: Number(body.cableUniversal) || 0, outlets: Number(body.outlets) || 1,
-    });
+      brand: "PSPCS",
+      owner_id: auth.id,
+      owner_name: profile?.full_name || "Unknown",
+      latitude: Number(body.latitude),
+      longitude: Number(body.longitude),
+      location: (body.location || "").trim(),
+      address: body.address.trim(),
+      is_active: body.active !== false,
+      solar_watts: 50,
+      battery_level: 100,
+      total_visits: 0,
+      cable_type_c: Number(body.cableTypeC) || 0,
+      cable_iphone: Number(body.cableIPhone) || 0,
+      cable_universal: Number(body.cableUniversal) || 0,
+      outlets: Number(body.outlets) || 1,
+    }).select().single();
 
-    return NextResponse.json({ success: true, station: toStation(station) });
+    if (error) return NextResponse.json({ error: error.message });
+    return NextResponse.json({ success: true, station: toStation(data) });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
   }
@@ -60,23 +83,22 @@ export async function PATCH(req: Request) {
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: "ID required" });
 
-    const stations = getStations();
-    const station = stations.find((s: any) => s.id === body.id);
-    if (!station) return NextResponse.json({ error: "Not found" });
-    if (auth.role !== "company_owner" && station.owner_id !== auth.id) return NextResponse.json({ error: "Not your station" });
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
-    const data: any = {};
-    if (body.active !== undefined) data.is_active = body.active;
-    if (body.name) data.name = body.name;
-    if (body.address) data.address = body.address;
-    if (body.location !== undefined) data.location = body.location;
-    if (body.company && auth.role === "company_owner") data.company_name = body.company;
-    if (body.cableTypeC !== undefined) data.cable_type_c = Number(body.cableTypeC);
-    if (body.cableIPhone !== undefined) data.cable_iphone = Number(body.cableIPhone);
-    if (body.cableUniversal !== undefined) data.cable_universal = Number(body.cableUniversal);
-    if (body.outlets !== undefined) data.outlets = Number(body.outlets);
+    const updateData: any = {};
+    if (body.active !== undefined) updateData.is_active = body.active;
+    if (body.name) updateData.name = body.name;
+    if (body.address) updateData.address = body.address;
+    if (body.location !== undefined) updateData.location = body.location;
+    if (body.company && auth.role === "company_owner") updateData.company_name = body.company;
+    if (body.cableTypeC !== undefined) updateData.cable_type_c = Number(body.cableTypeC);
+    if (body.cableIPhone !== undefined) updateData.cable_iphone = Number(body.cableIPhone);
+    if (body.cableUniversal !== undefined) updateData.cable_universal = Number(body.cableUniversal);
+    if (body.outlets !== undefined) updateData.outlets = Number(body.outlets);
 
-    updateStation(body.id, data);
+    const { error } = await supabase.from("charging_stations").update(updateData).eq("id", body.id);
+    if (error) return NextResponse.json({ error: error.message });
     return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
@@ -91,12 +113,11 @@ export async function DELETE(req: Request) {
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: "ID required" });
 
-    const stations = getStations();
-    const station = stations.find((s: any) => s.id === body.id);
-    if (!station) return NextResponse.json({ error: "Not found" });
-    if (auth.role !== "company_owner" && station.owner_id !== auth.id) return NextResponse.json({ error: "Not your station" });
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
-    deleteStation(body.id);
+    const { error } = await supabase.from("charging_stations").delete().eq("id", body.id);
+    if (error) return NextResponse.json({ error: error.message });
     return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
