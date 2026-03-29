@@ -1,60 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-
-function playClick() {
-  try {
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 800;
-    osc.type = "sine";
-    gain.gain.setValueAtTime(0.1, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.15);
-  } catch {}
-}
-
-function playSuccess() {
-  try {
-    const ctx = new AudioContext();
-    [523, 659, 784].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = freq;
-      osc.type = "sine";
-      gain.gain.setValueAtTime(0.08, ctx.currentTime + i * 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.3);
-      osc.start(ctx.currentTime + i * 0.15);
-      osc.stop(ctx.currentTime + i * 0.15 + 0.3);
-    });
-  } catch {}
-}
-
-function playError() {
-  try {
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 200;
-    osc.type = "sawtooth";
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.4);
-  } catch {}
-}
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -62,7 +10,6 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    playClick();
     setError("");
     setLoading(true);
 
@@ -77,27 +24,18 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        playError();
         setError(data.error || "Login failed");
         setLoading(false);
         return;
       }
 
-      playSuccess();
+      // Full page reload to dashboard based on role
+      let url = "/dashboard/customer";
+      if (data.user.role === "company_owner") url = "/dashboard/company-owner";
+      else if (data.user.role === "branch_owner") url = "/dashboard/branch-owner";
 
-      // Redirect based on role (full reload to ensure cookie is set)
-      switch (data.user.role) {
-        case "company_owner":
-          window.location.href = "/dashboard/company-owner";
-          break;
-        case "branch_owner":
-          window.location.href = "/dashboard/branch-owner";
-          break;
-        default:
-          window.location.href = "/dashboard/customer";
-      }
-    } catch {
-      playError();
+      window.location.href = url;
+    } catch (err) {
       setError("Network error. Please try again.");
       setLoading(false);
     }
@@ -106,35 +44,15 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <svg className="w-16 h-16 mx-auto mb-4" viewBox="0 0 64 64" fill="none">
-            <circle cx="32" cy="32" r="14" fill="url(#lgGrad)" />
-            {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
-              <line
-                key={deg}
-                x1="32"
-                y1="4"
-                x2="32"
-                y2="12"
-                stroke="#f59e0b"
-                strokeWidth="3"
-                strokeLinecap="round"
-                transform={`rotate(${deg} 32 32)`}
-              />
-            ))}
-            <defs>
-              <radialGradient id="lgGrad" cx="50%" cy="50%">
-                <stop offset="0%" stopColor="#fbbf24" />
-                <stop offset="100%" stopColor="#f59e0b" />
-              </radialGradient>
-            </defs>
-          </svg>
-          <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
-          <p className="text-slate-400 text-sm mt-1">Log in to your PSPCS account</p>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+            <span className="text-2xl font-bold text-[#0f172a]">K</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white">KLEOXM 111</h1>
+          <p className="text-amber-400 text-sm">Powered Solar Piso Charging Station</p>
+          <p className="text-slate-400 text-sm mt-2">Log in to your account</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleLogin} className="glass-card rounded-2xl p-8 space-y-5" suppressHydrationWarning>
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-400 text-sm">
@@ -150,7 +68,8 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               suppressHydrationWarning
-              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+              autoComplete="email"
+              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
               placeholder="your@email.com"
             />
           </div>
@@ -163,8 +82,9 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               suppressHydrationWarning
-              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
-              placeholder="••••••••"
+              autoComplete="current-password"
+              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              placeholder="Enter your password"
             />
           </div>
 
@@ -172,37 +92,28 @@ export default function LoginPage() {
             type="submit"
             disabled={loading}
             suppressHydrationWarning
-            className="w-full py-3 text-lg font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg hover:shadow-lg hover:shadow-amber-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 text-lg font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
 
           <p className="text-center text-sm text-slate-400">
             Don&apos;t have an account?{" "}
-            <button
-              type="button"
-              onClick={() => {
-                playClick();
-                router.push("/signup");
-              }}
-              suppressHydrationWarning
-              className="text-amber-400 hover:underline"
-            >
+            <a href="/signup" className="text-amber-400 hover:underline">
               Sign Up
-            </button>
+            </a>
           </p>
         </form>
 
-        <button
-          onClick={() => {
-            playClick();
-            router.push("/");
-          }}
-          suppressHydrationWarning
-          className="mt-6 w-full text-center text-sm text-slate-500 hover:text-slate-300 transition-colors"
-        >
+        <a href="/" className="mt-6 block text-center text-sm text-slate-500 hover:text-slate-300">
           Back to Home
-        </button>
+        </a>
+
+        {/* Company Info */}
+        <div className="mt-8 text-center text-xs text-slate-600 space-y-1">
+          <p>KLEOXM 111 — Powered Solar Piso Charging Station</p>
+          <p>Contact: 09469086926 | earlrey0322@gmail.com</p>
+        </div>
       </div>
     </main>
   );
