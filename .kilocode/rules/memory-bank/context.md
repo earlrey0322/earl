@@ -29,6 +29,14 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Branch-owner dashboard subscription request UI with plan selector
 - [x] Company owner dashboard subscription requests timeline with approve/reject buttons
 - [x] Added subscription_expiry and subscription_requests table to Supabase schema
+- [x] Monthly payments API (/api/monthly-payments) for branch owner/other branch
+- [x] Branch owner dashboard shows monthly payment request UI (₱200/month)
+- [x] Other branch role added to signup with worklife answer "DEVELOPMENT"
+- [x] Company owner dashboard shows monthly payment requests with "Set Premium" button
+- [x] Subscription timer display on customer/branch-owner dashboards
+- [x] Revenue tracking for subscription + monthly payments only
+- [x] Station add blocked until monthly payment approved
+- [x] Added better error logging and handling for subscription/monthly payment requests
 
 ## Current Structure
 
@@ -117,3 +125,7 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Subscription pricing: 1 Day ₱20, 1 Week ₱50, 1 Month ₱100, 3 Months ₱170, 6 Months ₱220, 1 Year ₱300 |
 | 2026-03-29 | Added contact number field to company owner add station form |
 | 2026-03-29 | Updated /api/users to read from Supabase (was using old globalThis._u) |
+| 2026-03-29 | Fixed branch owner dashboard stats to show only My Stations + Active Stations |
+| 2026-03-29 | Changed "Approve" button to "Set Premium" for monthly payments |
+| 2026-03-29 | Added better error logging to subscription-requests and monthly-payments API routes |
+| 2026-03-29 | Improved error handling in customer, branch owner, and company owner dashboards |
