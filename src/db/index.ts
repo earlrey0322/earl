@@ -7,6 +7,10 @@ let _dbFailed = false;
 export function getDb() {
   if (_dbFailed) throw new Error("Database unavailable");
   if (_db) return _db;
+  if (!process.env.DB_URL || !process.env.DB_TOKEN) {
+    _dbFailed = true;
+    throw new Error("Database unavailable: DB_URL and DB_TOKEN not set");
+  }
   try {
     _db = createDatabase(schema);
     return _db;
