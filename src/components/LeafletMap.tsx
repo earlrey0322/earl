@@ -23,13 +23,30 @@ function getMarkerBorderColor(s: Station): string {
   return "#ef4444";
 }
 
-function createIcon(color: string, borderColor: string) {
+function createIcon(s: Station) {
+  const color = getMarkerColor(s);
+  const borderColor = getMarkerBorderColor(s);
+  const statusDot = s.isActive ? "#22c55e" : "#ef4444";
+  const shortName = s.name.length > 20 ? s.name.slice(0, 18) + "..." : s.name;
+
   return L.divIcon({
     className: "",
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-    html: `<div style="width:28px;height:28px;background:${color};border:3px solid ${borderColor};border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
+    iconSize: [140, 60],
+    iconAnchor: [70, 60],
+    popupAnchor: [0, -60],
+    html: `
+      <div style="display:flex;flex-direction:column;align-items:center;pointer-events:auto;cursor:pointer">
+        <div style="background:#1e293b;border:2px solid ${color};border-radius:10px;padding:4px 10px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:4px">
+            <span style="width:8px;height:8px;border-radius:50%;background:${statusDot};display:inline-block;flex-shrink:0"></span>
+            <span style="font-size:11px;font-weight:700;color:white;font-family:system-ui">${shortName}</span>
+          </div>
+          <div style="font-size:9px;color:${color};font-family:system-ui;margin-top:1px">${s.companyName}</div>
+        </div>
+        <div style="width:24px;height:24px;background:${color};border:3px solid ${borderColor};border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>
+        <div style="width:6px;height:6px;background:rgba(0,0,0,0.3);border-radius:50%;margin-top:-2px"></div>
+      </div>
+    `,
   });
 }
 
@@ -73,9 +90,7 @@ export default function LeafletMap({
     markersRef.current = [];
 
     validStations.forEach((s) => {
-      const color = getMarkerColor(s);
-      const borderColor = getMarkerBorderColor(s);
-      const icon = createIcon(color, borderColor);
+      const icon = createIcon(s);
 
       const marker = L.marker([s.latitude, s.longitude], { icon })
         .addTo(map)
