@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStore } from "@/lib/data";
+import { getStore, persistData } from "@/lib/data";
 import { getAuthUser } from "@/lib/api-auth";
 
 function transformStation(s: any) {
@@ -59,6 +59,7 @@ export async function POST(req: Request) {
       uv: Number(body.cableUniversal) || 0, out: Number(body.outlets) || 1,
     };
     stations.push(station);
+    persistData();
     return NextResponse.json({ success: true, station: transformStation(station) });
   } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }); }
 }
@@ -82,6 +83,7 @@ export async function PATCH(req: Request) {
     if (body.cableIPhone !== undefined) s.ip = Number(body.cableIPhone);
     if (body.cableUniversal !== undefined) s.uv = Number(body.cableUniversal);
     if (body.outlets !== undefined) s.out = Number(body.outlets);
+    persistData();
     return NextResponse.json({ success: true });
   } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }); }
 }
@@ -98,6 +100,7 @@ export async function DELETE(req: Request) {
     if (auth.role !== "company_owner" && s.ownerId !== auth.id) return NextResponse.json({ error: "Can only delete your own" }, { status: 403 });
     const idx = stations.indexOf(s);
     stations.splice(idx, 1);
+    persistData();
     return NextResponse.json({ success: true });
   } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }); }
 }

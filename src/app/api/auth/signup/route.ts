@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getStore } from "@/lib/data";
+import { getStore, persistData } from "@/lib/data";
 
 export async function POST(req: Request) {
   try {
@@ -19,6 +19,7 @@ export async function POST(req: Request) {
 
     const user = { id: uid(), email: email.trim(), password, fullName: fullName.trim(), role, phoneBrand: phoneBrand || null, contactNumber: contactNumber || null, address: address || null, isSubscribed: false, subPlan: null, subExpiry: null };
     users.push(user);
+    persistData();
 
     // Store notification for company owner
     const G = globalThis as any;
