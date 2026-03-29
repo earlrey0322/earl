@@ -21,7 +21,7 @@ interface HistoryItem {
 
 interface Notification { id: number; subject: string; message: string; type: string; isRead: boolean; }
 
-interface SubscriptionRequest { id: number; user_id: number; user_email: string; user_name: string; user_role: string; plan: string; status: string; created_at: string; }
+interface SubscriptionRequest { id: number; user_id: number; user_email: string; user_name: string; user_role: string; plan: string; status: string; reference_number: string; created_at: string; }
 
 interface CompanyUser { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionPlan: string | null; }
 
@@ -38,6 +38,9 @@ export default function CompanyOwnerDashboard() {
   const [usersData, setUsersData] = useState<{ totalUsers: number; totalBranchOwners: number; totalCustomers: number; subscribedBranchOwners: number; subscribedCustomers: number; users: CompanyUser[] } | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
+  const [showApproveDialog, setShowApproveDialog] = useState(false);
+  const [approvingRequest, setApprovingRequest] = useState<SubscriptionRequest | null>(null);
+  const [approveDays, setApproveDays] = useState(1);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1, contactNumber: "" });
@@ -105,17 +108,28 @@ export default function CompanyOwnerDashboard() {
     } catch (err) { alert("Error: " + String(err)); }
   }
 
-  async function handleSubscriptionRequest(requestId: number, approve: boolean) {
+  async function handleSubscriptionRequest(requestId: number, approve: boolean, days?: number) {
     playClick();
     try {
-      const res = await apiFetch("/api/subscription-requests", { method: "PATCH", body: JSON.stringify({ requestId, approve }) });
+      const res = await apiFetch("/api/subscription-requests", { method: "PATCH", body: JSON.stringify({ requestId, approve, days: days || approveDays }) });
       if (res.ok) {
         setSubRequests((prev) => prev.map((r) => r.id === requestId ? { ...r, status: approve ? "approved" : "rejected" } : r));
         alert(`Request ${approve ? "approved" : "rejected"}!`);
+        setShowApproveDialog(false);
+        setApprovingRequest(null);
       } else {
         alert("Failed to update request");
       }
     } catch { alert("Error updating request"); }
+  }
+
+  function openApproveDialog(req: SubscriptionRequest) {
+    playClick();
+    setApprovingRequest(req);
+    // Set default days based on plan
+    const defaultDays: Record<string, number> = { "1_day": 1, "1_week": 7, "1_month": 30, "3_months": 90, "6_months": 180, "1_year": 365 };
+    setApproveDays(defaultDays[req.plan] || 1);
+    setShowApproveDialog(true);
   }
 
   function useLocation() {
@@ -212,7 +226,8 @@ export default function CompanyOwnerDashboard() {
                     <div>
                       <p className="text-sm font-bold text-white">{req.user_name}</p>
                       <p className="text-xs text-slate-400">{req.user_email} ({req.user_role})</p>
-                      <p className="text-xs text-amber-400 mt-1">Plan: {req.plan.replace("_", " ")}</p>
+                      <p className="text-xs text-amber-400 mt-1">Plan: {req.plan.replace(/_/g, " ")}</p>
+                      <p className="text-xs text-slate-500">Ref: {req.reference_number || "N/A"}</p>
                       <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -221,7 +236,7 @@ export default function CompanyOwnerDashboard() {
                       </span>
                       {req.status === "pending" && (
                         <div className="flex gap-2 mt-1">
-                          <button onClick={() => handleSubscriptionRequest(req.id, true)}
+                          <button onClick={() => openApproveDialog(req)}
                             className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
                             Approve
                           </button>
@@ -238,6 +253,50 @@ export default function CompanyOwnerDashboard() {
             </div>
           )}
         </section>
+
+        {/* Approve Dialog */}
+        {showApproveDialog && approvingRequest && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="glass-card rounded-2xl p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold text-white mb-4">Approve Subscription</h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-slate-400">User</p>
+                  <p className="text-white font-medium">{approvingRequest.user_name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">Plan Requested</p>
+                  <p className="text-amber-400 font-medium">{approvingRequest.plan.replace(/_/g, " ")}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-slate-400">Reference Number</p>
+                  <p className="text-white font-medium">{approvingRequest.reference_number || "N/A"}</p>
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-2">Set Duration (days)</label>
+                  <input type="number" min={1} value={approveDays} onChange={(e) => setApproveDays(Number(e.target.value))}
+                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={() => setApproveDays(1)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Day</button>
+                    <button onClick={() => setApproveDays(7)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Week</button>
+                    <button onClick={() => setApproveDays(30)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Month</button>
+                    <button onClick={() => setApproveDays(90)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">3 Months</button>
+                    <button onClick={() => setApproveDays(180)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">6 Months</button>
+                    <button onClick={() => setApproveDays(365)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Year</button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={() => handleSubscriptionRequest(approvingRequest.id, true, approveDays)}
+                  className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg">
+                  Approve ({approveDays} days)
+                </button>
+                <button onClick={() => { setShowApproveDialog(false); setApprovingRequest(null); }}
+                  className="px-6 py-3 text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Stations */}
         <section id="stations" className="space-y-6">

@@ -23,6 +23,7 @@ CREATE TABLE subscription_requests (
   user_name TEXT NOT NULL,
   user_role TEXT NOT NULL,
   plan TEXT NOT NULL,
+  reference_number TEXT DEFAULT '',
   status TEXT NOT NULL DEFAULT 'pending',
   reviewed_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now()

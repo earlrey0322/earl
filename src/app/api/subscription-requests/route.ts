@@ -33,10 +33,14 @@ export async function POST(req: Request) {
     if (!auth) return NextResponse.json({ error: "Unauthorized" });
 
     const body = await req.json();
-    const { plan } = body; // "1_day", "1_week", "1_month", "1_year"
+    const { plan, referenceNumber } = body;
 
     if (!plan || !["1_day", "1_week", "1_month", "3_months", "6_months", "1_year"].includes(plan)) {
       return NextResponse.json({ error: "Invalid plan. Choose: 1_day, 1_week, 1_month, 3_months, 6_months, 1_year" });
+    }
+
+    if (!referenceNumber || !referenceNumber.trim()) {
+      return NextResponse.json({ error: "Reference number required" });
     }
 
     const supabase = getSupabase();
@@ -51,6 +55,7 @@ export async function POST(req: Request) {
       user_name: user?.full_name || "Unknown",
       user_role: user?.role || "customer",
       plan,
+      reference_number: referenceNumber.trim(),
       status: "pending",
     });
 
@@ -60,7 +65,7 @@ export async function POST(req: Request) {
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `Subscription Request - ${plan}`,
-      message: `${user?.full_name} requested ${plan.replace("_", " ")} subscription`,
+      message: `${user?.full_name} requested ${plan.replace(/_/g, " ")} subscription. Ref: ${referenceNumber}`,
       type: "subscription_request",
     });
 
@@ -78,7 +83,7 @@ export async function PATCH(req: Request) {
     if (auth.role !== "company_owner") return NextResponse.json({ error: "Only company owner can approve" });
 
     const body = await req.json();
-    const { requestId, approve } = body;
+    const { requestId, approve, days } = body;
 
     if (!requestId) return NextResponse.json({ error: "requestId required" });
 
@@ -101,15 +106,8 @@ export async function PATCH(req: Request) {
       .eq("id", requestId);
 
     if (approve) {
-      // Calculate expiry
-      let daysToAdd = 0;
-      if (request.plan === "1_day") daysToAdd = 1;
-      else if (request.plan === "1_week") daysToAdd = 7;
-      else if (request.plan === "1_month") daysToAdd = 30;
-      else if (request.plan === "3_months") daysToAdd = 90;
-      else if (request.plan === "6_months") daysToAdd = 180;
-      else if (request.plan === "1_year") daysToAdd = 365;
-
+      // Company owner sets the duration in days
+      const daysToAdd = Number(days) || 1;
       const expiry = new Date();
       expiry.setDate(expiry.getDate() + daysToAdd);
 
@@ -122,6 +120,22 @@ export async function PATCH(req: Request) {
           subscription_expiry: expiry.toISOString(),
         })
         .eq("id", request.user_id);
+
+      // Notify user
+      await supabase.from("notifications").insert({
+        recipient_email: request.user_email,
+        subject: "Subscription Approved!",
+        message: `Your ${request.plan.replace(/_/g, " ")} subscription has been approved! Expires: ${expiry.toLocaleDateString()}`,
+        type: "subscription_approved",
+      });
+    } else {
+      // Notify user of rejection
+      await supabase.from("notifications").insert({
+        recipient_email: request.user_email,
+        subject: "Subscription Rejected",
+        message: `Your ${request.plan.replace(/_/g, " ")} subscription request was rejected.`,
+        type: "subscription_rejected",
+      });
     }
 
     return NextResponse.json({ success: true });
