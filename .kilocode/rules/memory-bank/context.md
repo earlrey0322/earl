@@ -87,3 +87,4 @@ The app is complete and ready for use. All features are implemented:
 | Initial | Template created with base setup |
 | Session 1 | Complete PSPCS app built with all features |
 | 2026-03-29 | Replaced CSS map with interactive Leaflet/OpenStreetMap, color-coded markers (blue=KLEOXM, yellow=premium, green border=active, red border=inactive) |
+| 2026-03-29 | Fixed deployment crash - skip db:migrate when DB_URL/DB_TOKEN not set |
