@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 
 interface Station {
   id: number; name: string; companyName: string; brand: string;
@@ -11,25 +12,17 @@ interface Station {
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
 }
 
-function getMarkerColor(s: Station): string {
-  if (s.companyName === "KLEOXM 111") return "#3b82f6";
-  return "#eab308";
-}
-
-function getMarkerBorderColor(s: Station): string {
-  if (s.isActive) return "#22c55e";
-  return "#ef4444";
-}
-
-function createLeafletIcon(L: any, color: string, borderColor: string) {
-  return L.divIcon({
-    className: "",
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-    html: `<div style="width:28px;height:28px;background:${color};border:3px solid ${borderColor};border-radius:50% 50% 50% 4px;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>`,
-  });
-}
+const LeafletMap = dynamic(() => import("./LeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[400px] flex items-center justify-center bg-[#0f172a] rounded-2xl">
+      <div className="text-center">
+        <div className="text-2xl mb-2">🌍</div>
+        <div className="text-slate-400 text-sm">Loading map...</div>
+      </div>
+    </div>
+  ),
+});
 
 export function StationMap({
   stations,
@@ -43,37 +36,12 @@ export function StationMap({
   showAllBrands?: boolean;
 }) {
   const [filter, setFilter] = useState<"all" | "active" | "kleoxm">("all");
-  const [mapComps, setMapComps] = useState<any>(null);
-  const [leaflet, setLeaflet] = useState<any>(null);
-
-  useEffect(() => {
-    Promise.all([
-      import("react-leaflet"),
-      import("leaflet"),
-      import("leaflet/dist/leaflet.css"),
-    ]).then(([rl, L]) => {
-      setMapComps(rl);
-      setLeaflet(L.default);
-    });
-  }, []);
 
   const filtered = stations.filter((s) => {
     if (filter === "active") return s.isActive;
     if (filter === "kleoxm") return s.companyName === "KLEOXM 111";
     return true;
   });
-
-  const validStations = filtered.filter(
-    (s) => s.latitude && s.longitude && s.latitude !== 0 && s.longitude !== 0
-  );
-
-  const allValid = stations.filter(
-    (s) => s.latitude && s.longitude && s.latitude !== 0 && s.longitude !== 0
-  );
-
-  const center: [number, number] = allValid.length > 0
-    ? [allValid[0].latitude, allValid[0].longitude]
-    : [14.5995, 120.9842];
 
   return (
     <div className="space-y-4">
@@ -92,74 +60,7 @@ export function StationMap({
       </div>
 
       <div className="glass-card rounded-2xl overflow-hidden">
-        {!mapComps || !leaflet ? (
-          <div className="h-[400px] flex items-center justify-center bg-[#0f172a]">
-            <div className="text-slate-400 text-sm">Loading map...</div>
-          </div>
-        ) : (
-          <div className="h-[400px]">
-            <mapComps.MapContainer
-              center={center}
-              zoom={12}
-              style={{ height: "100%", width: "100%" }}
-              scrollWheelZoom={true}
-            >
-              <mapComps.TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              {validStations.map((s) => {
-                const color = getMarkerColor(s);
-                const borderColor = getMarkerBorderColor(s);
-                const icon = createLeafletIcon(leaflet, color, borderColor);
-                return (
-                  <mapComps.Marker
-                    key={s.id}
-                    position={[s.latitude, s.longitude]}
-                    icon={icon}
-                    eventHandlers={{ click: () => onSelect?.(s) }}
-                  >
-                    <mapComps.Popup>
-                      <div style={{ minWidth: 200, fontFamily: "system-ui" }}>
-                        <strong style={{ fontSize: 14 }}>{s.name}</strong>
-                        <br />
-                        <span style={{ color: s.companyName === "KLEOXM 111" ? "#3b82f6" : "#eab308", fontSize: 12 }}>
-                          {s.companyName}
-                        </span>
-                        <br />
-                        <span style={{ color: s.isActive ? "#22c55e" : "#ef4444", fontSize: 12, fontWeight: 600 }}>
-                          {s.isActive ? "● Active" : "● Inactive"}
-                        </span>
-                        <div style={{ fontSize: 11, color: "#888", marginTop: 4 }}>{s.address}</div>
-                        <div style={{ fontSize: 10, color: "#aaa", marginTop: 2 }}>
-                          {s.latitude.toFixed(4)}, {s.longitude.toFixed(4)}
-                        </div>
-                        <div style={{ marginTop: 8, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                          <span style={{ fontSize: 10, padding: "2px 8px", background: "#22c55e20", color: "#22c55e", borderRadius: 12 }}>
-                            Visits: {s.totalVisits}
-                          </span>
-                          <span style={{ fontSize: 10, padding: "2px 8px", background: "#eab30820", color: "#eab308", borderRadius: 12 }}>
-                            Battery: {s.batteryLevel || 0}%
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${s.latitude},${s.longitude}`, "_blank")}
-                          style={{
-                            marginTop: 8, width: "100%", padding: "8px 0", fontSize: 12,
-                            background: "#3b82f6", color: "white", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600,
-                          }}
-                        >
-                          Open in Google Maps
-                        </button>
-                      </div>
-                    </mapComps.Popup>
-                  </mapComps.Marker>
-                );
-              })}
-            </mapComps.MapContainer>
-          </div>
-        )}
-
+        <LeafletMap stations={filtered} onSelect={onSelect} />
         <div className="flex gap-4 px-4 py-3 border-t border-slate-700/50 flex-wrap">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-green-500" />
