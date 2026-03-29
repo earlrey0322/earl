@@ -1,4 +1,13 @@
-import bcrypt from "bcryptjs";
+// Simple hash - no bcrypt dependency
+function simpleHash(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return "h_" + Math.abs(hash).toString(36) + "_" + str.length;
+}
 
 interface User {
   id: number; email: string; password: string; fullName: string; role: string;
@@ -44,14 +53,14 @@ export const store = {
   async createUser(data: { email: string; password: string; fullName: string; role: string; phoneBrand?: string; contactNumber?: string; address?: string }) {
     init();
     if (G._users!.find(u => u.email === data.email)) throw new Error("Email already registered");
-    const hashed = await bcrypt.hash(data.password, 10);
+    const hashed = simpleHash(data.password);
     const user: User = { id: G._nuid!++, email: data.email, password: hashed, fullName: data.fullName, role: data.role, phoneBrand: data.phoneBrand || null, contactNumber: data.contactNumber || null, address: data.address || null, isSubscribed: false, subscriptionPlan: null, subscriptionExpiry: null, createdAt: Date.now() };
     G._users!.push(user);
     return user;
   },
   findUserByEmail(email: string) { init(); return G._users!.find(u => u.email === email) || null; },
   findUserById(id: number) { init(); return G._users!.find(u => u.id === id) || null; },
-  async verifyPassword(plain: string, hashed: string) { return bcrypt.compare(plain, hashed); },
+  async verifyPassword(plain: string, hashed: string) { return simpleHash(plain) === hashed; },
   updateUser(id: number, data: Partial<User>) { init(); const u = G._users!.find(u => u.id === id); if (u) Object.assign(u, data); return u; },
   deleteUser(id: number) { init(); G._users = G._users!.filter(u => u.id !== id); G._stations = G._stations!.filter(s => s.ownerId !== id); },
   getAllUsers() { init(); return [...G._users!]; },
