@@ -628,7 +628,7 @@ export default function CompanyOwnerDashboard() {
                         <div className="flex gap-2 mt-1">
                           <button onClick={() => handleMonthlyPayment(payment.id, true)}
                             className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
-                            Approve
+                            Set Premium
                           </button>
                           <button onClick={() => handleMonthlyPayment(payment.id, false)}
                             className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">

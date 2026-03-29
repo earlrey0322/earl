@@ -219,11 +219,9 @@ export default function BranchOwnerDashboard() {
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-green-400/10 to-emerald-500/5">
           <h2 className="text-2xl font-bold text-white">Welcome, {userData?.fullName || "Station Owner"}!</h2>
           <p className="text-slate-400 mt-1">Manage your PSPCS stations.</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{myStations.length}</div><div className="text-xs text-slate-400">Your Stations</div></div>
-            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{myStations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
-            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalVisits}</div><div className="text-xs text-slate-400">Total Visits</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">{history.length}</div><div className="text-xs text-slate-400">Sessions</div></div>
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{myStations.length}</div><div className="text-xs text-slate-400">My Stations</div></div>
+            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{myStations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
           </div>
         </div>
 

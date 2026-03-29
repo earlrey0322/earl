@@ -89,12 +89,16 @@ export async function POST(req: Request) {
     if (error) return NextResponse.json({ error: error.message });
 
     // Notify company owner
-    await supabase.from("notifications").insert({
+    const { error: notifError } = await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `Monthly Payment Request - ₱${amount}`,
-      message: `${user?.full_name} (${auth.role}) submitted monthly payment of ₱${amount} for ${paidForMonth}. Ref: ${referenceNumber}`,
+      message: `${user?.full_name} (${auth.role}) wants to set premium. Click "Set Premium" to approve. Amount: ₱${amount}, Ref: ${referenceNumber}`,
       type: "monthly_payment",
     });
+
+    if (notifError) {
+      console.error("Notification error:", notifError);
+    }
 
     return NextResponse.json({ success: true, message: "Payment request sent! Waiting for approval." });
   } catch (e) {
