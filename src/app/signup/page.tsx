@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const PHONE_BRANDS = ["Apple iPhone", "Samsung Galaxy", "Xiaomi", "Huawei", "OPPO", "Vivo", "Realme", "OnePlus", "Nokia", "Google Pixel", "Other"];
 
-type Role = "customer" | "branch_owner" | "company_owner";
+type Role = "customer" | "branch_owner" | "other_branch" | "company_owner";
 
 export default function SignupPage() {
   const [step, setStep] = useState(1);
@@ -64,7 +64,7 @@ export default function SignupPage() {
 
       let url = "/dashboard/customer";
       if (data.user?.role === "company_owner") url = "/dashboard/company-owner";
-      else if (data.user?.role === "branch_owner") url = "/dashboard/branch-owner";
+      else if (data.user?.role === "branch_owner" || data.user?.role === "other_branch") url = "/dashboard/branch-owner";
 
       window.location.href = url;
     } catch (err) {
@@ -99,7 +99,8 @@ export default function SignupPage() {
               <h2 className="text-lg font-bold text-white">Select Your Role</h2>
               {([
                 { value: "customer" as Role, title: "Customer", desc: "I want to charge my phone", icon: "🔋" },
-                { value: "branch_owner" as Role, title: "Station Owner", desc: "I own a PSPCS station", icon: "⚡" },
+                { value: "branch_owner" as Role, title: "Station Owner", desc: "I own a PSPCS station (₱200/month)", icon: "⚡" },
+                { value: "other_branch" as Role, title: "Other Branch", desc: "I operate another branch (₱250/month)", icon: "🏪" },
                 { value: "company_owner" as Role, title: "Company Owner", desc: "KLEOXM 111 management", icon: "🏢" },
               ]).map((r) => (
                 <button key={r.value} type="button" onClick={() => update("role", r.value)}
@@ -148,6 +149,12 @@ export default function SignupPage() {
                 <label className="block text-sm font-medium text-slate-300 mb-1">Worklife Focus</label>
                 <input type="text" value={form.worklifeAnswer} onChange={(e) => update("worklifeAnswer", e.target.value)} required
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 uppercase" placeholder="Enter your worklife focus" />
+                <p className="text-xs text-slate-500 mt-1">
+                  {form.role === "company_owner" && "Hint: SUSTAINABILITY"}
+                  {form.role === "branch_owner" && "Hint: ENVIRONMENT"}
+                  {form.role === "other_branch" && "Hint: DEVELOPMENT"}
+                  {form.role === "customer" && "Any answer accepted"}
+                </p>
               </div>
               {form.role === "customer" && (
                 <div>

@@ -29,6 +29,20 @@ CREATE TABLE subscription_requests (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE TABLE monthly_payments (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id BIGINT NOT NULL,
+  user_email TEXT NOT NULL,
+  user_name TEXT NOT NULL,
+  user_role TEXT NOT NULL,
+  amount DOUBLE PRECISION NOT NULL,
+  reference_number TEXT DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'pending',
+  paid_for_month TEXT NOT NULL,
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 CREATE TABLE charging_stations (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   name TEXT NOT NULL,
@@ -67,11 +81,13 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE charging_stations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscription_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_payments ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow all" ON users FOR ALL USING (true);
 CREATE POLICY "Allow all" ON charging_stations FOR ALL USING (true);
 CREATE POLICY "Allow all" ON notifications FOR ALL USING (true);
 CREATE POLICY "Allow all" ON subscription_requests FOR ALL USING (true);
+CREATE POLICY "Allow all" ON monthly_payments FOR ALL USING (true);
 
 -- Sample stations
 INSERT INTO charging_stations (name, company_name, owner_id, owner_name, latitude, longitude, address, location, is_active, battery_level, total_visits, cable_type_c, cable_iphone, cable_universal, outlets)

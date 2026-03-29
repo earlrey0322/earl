@@ -32,6 +32,8 @@ interface Notification { id: number; subject: string; message: string; type: str
 
 interface SubscriptionRequest { id: number; user_id: number; user_email: string; user_name: string; user_role: string; plan: string; status: string; reference_number: string; created_at: string; }
 
+interface MonthlyPayment { id: number; user_id: number; user_email: string; user_name: string; user_role: string; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
+
 interface CompanyUser { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionPlan: string | null; }
 
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; }
@@ -47,6 +49,7 @@ export default function CompanyOwnerDashboard() {
   const [usersData, setUsersData] = useState<{ totalUsers: number; totalBranchOwners: number; totalCustomers: number; subscribedBranchOwners: number; subscribedCustomers: number; users: CompanyUser[] } | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
+  const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [approvingRequest, setApprovingRequest] = useState<SubscriptionRequest | null>(null);
   const [approveDays, setApproveDays] = useState(1);
@@ -62,13 +65,15 @@ export default function CompanyOwnerDashboard() {
       apiFetch("/api/users").then((r) => r.json()),
       apiFetch("/api/notifications").then((r) => r.json()),
       apiFetch("/api/subscription-requests").then((r) => r.json()),
-    ]).then(([meR, stR, hiR, usR, noR, srR]) => {
+      apiFetch("/api/monthly-payments").then((r) => r.json()),
+    ]).then(([meR, stR, hiR, usR, noR, srR, mpR]) => {
       if (meR.status === "fulfilled" && meR.value.user) setUserData(meR.value.user);
       if (stR.status === "fulfilled" && stR.value.stations) setStations(stR.value.stations);
       if (hiR.status === "fulfilled" && hiR.value.history) setHistory(hiR.value.history);
       if (usR.status === "fulfilled" && usR.value.totalUsers !== undefined) setUsersData(usR.value);
       if (noR.status === "fulfilled" && noR.value.notifications) setNotifications(noR.value.notifications);
       if (srR.status === "fulfilled" && srR.value.requests) setSubRequests(srR.value.requests);
+      if (mpR.status === "fulfilled" && mpR.value.payments) setMonthlyPayments(mpR.value.payments);
     }).catch(() => {});
   }, []);
 
@@ -141,6 +146,23 @@ export default function CompanyOwnerDashboard() {
     setShowApproveDialog(true);
   }
 
+  async function handleMonthlyPayment(paymentId: number, approve: boolean) {
+    playClick();
+    try {
+      const res = await apiFetch("/api/monthly-payments", { method: "PATCH", body: JSON.stringify({ paymentId, approve }) });
+      if (res.ok) {
+        setMonthlyPayments((prev) => prev.map((p) => p.id === paymentId ? { ...p, status: approve ? "approved" : "rejected" } : p));
+        alert(`Monthly payment ${approve ? "approved" : "rejected"}!`);
+        if (approve) {
+          // Refresh users data to update subscription status
+          apiFetch("/api/users").then((r) => r.json()).then((d) => { if (d.totalUsers !== undefined) setUsersData(d); }).catch(() => {});
+        }
+      } else {
+        alert("Failed to update payment");
+      }
+    } catch { alert("Error updating payment"); }
+  }
+
   function useLocation() {
     if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
     navigator.geolocation.getCurrentPosition(
@@ -167,6 +189,7 @@ export default function CompanyOwnerDashboard() {
   }
 
   const branchOwners = usersData?.users?.filter((u) => u.role === "branch_owner") || [];
+  const otherBranches = usersData?.users?.filter((u) => u.role === "other_branch") || [];
   const customers = usersData?.users?.filter((u) => u.role === "customer") || [];
   const totalRevenue = history.reduce((s, h) => s + h.costPesos, 0);
   const totalVisits = stations.reduce((s, st) => s + (st.totalVisits || 0), 0);
@@ -174,6 +197,10 @@ export default function CompanyOwnerDashboard() {
   const subscriptionRevenue = subRequests
     .filter((r) => r.status === "approved")
     .reduce((s, r) => s + (PLAN_PRICES[r.plan] || 0), 0);
+  // Calculate monthly payment revenue
+  const monthlyPaymentRevenue = monthlyPayments
+    .filter((p) => p.status === "approved")
+    .reduce((s, p) => s + (p.amount || 0), 0);
 
   return (
     <DashboardShell title="Company Owner Dashboard">
@@ -182,11 +209,12 @@ export default function CompanyOwnerDashboard() {
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 via-orange-500/5 to-red-500/5">
           <h2 className="text-2xl font-bold text-white">KLEOXM 111 Management</h2>
           <p className="text-slate-400 mt-1">Welcome, {userData?.fullName || "Company Owner"}</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
             <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-2xl font-bold text-amber-400">{stations.length}</div><div className="text-xs text-slate-400">Stations</div></div>
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
             <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{usersData?.totalBranchOwners || 0}</div><div className="text-xs text-slate-400">Branch Owners</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{usersData?.totalCustomers || 0}</div><div className="text-xs text-slate-400">Customers</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranches.length}</div><div className="text-xs text-slate-400">Other Branches</div></div>
+            <div className="px-4 py-3 bg-cyan-400/10 rounded-lg"><div className="text-2xl font-bold text-cyan-400">{usersData?.totalCustomers || 0}</div><div className="text-xs text-slate-400">Customers</div></div>
           </div>
         </div>
 
@@ -221,6 +249,14 @@ export default function CompanyOwnerDashboard() {
             {customers.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
                 {customers.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Lifetime" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>{u.isSubscribed ? "Remove Premium" : "Make Premium"}</button></td></tr>))}
+              </tbody></table></div>
+            )}
+          </div>
+          <div className="glass-card rounded-2xl p-6">
+            <h4 className="font-bold text-white mb-4">Other Branches ({otherBranches.length}) - ₱250/month</h4>
+            {otherBranches.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
+              <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
+                {otherBranches.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Active" : "No Payment"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>{u.isSubscribed ? "Remove Premium" : "Make Premium"}</button></td></tr>))}
               </tbody></table></div>
             )}
           </div>
@@ -471,15 +507,15 @@ export default function CompanyOwnerDashboard() {
                   <div className="bg-green-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0)}</div><div className="text-xs text-slate-400">Station Revenue</div></div>
                   <div className="bg-amber-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-amber-400">₱{history.reduce((s, h) => s + h.costPesos, 0)}</div><div className="text-xs text-slate-400">Charging Revenue</div></div>
                   <div className="bg-blue-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-blue-400">₱{subscriptionRevenue}</div><div className="text-xs text-slate-400">Subscription Revenue</div></div>
-                  <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">{subRequests.filter((r) => r.status === "approved").length}</div><div className="text-xs text-slate-400">Approved Subscriptions</div></div>
+                  <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">₱{monthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Monthly Payments</div></div>
                 </div>
                 <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm font-bold text-green-400">Total Revenue</p>
-                      <p className="text-xs text-slate-400">Station + Charging + Subscriptions</p>
+                      <p className="text-xs text-slate-400">Station + Charging + Subscriptions + Monthly</p>
                     </div>
-                    <p className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0) + history.reduce((s, h) => s + h.costPesos, 0) + subscriptionRevenue}</p>
+                    <p className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0) + history.reduce((s, h) => s + h.costPesos, 0) + subscriptionRevenue + monthlyPaymentRevenue}</p>
                   </div>
                 </div>
               </div>
@@ -542,6 +578,7 @@ export default function CompanyOwnerDashboard() {
                       <p className="text-sm font-bold text-white">{req.user_name}</p>
                       <p className="text-xs text-slate-400">{req.user_email} ({req.user_role})</p>
                       <p className="text-xs text-amber-400 mt-1">Plan: {req.plan.replace(/_/g, " ")}</p>
+                      <p className="text-xs text-slate-500">Ref: {req.reference_number || "N/A"}</p>
                       <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
@@ -568,11 +605,53 @@ export default function CompanyOwnerDashboard() {
           )}
         </section>
 
+        {/* Monthly Payment Requests */}
+        <section id="monthly-payments" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Monthly Payment Requests</h3>
+          <p className="text-sm text-slate-400">Branch Owners: ₱200/month | Other Branch: ₱250/month</p>
+          {monthlyPayments.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No monthly payment requests yet.</div>
+          ) : (
+            <div className="space-y-3">
+              {monthlyPayments.map((payment) => (
+                <div key={payment.id} className="glass-card rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{payment.user_name}</p>
+                      <p className="text-xs text-slate-400">{payment.user_email} ({payment.user_role})</p>
+                      <p className="text-xs text-amber-400 mt-1">₱{payment.amount} for {payment.paid_for_month}</p>
+                      <p className="text-xs text-slate-500">Ref: {payment.reference_number || "N/A"}</p>
+                      <p className="text-xs text-slate-500">{new Date(payment.created_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${payment.status === "approved" ? "bg-green-400/10 text-green-400" : payment.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
+                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                      </span>
+                      {payment.status === "pending" && (
+                        <div className="flex gap-2 mt-1">
+                          <button onClick={() => handleMonthlyPayment(payment.id, true)}
+                            className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                            Approve
+                          </button>
+                          <button onClick={() => handleMonthlyPayment(payment.id, false)}
+                            className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Active Subscription Timers */}
         <section id="subscription-timers" className="space-y-4">
           <h3 className="text-lg font-bold text-white">Active Subscription Timers</h3>
           {(() => {
-            const activeSubscribers = [...branchOwners, ...customers].filter((u) => u.isSubscribed);
+            const activeSubscribers = [...branchOwners, ...otherBranches, ...customers].filter((u) => u.isSubscribed);
             if (activeSubscribers.length === 0) {
               return <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No active subscriptions.</div>;
             }
@@ -593,6 +672,11 @@ export default function CompanyOwnerDashboard() {
                     if (hours > 0) return `${hours}h ${minutes}m`;
                     return `${minutes}m`;
                   };
+                  const getRoleLabel = () => {
+                    if (u.role === "branch_owner") return "BO";
+                    if (u.role === "other_branch") return "OB";
+                    return "C";
+                  };
                   return (
                     <div key={u.id} className="glass-card rounded-xl p-4">
                       <div className="flex items-center justify-between mb-2">
@@ -600,7 +684,7 @@ export default function CompanyOwnerDashboard() {
                           <p className="text-sm font-bold text-white">{u.fullName}</p>
                           <p className="text-xs text-slate-400">{u.email}</p>
                         </div>
-                        <span className="text-[10px] px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full">{u.role === "branch_owner" ? "BO" : "C"}</span>
+                        <span className="text-[10px] px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full">{getRoleLabel()}</span>
                       </div>
                       <div className="p-3 bg-slate-900/50 rounded-lg">
                         <p className="text-xs text-slate-400 mb-1">Time Remaining</p>

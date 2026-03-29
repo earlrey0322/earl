@@ -20,6 +20,7 @@ interface HistoryItem {
 }
 
 interface SubscriptionRequest { id: number; plan: string; status: string; created_at: string; reference_number: string; }
+interface MonthlyPayment { id: number; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; contactNumber: string | null; subscriptionExpiry: string | null; }
 
 const PLANS = [
@@ -42,9 +43,12 @@ export default function BranchOwnerDashboard() {
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
+  const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [monthlyReferenceNumber, setMonthlyReferenceNumber] = useState("");
   const [requesting, setRequesting] = useState(false);
+  const [requestingMonthly, setRequestingMonthly] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [newStation, setNewStation] = useState({
     name: "", address: "", latitude: 14.5995, longitude: 120.9842, contactNumber: "",
@@ -57,11 +61,13 @@ export default function BranchOwnerDashboard() {
       apiFetch("/api/stations").then((r) => r.json()),
       apiFetch("/api/sessions").then((r) => r.json()),
       apiFetch("/api/subscription-requests").then((r) => r.json()),
-    ]).then(([meRes, stRes, hRes, srRes]) => {
+      apiFetch("/api/monthly-payments").then((r) => r.json()),
+    ]).then(([meRes, stRes, hRes, srRes, mpRes]) => {
       if (meRes.status === "fulfilled" && meRes.value.user) setUserData(meRes.value.user);
       if (stRes.status === "fulfilled" && stRes.value.stations) setStations(stRes.value.stations);
       if (hRes.status === "fulfilled" && hRes.value.history) setHistory(hRes.value.history);
       if (srRes.status === "fulfilled" && srRes.value.requests) setSubRequests(srRes.value.requests);
+      if (mpRes.status === "fulfilled" && mpRes.value.payments) setMonthlyPayments(mpRes.value.payments);
     }).catch(() => {});
   }, []);
 
@@ -109,6 +115,27 @@ export default function BranchOwnerDashboard() {
       }
     } catch { alert("Error sending request"); }
     setRequesting(false);
+  }
+
+  async function requestMonthlyPayment() {
+    if (!monthlyReferenceNumber.trim()) {
+      alert("Please enter your GCash reference number");
+      return;
+    }
+    setRequestingMonthly(true);
+    try {
+      const currentMonth = new Date().toISOString().slice(0, 7); // e.g., "2026-03"
+      const res = await apiFetch("/api/monthly-payments", { method: "POST", body: JSON.stringify({ referenceNumber: monthlyReferenceNumber.trim(), paidForMonth: currentMonth }) });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Monthly payment request sent! Waiting for company owner approval.");
+        setMonthlyReferenceNumber("");
+        apiFetch("/api/monthly-payments").then((r) => r.json()).then((d) => { if (d.payments) setMonthlyPayments(d.payments); }).catch(() => {});
+      } else {
+        alert("Error: " + (data.error || "Failed to send request"));
+      }
+    } catch { alert("Error sending request"); }
+    setRequestingMonthly(false);
   }
 
   async function addStation() {
@@ -498,6 +525,70 @@ export default function BranchOwnerDashboard() {
               </div>
             )}
           </div>
+        </section>
+
+        {/* Monthly Payment Section - Only for branch_owner and other_branch */}
+        <section id="monthly-payment" className="space-y-6">
+          <h3 className="text-lg font-bold text-white mb-4">Monthly Station Fee</h3>
+          <div className="glass-card rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h4 className="font-bold text-white">Monthly Payment</h4>
+                <p className="text-sm text-slate-400">
+                  {userData?.role === "other_branch" ? "₱250/month" : "₱200/month"} - Non-refundable
+                </p>
+              </div>
+              <span className="text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full">
+                ₱{userData?.role === "other_branch" ? "250" : "200"}/month
+              </span>
+            </div>
+
+            <div className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl mb-4">
+              <p className="text-xs text-blue-400 mb-2">GCash Payment</p>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between"><span className="text-slate-400">Number</span><span className="text-white font-bold">09469086926</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-amber-400 font-bold">₱{userData?.role === "other_branch" ? "250" : "200"}</span></div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-300 mb-2">GCash Reference Number</label>
+                <input type="text" value={monthlyReferenceNumber} onChange={(e) => setMonthlyReferenceNumber(e.target.value)}
+                  placeholder="Enter reference number from GCash"
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+              </div>
+
+              <button onClick={requestMonthlyPayment} disabled={requestingMonthly || !monthlyReferenceNumber.trim()}
+                className="w-full py-3 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg disabled:opacity-50">
+                {requestingMonthly ? "Sending..." : "Request Monthly Due"}
+              </button>
+            </div>
+          </div>
+
+          {/* Monthly Payment History */}
+          {monthlyPayments.length > 0 && (
+            <div className="glass-card rounded-2xl p-6">
+              <h4 className="font-bold text-white mb-4">Payment History</h4>
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {monthlyPayments.map((payment) => (
+                  <div key={payment.id} className="p-3 bg-slate-800/50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-white">₱{payment.amount} - {payment.paid_for_month}</p>
+                        <p className="text-xs text-slate-400">Ref: {payment.reference_number || "N/A"}</p>
+                        <p className="text-xs text-slate-500">{new Date(payment.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${payment.status === "approved" ? "bg-green-400/10 text-green-400" : payment.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
+                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       </div>
     </DashboardShell>

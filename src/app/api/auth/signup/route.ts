@@ -16,6 +16,9 @@ export async function POST(req: Request) {
     if (role === "branch_owner" && String(worklifeAnswer || "").toUpperCase() !== "ENVIRONMENT") {
       return NextResponse.json({ error: "Invalid verification" });
     }
+    if (role === "other_branch" && String(worklifeAnswer || "").toUpperCase() !== "DEVELOPMENT") {
+      return NextResponse.json({ error: "Invalid verification" });
+    }
 
     const supabase = getSupabase();
     if (!supabase) {
