@@ -3,23 +3,30 @@ import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
 function toStation(s: any, isPremium: boolean, isOwner: boolean) {
-  // KLEOXM 111 stations = visible to all (regular)
-  // Other companies = need premium subscription to see
   const isKleoXM = s.company_name === "KLEOXM 111" || !s.company_name || s.company_name === "";
   const canSeeStation = isKleoXM || isPremium || isOwner;
   const canSeeLocation = canSeeStation && (isPremium || isOwner || isKleoXM);
   
   return {
-    id: s.id, name: s.name, companyName: s.company_name || "Pending", brand: s.brand || "PSPCS",
-    ownerId: s.owner_id, ownerName: s.owner_name,
+    id: s.id,
+    name: s.name,
+    companyName: s.company_name || "Pending",
+    brand: s.brand || "PSPCS",
+    ownerId: s.owner_id,
+    ownerName: s.owner_name,
     latitude: canSeeLocation ? s.latitude : 0,
     longitude: canSeeLocation ? s.longitude : 0,
     address: s.address,
     location: canSeeLocation ? (s.location || "") : "",
-    fbName: s.fb_name || "",
-    isActive: !!s.is_active, solarWatts: s.solar_watts || 50, batteryLevel: s.battery_level,
-    totalVisits: s.total_visits || 0, revenue: s.revenue || 0,
-    cableTypeC: s.cable_type_c, cableIPhone: s.cable_iphone, cableUniversal: s.cable_universal, outlets: s.outlets,
+    isActive: !!s.is_active,
+    solarWatts: s.solar_watts || 50,
+    batteryLevel: s.battery_level,
+    totalVisits: s.total_visits || 0,
+    revenue: s.revenue || 0,
+    cableTypeC: s.cable_type_c,
+    cableIPhone: s.cable_iphone,
+    cableUniversal: s.cable_universal,
+    outlets: s.outlets,
   };
 }
 
@@ -29,7 +36,6 @@ export async function GET() {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
-    // Check if user is premium
     let isPremium = false;
     if (auth) {
       const { data: user } = await supabase.from("users").select("is_subscribed").eq("id", auth.id).single();
@@ -38,15 +44,11 @@ export async function GET() {
 
     let query = supabase.from("charging_stations").select("*").order("id");
     
-    // Company owner sees ALL stations
-    // Others see: KLEOXM 111 stations + their own stations (even if company is blank)
     if (auth && auth.role === "company_owner") {
       // See all
     } else if (auth) {
-      // See KLEOXM 111 and own stations
       query = query.or(`company_name.eq.KLEOXM 111,company_name.eq.,owner_id.eq.${auth.id}`);
     } else {
-      // Not logged in - see only KLEOXM 111
       query = query.or("company_name.eq.KLEOXM 111,company_name.eq.");
     }
 
@@ -73,7 +75,7 @@ export async function POST(req: Request) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
-    // Branch owner and other branch must have active subscription (paid monthly fee) to add stations
+    // Branch owner and other branch must have active subscription to add stations
     if (auth.role === "branch_owner" || auth.role === "other_branch") {
       const { data: userProfile } = await supabase.from("users").select("is_subscribed").eq("id", auth.id).single();
       if (!userProfile?.is_subscribed) {
@@ -81,16 +83,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // Get owner name
     const { data: profile } = await supabase.from("users").select("full_name").eq("id", auth.id).single();
 
-    // Branch owner adds with blank company name (company owner will set it later)
-    // Company owner can specify company name
     let companyName = "";
     if (auth.role === "company_owner") {
       companyName = body.company || "KLEOXM 111";
     }
-    // Branch owner: companyName stays blank
 
     const { data, error } = await supabase.from("charging_stations").insert({
       name: body.name.trim(),
@@ -110,7 +108,6 @@ export async function POST(req: Request) {
       cable_iphone: Number(body.cableIPhone) || 0,
       cable_universal: Number(body.cableUniversal) || 0,
       outlets: Number(body.outlets) || 1,
-      fb_name: (body.fbName || "").trim(),
     }).select().single();
 
     if (error) return NextResponse.json({ error: error.message });
@@ -136,13 +133,11 @@ export async function PATCH(req: Request) {
     if (body.name) updateData.name = body.name;
     if (body.address) updateData.address = body.address;
     if (body.location !== undefined) updateData.location = body.location;
-    // Only company owner can change company name
     if (body.company !== undefined && auth.role === "company_owner") updateData.company_name = body.company;
     if (body.cableTypeC !== undefined) updateData.cable_type_c = Number(body.cableTypeC);
     if (body.cableIPhone !== undefined) updateData.cable_iphone = Number(body.cableIPhone);
     if (body.cableUniversal !== undefined) updateData.cable_universal = Number(body.cableUniversal);
     if (body.outlets !== undefined) updateData.outlets = Number(body.outlets);
-    if (body.fbName !== undefined) updateData.fb_name = body.fbName;
 
     const { error } = await supabase.from("charging_stations").update(updateData).eq("id", body.id);
     if (error) return NextResponse.json({ error: error.message });
