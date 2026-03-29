@@ -49,12 +49,6 @@ export default function BranchOwnerDashboard() {
     }).catch(() => {});
   }, []);
 
-  async function toggleStation(s: Station) {
-    playClick();
-    await apiFetch("/api/stations", { method: "PATCH", body: JSON.stringify({ id: s.id, isActive: !s.isActive }) });
-    setStations((prev) => prev.map((st) => st.id === s.id ? { ...st, isActive: !st.isActive } : st));
-  }
-
   async function addStation() {
     playClick();
     try {
@@ -68,6 +62,37 @@ export default function BranchOwnerDashboard() {
         alert("Error: " + (data.error || "Failed to add station"));
       }
     } catch (err) { alert("Error: " + String(err)); }
+  }
+
+  const [editStation, setEditStation] = useState<Station | null>(null);
+  const [editForm, setEditForm] = useState({ name: "", address: "", active: true, cableTypeC: 0, cableIPhone: 0, cableUniversal: 0, outlets: 1 });
+
+  function startEdit(s: Station) {
+    playClick();
+    setEditStation(s);
+    setEditForm({ name: s.name, address: s.address, active: s.isActive, cableTypeC: s.cableTypeC, cableIPhone: s.cableIPhone, cableUniversal: s.cableUniversal, outlets: s.outlets });
+  }
+
+  async function saveEdit() {
+    if (!editStation) return;
+    playClick();
+    await apiFetch("/api/stations", { method: "PATCH", body: JSON.stringify({ id: editStation.id, name: editForm.name, address: editForm.address, active: editForm.active, cableTypeC: editForm.cableTypeC, cableIPhone: editForm.cableIPhone, cableUniversal: editForm.cableUniversal, outlets: editForm.outlets }) });
+    setStations((prev) => prev.map((s) => s.id === editStation.id ? { ...s, name: editForm.name, address: editForm.address, isActive: editForm.active, cableTypeC: editForm.cableTypeC, cableIPhone: editForm.cableIPhone, cableUniversal: editForm.cableUniversal, outlets: editForm.outlets } : s));
+    setEditStation(null);
+  }
+
+  async function removeStation(id: number, name: string) {
+    playClick();
+    if (!confirm(`Remove "${name}"?`)) return;
+    await apiFetch("/api/stations", { method: "DELETE", body: JSON.stringify({ id }) });
+    setStations((prev) => prev.filter((s) => s.id !== id));
+  }
+
+  async function toggleStation(s: Station) {
+    playClick();
+    const newActive = !s.isActive;
+    await apiFetch("/api/stations", { method: "PATCH", body: JSON.stringify({ id: s.id, active: newActive }) });
+    setStations((prev) => prev.map((st) => st.id === s.id ? { ...st, isActive: newActive } : st));
   }
 
   function useCurrentLocation() {
@@ -198,13 +223,78 @@ export default function BranchOwnerDashboard() {
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
                   <span className="text-[10px] text-slate-500">{s.totalVisits} visits | {s.solarWatts}W</span>
-                  <button onClick={() => toggleStation(s)}
-                    className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
-                    {s.isActive ? "Active" : "Inactive"}
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => toggleStation(s)}
+                      className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
+                      {s.isActive ? "Active" : "Inactive"}
+                    </button>
+                    <button onClick={() => startEdit(s)}
+                      className="px-3 py-1 text-[10px] font-bold rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500/20">
+                      Edit
+                    </button>
+                    <button onClick={() => removeStation(s.id, s.name)}
+                      className="px-3 py-1 text-[10px] font-bold rounded-full bg-red-600/10 text-red-400 hover:bg-red-600/20">
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Edit Station Modal */}
+        {editStation && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="glass-card rounded-2xl p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold text-white mb-4">Edit Station</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm text-slate-300 mb-1">Name</label>
+                  <input type="text" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
+                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-1">Address</label>
+                  <input type="text" value={editForm.address} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))}
+                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm text-slate-300 mb-1">Type-C</label>
+                    <input type="number" min={0} value={editForm.cableTypeC} onChange={(e) => setEditForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm text-slate-300 mb-1">iPhone</label>
+                    <input type="number" min={0} value={editForm.cableIPhone} onChange={(e) => setEditForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-sm text-slate-300 mb-1">USB</label>
+                    <input type="number" min={0} value={editForm.cableUniversal} onChange={(e) => setEditForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-sm text-slate-300 mb-1">Outlets</label>
+                    <input type="number" min={0} value={editForm.outlets} onChange={(e) => setEditForm((p) => ({ ...p, outlets: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setEditForm((p) => ({ ...p, active: !p.active }))}
+                    className={`px-4 py-2 text-sm font-bold rounded-lg ${editForm.active ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
+                    {editForm.active ? "Active" : "Inactive"}
+                  </button>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <button onClick={saveEdit} className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg">Save</button>
+                <button onClick={() => { playClick(); setEditStation(null); }} className="px-6 py-3 text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
+              </div>
+            </div>
           </div>
         )}
 
