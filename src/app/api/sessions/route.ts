@@ -6,7 +6,11 @@ export async function GET() {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    return NextResponse.json({ history: store.getHistoryByUser(auth.userId) });
+    // Company owner sees all history, others see their own
+    const history = auth.role === "company_owner" || auth.role === "branch_owner"
+      ? store.getAllHistory()
+      : store.getHistoryByUser(auth.userId);
+    return NextResponse.json({ history });
   } catch (error) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
