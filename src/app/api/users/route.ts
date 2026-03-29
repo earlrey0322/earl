@@ -30,13 +30,16 @@ export async function GET() {
     }));
 
     const bo = users.filter((u) => u.role === "branch_owner");
+    const ob = users.filter((u) => u.role === "other_branch");
     const cu = users.filter((u) => u.role === "customer");
 
     return NextResponse.json({
       totalUsers: users.length,
       totalBranchOwners: bo.length,
+      totalOtherBranches: ob.length,
       totalCustomers: cu.length,
       subscribedBranchOwners: bo.filter((u) => u.isSubscribed).length,
+      subscribedOtherBranches: ob.filter((u) => u.isSubscribed).length,
       subscribedCustomers: cu.filter((u) => u.isSubscribed).length,
       users,
     });
