@@ -95,3 +95,4 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Fixed API data transformation - store uses lat/lng/addr, frontend expects latitude/longitude/address |
 | 2026-03-29 | Added file-based persistent storage (data-store.json) - accounts survive server restarts |
 | 2026-03-29 | Added Supabase cloud database integration for permanent data storage |
+| 2026-03-29 | Fixed build error - lazy-load Supabase client, graceful fallback to local storage |
