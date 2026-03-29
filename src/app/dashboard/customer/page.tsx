@@ -94,11 +94,21 @@ export default function CustomerDashboard() {
         alert("Subscription request sent! Waiting for company owner approval.");
         setSelectedPlan(null);
         setReferenceNumber("");
-        apiFetch("/api/subscription-requests").then((r) => r.json()).then((d) => { if (d.requests) setSubRequests(d.requests); }).catch(() => {});
+        // Refresh subscription requests
+        try {
+          const refreshRes = await apiFetch("/api/subscription-requests");
+          const refreshData = await refreshRes.json();
+          if (refreshData.requests) setSubRequests(refreshData.requests);
+        } catch (refreshErr) {
+          console.error("Error refreshing requests:", refreshErr);
+        }
       } else {
         alert("Error: " + (data.error || "Failed to send request"));
       }
-    } catch { alert("Error sending request"); }
+    } catch (err) { 
+      console.error("Error sending subscription request:", err);
+      alert("Error sending request: " + String(err)); 
+    }
     setRequesting(false);
   }
 

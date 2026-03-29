@@ -30,10 +30,15 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const auth = await getAuthUser();
-    if (!auth) return NextResponse.json({ error: "Unauthorized" });
+    if (!auth) {
+      console.error("POST /api/subscription-requests: No auth user");
+      return NextResponse.json({ error: "Unauthorized" });
+    }
 
     const body = await req.json();
     const { plan, referenceNumber } = body;
+
+    console.log("POST /api/subscription-requests:", { plan, referenceNumber, authId: auth.id });
 
     if (!plan || !["1_day", "1_week", "1_month", "3_months", "6_months", "1_year"].includes(plan)) {
       return NextResponse.json({ error: "Invalid plan. Choose: 1_day, 1_week, 1_month, 3_months, 6_months, 1_year" });
@@ -44,12 +49,21 @@ export async function POST(req: Request) {
     }
 
     const supabase = getSupabase();
-    if (!supabase) return NextResponse.json({ error: "Database not set up" });
+    if (!supabase) {
+      console.error("POST /api/subscription-requests: Supabase not initialized");
+      return NextResponse.json({ error: "Database not set up" });
+    }
 
     // Get user info
-    const { data: user } = await supabase.from("users").select("full_name, email, role").eq("id", auth.id).single();
+    const { data: user, error: userError } = await supabase.from("users").select("full_name, email, role").eq("id", auth.id).single();
+    
+    if (userError) {
+      console.error("POST /api/subscription-requests: User fetch error:", userError);
+    }
 
-    const { error } = await supabase.from("subscription_requests").insert({
+    console.log("POST /api/subscription-requests: User data:", user);
+
+    const insertData = {
       user_id: auth.id,
       user_email: user?.email || auth.email,
       user_name: user?.full_name || "Unknown",
@@ -57,20 +71,34 @@ export async function POST(req: Request) {
       plan,
       reference_number: referenceNumber.trim(),
       status: "pending",
-    });
+    };
 
-    if (error) return NextResponse.json({ error: error.message });
+    console.log("POST /api/subscription-requests: Inserting:", insertData);
+
+    const { data: insertedData, error } = await supabase.from("subscription_requests").insert(insertData).select();
+
+    if (error) {
+      console.error("POST /api/subscription-requests: Insert error:", error);
+      return NextResponse.json({ error: error.message });
+    }
+
+    console.log("POST /api/subscription-requests: Inserted successfully:", insertedData);
 
     // Notify company owner
-    await supabase.from("notifications").insert({
+    const { error: notifError } = await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `Subscription Request - ${plan}`,
-      message: `${user?.full_name} requested ${plan.replace(/_/g, " ")} subscription. Ref: ${referenceNumber}`,
+      message: `${user?.full_name || "Unknown"} requested ${plan.replace(/_/g, " ")} subscription. Ref: ${referenceNumber}`,
       type: "subscription_request",
     });
 
+    if (notifError) {
+      console.error("POST /api/subscription-requests: Notification error:", notifError);
+    }
+
     return NextResponse.json({ success: true, message: "Request sent! Waiting for approval." });
   } catch (e) {
+    console.error("POST /api/subscription-requests: Exception:", e);
     return NextResponse.json({ error: String(e) });
   }
 }

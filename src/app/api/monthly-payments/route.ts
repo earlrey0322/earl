@@ -35,15 +35,21 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const auth = await getAuthUser();
-    if (!auth) return NextResponse.json({ error: "Unauthorized" });
+    if (!auth) {
+      console.error("POST /api/monthly-payments: No auth user");
+      return NextResponse.json({ error: "Unauthorized" });
+    }
 
     // Only branch_owner and other_branch can request monthly payments
     if (auth.role !== "branch_owner" && auth.role !== "other_branch") {
+      console.error("POST /api/monthly-payments: Invalid role:", auth.role);
       return NextResponse.json({ error: "Only branch owners can request monthly payments" });
     }
 
     const body = await req.json();
     const { referenceNumber, paidForMonth } = body;
+
+    console.log("POST /api/monthly-payments:", { referenceNumber, paidForMonth, authId: auth.id, role: auth.role });
 
     if (!referenceNumber || !referenceNumber.trim()) {
       return NextResponse.json({ error: "Reference number required" });
@@ -54,16 +60,25 @@ export async function POST(req: Request) {
     }
 
     const supabase = getSupabase();
-    if (!supabase) return NextResponse.json({ error: "Database not set up" });
+    if (!supabase) {
+      console.error("POST /api/monthly-payments: Supabase not initialized");
+      return NextResponse.json({ error: "Database not set up" });
+    }
 
     // Get user info
-    const { data: user } = await supabase.from("users").select("full_name, email, role").eq("id", auth.id).single();
+    const { data: user, error: userError } = await supabase.from("users").select("full_name, email, role").eq("id", auth.id).single();
+    
+    if (userError) {
+      console.error("POST /api/monthly-payments: User fetch error:", userError);
+    }
+
+    console.log("POST /api/monthly-payments: User data:", user);
 
     // Get monthly fee based on role
     const amount = MONTHLY_FEES[auth.role] || 200;
 
     // Check if already has pending request for this month
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from("monthly_payments")
       .select("id")
       .eq("user_id", auth.id)
@@ -71,11 +86,15 @@ export async function POST(req: Request) {
       .eq("status", "pending")
       .single();
 
+    if (existingError && existingError.code !== "PGRST116") {
+      console.error("POST /api/monthly-payments: Existing check error:", existingError);
+    }
+
     if (existing) {
       return NextResponse.json({ error: "You already have a pending request for this month" });
     }
 
-    const { error } = await supabase.from("monthly_payments").insert({
+    const insertData = {
       user_id: auth.id,
       user_email: user?.email || auth.email,
       user_name: user?.full_name || "Unknown",
@@ -84,24 +103,34 @@ export async function POST(req: Request) {
       reference_number: referenceNumber.trim(),
       status: "pending",
       paid_for_month: paidForMonth,
-    });
+    };
 
-    if (error) return NextResponse.json({ error: error.message });
+    console.log("POST /api/monthly-payments: Inserting:", insertData);
+
+    const { data: insertedData, error } = await supabase.from("monthly_payments").insert(insertData).select();
+
+    if (error) {
+      console.error("POST /api/monthly-payments: Insert error:", error);
+      return NextResponse.json({ error: error.message });
+    }
+
+    console.log("POST /api/monthly-payments: Inserted successfully:", insertedData);
 
     // Notify company owner
     const { error: notifError } = await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `Monthly Payment Request - ₱${amount}`,
-      message: `${user?.full_name} (${auth.role}) wants to set premium. Click "Set Premium" to approve. Amount: ₱${amount}, Ref: ${referenceNumber}`,
+      message: `${user?.full_name || "Unknown"} (${auth.role}) wants to set premium. Click "Set Premium" to approve. Amount: ₱${amount}, Ref: ${referenceNumber}`,
       type: "monthly_payment",
     });
 
     if (notifError) {
-      console.error("Notification error:", notifError);
+      console.error("POST /api/monthly-payments: Notification error:", notifError);
     }
 
     return NextResponse.json({ success: true, message: "Payment request sent! Waiting for approval." });
   } catch (e) {
+    console.error("POST /api/monthly-payments: Exception:", e);
     return NextResponse.json({ error: String(e) });
   }
 }

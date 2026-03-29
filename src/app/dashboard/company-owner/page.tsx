@@ -125,16 +125,30 @@ export default function CompanyOwnerDashboard() {
   async function handleSubscriptionRequest(requestId: number, approve: boolean, days?: number) {
     playClick();
     try {
+      console.log("Handling subscription request:", { requestId, approve, days: days || approveDays });
       const res = await apiFetch("/api/subscription-requests", { method: "PATCH", body: JSON.stringify({ requestId, approve, days: days || approveDays }) });
+      const data = await res.json();
       if (res.ok) {
         setSubRequests((prev) => prev.map((r) => r.id === requestId ? { ...r, status: approve ? "approved" : "rejected" } : r));
         alert(`Request ${approve ? "approved" : "rejected"}!`);
         setShowApproveDialog(false);
         setApprovingRequest(null);
+        // Refresh subscription requests
+        try {
+          const refreshRes = await apiFetch("/api/subscription-requests");
+          const refreshData = await refreshRes.json();
+          if (refreshData.requests) setSubRequests(refreshData.requests);
+        } catch (refreshErr) {
+          console.error("Error refreshing requests:", refreshErr);
+        }
       } else {
-        alert("Failed to update request");
+        console.error("Failed to update request:", data);
+        alert("Failed to update request: " + (data.error || "Unknown error"));
       }
-    } catch { alert("Error updating request"); }
+    } catch (err) { 
+      console.error("Error updating request:", err);
+      alert("Error updating request: " + String(err)); 
+    }
   }
 
   function openApproveDialog(req: SubscriptionRequest) {
@@ -149,18 +163,38 @@ export default function CompanyOwnerDashboard() {
   async function handleMonthlyPayment(paymentId: number, approve: boolean) {
     playClick();
     try {
+      console.log("Handling monthly payment:", { paymentId, approve });
       const res = await apiFetch("/api/monthly-payments", { method: "PATCH", body: JSON.stringify({ paymentId, approve }) });
+      const data = await res.json();
       if (res.ok) {
         setMonthlyPayments((prev) => prev.map((p) => p.id === paymentId ? { ...p, status: approve ? "approved" : "rejected" } : p));
         alert(`Monthly payment ${approve ? "approved" : "rejected"}!`);
         if (approve) {
           // Refresh users data to update subscription status
-          apiFetch("/api/users").then((r) => r.json()).then((d) => { if (d.totalUsers !== undefined) setUsersData(d); }).catch(() => {});
+          try {
+            const usersRes = await apiFetch("/api/users");
+            const usersDataRefresh = await usersRes.json();
+            if (usersDataRefresh.totalUsers !== undefined) setUsersData(usersDataRefresh);
+          } catch (refreshErr) {
+            console.error("Error refreshing users:", refreshErr);
+          }
+        }
+        // Refresh monthly payments
+        try {
+          const refreshRes = await apiFetch("/api/monthly-payments");
+          const refreshData = await refreshRes.json();
+          if (refreshData.payments) setMonthlyPayments(refreshData.payments);
+        } catch (refreshErr) {
+          console.error("Error refreshing payments:", refreshErr);
         }
       } else {
-        alert("Failed to update payment");
+        console.error("Failed to update payment:", data);
+        alert("Failed to update payment: " + (data.error || "Unknown error"));
       }
-    } catch { alert("Error updating payment"); }
+    } catch (err) { 
+      console.error("Error updating payment:", err);
+      alert("Error updating payment: " + String(err)); 
+    }
   }
 
   function useLocation() {

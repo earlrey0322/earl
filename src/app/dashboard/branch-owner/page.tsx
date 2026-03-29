@@ -109,11 +109,21 @@ export default function BranchOwnerDashboard() {
         alert("Subscription request sent! Waiting for company owner approval.");
         setSelectedPlan(null);
         setReferenceNumber("");
-        apiFetch("/api/subscription-requests").then((r) => r.json()).then((d) => { if (d.requests) setSubRequests(d.requests); }).catch(() => {});
+        // Refresh subscription requests
+        try {
+          const refreshRes = await apiFetch("/api/subscription-requests");
+          const refreshData = await refreshRes.json();
+          if (refreshData.requests) setSubRequests(refreshData.requests);
+        } catch (refreshErr) {
+          console.error("Error refreshing requests:", refreshErr);
+        }
       } else {
         alert("Error: " + (data.error || "Failed to send request"));
       }
-    } catch { alert("Error sending request"); }
+    } catch (err) { 
+      console.error("Error sending subscription request:", err);
+      alert("Error sending request: " + String(err)); 
+    }
     setRequesting(false);
   }
 
@@ -130,11 +140,21 @@ export default function BranchOwnerDashboard() {
       if (res.ok) {
         alert("Monthly payment request sent! Waiting for company owner approval.");
         setMonthlyReferenceNumber("");
-        apiFetch("/api/monthly-payments").then((r) => r.json()).then((d) => { if (d.payments) setMonthlyPayments(d.payments); }).catch(() => {});
+        // Refresh monthly payments
+        try {
+          const refreshRes = await apiFetch("/api/monthly-payments");
+          const refreshData = await refreshRes.json();
+          if (refreshData.payments) setMonthlyPayments(refreshData.payments);
+        } catch (refreshErr) {
+          console.error("Error refreshing payments:", refreshErr);
+        }
       } else {
         alert("Error: " + (data.error || "Failed to send request"));
       }
-    } catch { alert("Error sending request"); }
+    } catch (err) { 
+      console.error("Error sending monthly payment request:", err);
+      alert("Error sending request: " + String(err)); 
+    }
     setRequestingMonthly(false);
   }
 
