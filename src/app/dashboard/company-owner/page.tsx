@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
-import { RealMap } from "@/components/RealMap";
+import { StationMap } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { apiFetch } from "@/lib/api-fetch";
@@ -216,7 +216,7 @@ export default function CompanyOwnerDashboard() {
             </div>
           )}
 
-          <RealMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={true} onUseLocation={(lat, lng) => setAddForm((p) => ({ ...p, latitude: lat, longitude: lng }))} />
+          <StationMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={true} />
 
           <div className="glass-card rounded-2xl p-6">
             <h4 className="font-bold text-white mb-4">Manage Stations</h4>

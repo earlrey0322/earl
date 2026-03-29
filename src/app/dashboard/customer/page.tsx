@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
-import { RealMap } from "@/components/RealMap";
+import { StationMap } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { apiFetch } from "@/lib/api-fetch";
@@ -70,7 +70,7 @@ export default function CustomerDashboard() {
 
         <section id="stations">
           <h3 className="text-lg font-bold text-white mb-4">Charging Stations</h3>
-          <RealMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+          <StationMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
         </section>
 
         <section id="sessions">
