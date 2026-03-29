@@ -59,13 +59,15 @@ export default function BranchOwnerDashboard() {
     playClick();
     try {
       const res = await apiFetch("/api/stations", { method: "POST", body: JSON.stringify(newStation) });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+      if (res.ok && data.station) {
         setStations((prev) => [...prev, data.station]);
         setShowAdd(false);
         setNewStation({ name: "", address: "", latitude: 14.5995, longitude: 120.9842, contactNumber: "", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
+      } else {
+        alert("Error: " + (data.error || "Failed to add station"));
       }
-    } catch { alert("Error adding station"); }
+    } catch (err) { alert("Error: " + String(err)); }
   }
 
   function useCurrentLocation() {

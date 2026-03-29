@@ -65,8 +65,16 @@ export default function CompanyOwnerDashboard() {
 
   async function addStation() {
     playClick();
-    const res = await apiFetch("/api/stations", { method: "POST", body: JSON.stringify(addForm) });
-    if (res.ok) { const d = await res.json(); setStations((p) => [...p, d.station]); setShowAdd(false); }
+    try {
+      const res = await apiFetch("/api/stations", { method: "POST", body: JSON.stringify(addForm) });
+      const d = await res.json();
+      if (res.ok && d.station) {
+        setStations((p) => [...p, d.station]);
+        setShowAdd(false);
+      } else {
+        alert("Error: " + (d.error || "Failed to add station"));
+      }
+    } catch (err) { alert("Error: " + String(err)); }
   }
 
   async function removeSub(userId: number) {

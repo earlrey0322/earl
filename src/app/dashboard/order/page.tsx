@@ -54,8 +54,10 @@ export default function OrderPage() {
     }).catch(() => {});
   }, []);
 
+  const SHIPPING_FEE = 500;
   const selectedProd = products.find((p) => p.id === selectedProduct);
-  const totalPrice = selectedProd ? selectedProd.price * quantity : 0;
+  const productTotal = selectedProd ? selectedProd.price * quantity : 0;
+  const totalPrice = productTotal + (productTotal > 0 ? SHIPPING_FEE : 0);
 
   async function handleOrder() {
     playClick();
@@ -142,14 +144,14 @@ export default function OrderPage() {
 
             {selectedProd && (
               <div className="mt-4 p-4 bg-amber-400/10 border border-amber-400/30 rounded-xl">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-white">{selectedProd.name}</p>
-                    <p className="text-xs text-slate-400">{selectedProd.desc}</p>
-                    <p className="text-xs text-slate-400 mt-1">Qty: {quantity}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-2xl font-bold text-amber-400">₱{totalPrice.toLocaleString()}</p>
+                <div>
+                  <p className="font-bold text-white">{selectedProd.name}</p>
+                  <p className="text-xs text-slate-400">{selectedProd.desc}</p>
+                  <p className="text-xs text-slate-400 mt-1">Qty: {quantity}</p>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <div className="flex justify-between"><span className="text-slate-400">Product</span><span className="text-white">₱{productTotal.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Shipping Fee</span><span className="text-white">₱{SHIPPING_FEE.toLocaleString()}</span></div>
+                    <div className="flex justify-between border-t border-amber-400/30 pt-1"><span className="text-amber-400 font-bold">Total</span><span className="text-amber-400 font-bold">₱{totalPrice.toLocaleString()}</span></div>
                   </div>
                 </div>
               </div>

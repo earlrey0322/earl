@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { orders, notifications } from "@/db/schema";
+import { orders, notifications, users } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { getAuthUser } from "@/lib/api-auth";
 
-export const PRODUCTS = [
-  { id: "pspcs-basic", name: "PSPCS Basic Station", price: 3500, desc: "1 cable, solar panel, 3.6VDC output" },
-  { id: "pspcs-standard", name: "PSPCS Standard Station", price: 5000, desc: "2 cables (Type-C + iPhone), solar panel" },
-  { id: "pspcs-premium", name: "PSPCS Premium Station", price: 7500, desc: "3 cables + outlet, solar panel, inverter" },
-  { id: "solar-panel", name: "Solar Panel Only", price: 2000, desc: "50W solar panel with rectifier" },
-  { id: "cable-typec", name: "Type-C Cable", price: 150, desc: "Fast charging Type-C cable" },
-  { id: "cable-iphone", name: "iPhone Cable", price: 200, desc: "Lightning cable for iPhone" },
-  { id: "cable-universal", name: "Universal USB Cable", price: 100, desc: "USB-A charging cable" },
+const PRODUCTS = [
+  { id: "pspcs-basic", name: "PSPCS Charging Station", price: 25000, desc: "Solar powered, 3.6VDC output, charges all phone types" },
+  { id: "pspcs-2unit", name: "PSPCS Station (2 Units)", price: 48000, desc: "Two PSPCS stations bundle" },
+  { id: "pspcs-3unit", name: "PSPCS Station (3 Units)", price: 70000, desc: "Three PSPCS stations bundle" },
 ];
 
 export async function GET() {
@@ -19,13 +15,18 @@ export async function GET() {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const user = await (await import("@/db")).db.select().from((await import("@/db/schema")).users).where(eq((await import("@/db/schema")).users.id, auth.userId));
-    const role = user[0]?.role;
+    const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, auth.userId));
+    const role = userResult[0]?.role;
 
-    // Company owner sees all orders, others see their own
-    const allOrders = role === "company_owner"
-      ? await db.select().from(orders).orderBy(desc(orders.createdAt))
-      : await db.select().from(orders).where(eq(orders.userId, auth.userId)).orderBy(desc(orders.createdAt));
+    let allOrders: typeof orders.$inferSelect[] = [];
+    try {
+      allOrders = role === "company_owner"
+        ? await db.select().from(orders).orderBy(desc(orders.createdAt))
+        : await db.select().from(orders).where(eq(orders.userId, auth.userId)).orderBy(desc(orders.createdAt));
+    } catch {
+      // Table might not exist yet
+      allOrders = [];
+    }
 
     return NextResponse.json({ orders: allOrders, products: PRODUCTS });
   } catch (error) {
@@ -41,32 +42,39 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { buyerName, buyerPhone, buyerAddress, product, quantity, totalPrice, notes } = body;
     if (!buyerName || !buyerPhone || !buyerAddress || !product || !totalPrice) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: "All fields required" }, { status: 400 });
     }
 
-    const user = await (await import("@/db")).db.select().from((await import("@/db/schema")).users).where(eq((await import("@/db/schema")).users.id, auth.userId));
+    const userResult = await db.select({ email: users.email }).from(users).where(eq(users.id, auth.userId));
 
-    const newOrder = await db.insert(orders).values({
-      userId: auth.userId,
-      buyerName,
-      buyerEmail: user[0]?.email || "",
-      buyerPhone,
-      buyerAddress,
-      product,
-      quantity: quantity || 1,
-      totalPrice,
-      status: "pending",
-      notes: notes || "",
-    }).returning();
+    try {
+      const newOrder = await db.insert(orders).values({
+        userId: auth.userId,
+        buyerName,
+        buyerEmail: userResult[0]?.email || "",
+        buyerPhone,
+        buyerAddress,
+        product,
+        quantity: quantity || 1,
+        totalPrice,
+        status: "pending",
+        notes: notes || "",
+      }).returning();
 
-    await db.insert(notifications).values({
-      recipientEmail: "earlrey0322@gmail.com",
-      subject: `New Order - ${product}`,
-      message: `${buyerName} ordered ${product} (₱${totalPrice}). Pay via GCash: 09469086926`,
-      type: "order",
-    });
+      try {
+        await db.insert(notifications).values({
+          recipientEmail: "earlrey0322@gmail.com",
+          subject: `New Order - ${product}`,
+          message: `${buyerName} ordered ${product} (₱${totalPrice}). GCash: 09469086926`,
+          type: "order",
+        });
+      } catch {}
 
-    return NextResponse.json({ success: true, order: newOrder[0] });
+      return NextResponse.json({ success: true, order: newOrder[0] });
+    } catch (dbError) {
+      // Table might not exist
+      return NextResponse.json({ error: "Database error: " + String(dbError) }, { status: 500 });
+    }
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });
   }
