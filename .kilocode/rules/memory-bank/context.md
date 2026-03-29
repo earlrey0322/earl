@@ -93,3 +93,4 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Replaced Leaflet with Google Maps embedded iframe, added location field to stations |
 | 2026-03-29 | Station detail panel with side-by-side layout: details left, Google Maps right |
 | 2026-03-29 | Fixed API data transformation - store uses lat/lng/addr, frontend expects latitude/longitude/address |
+| 2026-03-29 | Added file-based persistent storage (data-store.json) - accounts survive server restarts |
