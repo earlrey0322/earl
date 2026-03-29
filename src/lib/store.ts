@@ -137,6 +137,7 @@ class InMemoryStore {
   }
   updateStation(id: number, data: Partial<Station>) { const s = this.stations.find((s) => s.id === id); if (s) Object.assign(s, data); return s; }
   incrementStationVisit(id: number) { const s = this.stations.find((s) => s.id === id); if (s) s.totalVisits++; }
+  deleteStation(id: number) { this.stations = this.stations.filter((s) => s.id !== id); }
 
   addChargingHistory(data: Omit<ChargingHistory, "id" | "createdAt">) {
     const h: ChargingHistory = { ...data, id: this.getId(), createdAt: new Date() };

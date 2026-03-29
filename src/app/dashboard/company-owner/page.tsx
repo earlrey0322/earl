@@ -79,6 +79,13 @@ export default function CompanyOwnerDashboard() {
     navigator.geolocation.getCurrentPosition((p) => setAddForm((f) => ({ ...f, latitude: p.coords.latitude, longitude: p.coords.longitude })));
   }
 
+  async function removeStation(id: number, name: string) {
+    playClick();
+    if (!confirm(`Remove station "${name}"?`)) return;
+    await apiFetch("/api/stations", { method: "DELETE", body: JSON.stringify({ id }) });
+    setStations((prev) => prev.filter((s) => s.id !== id));
+  }
+
   function handleRefresh() {
     apiFetch("/api/auth/me").then((r) => r.json()).then((d) => { if (d.user) setUserData(d.user); }).catch(() => {});
   }
@@ -186,9 +193,14 @@ export default function CompanyOwnerDashboard() {
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
                     <span className="text-[10px] text-slate-500">{s.totalVisits} visits</span>
-                    <button onClick={() => toggleStation(s)} className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
-                      {s.isActive ? "Active" : "Inactive"}
-                    </button>
+                    <div className="flex gap-2">
+                      <button onClick={() => toggleStation(s)} className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
+                        {s.isActive ? "Active" : "Inactive"}
+                      </button>
+                      <button onClick={() => removeStation(s.id, s.name)} className="px-3 py-1 text-[10px] font-bold rounded-full bg-red-600/10 text-red-400 hover:bg-red-600/20">
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

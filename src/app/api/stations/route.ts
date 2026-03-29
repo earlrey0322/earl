@@ -75,3 +75,19 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const auth = await getAuthUser();
+    if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const body = await request.json();
+    const { id } = body;
+    if (!id) return NextResponse.json({ error: "Station ID required" }, { status: 400 });
+
+    store.deleteStation(id);
+    return NextResponse.json({ success: true, message: "Station removed" });
+  } catch (error) {
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
