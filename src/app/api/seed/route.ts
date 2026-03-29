@@ -1,28 +1,39 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { chargingStations } from "@/db/schema";
+import { getSupabase } from "@/lib/supabase";
 
-const SAMPLES = [
-  { name: "PSPCS Station - SM Mall", company: "KLEOXM 111", lat: 14.5995, lng: 120.9842, addr: "SM Mall of Asia, Pasay City", active: true, battery: 85, visits: 142, rev: 710, tc: 2, ip: 1, uv: 1, out: 2 },
-  { name: "PSPCS Station - BGC", company: "KLEOXM 111", lat: 14.5537, lng: 121.0509, addr: "BGC High Street, Taguig City", active: true, battery: 92, visits: 89, rev: 445, tc: 1, ip: 2, uv: 1, out: 1 },
-  { name: "PSPCS Station - Quiapo", company: "KLEOXM 111", lat: 14.5981, lng: 120.9837, addr: "Quiapo Church Area, Manila", active: false, battery: 15, visits: 234, rev: 1170, tc: 2, ip: 1, uv: 2, out: 3 },
-  { name: "PSPCS Station - Cubao", company: "KLEOXM 111", lat: 14.6188, lng: 121.0509, addr: "Gateway Mall, Cubao, QC", active: true, battery: 78, visits: 67, rev: 335, tc: 1, ip: 1, uv: 1, out: 1 },
-  { name: "PSPCS Station - Makati", company: "KLEOXM 111", lat: 14.5547, lng: 121.0244, addr: "Ayala Center, Makati City", active: true, battery: 95, visits: 198, rev: 990, tc: 2, ip: 2, uv: 1, out: 2 },
-  { name: "SolarCharge - Ortigas", company: "SolarCharge Co.", lat: 14.5866, lng: 121.0635, addr: "SM Megamall, Ortigas Center", active: true, battery: 70, visits: 56, rev: 280, tc: 1, ip: 1, uv: 2, out: 1 },
-  { name: "EcoCharge - Alabang", company: "EcoCharge Inc.", lat: 14.4198, lng: 121.0311, addr: "Festival Mall, Alabang", active: true, battery: 88, visits: 45, rev: 225, tc: 2, ip: 1, uv: 1, out: 2 },
+const SAMPLE_STATIONS = [
+  { name: "PSPCS - SM Mall", company_name: "KLEOXM 111", owner_id: 0, owner_name: "KLEOXM 111", latitude: 14.5995, longitude: 120.9842, address: "SM Mall of Asia, Pasay", location: "Pasay City", is_active: true, battery_level: 85, total_visits: 142, cable_type_c: 2, cable_iphone: 1, cable_universal: 1, outlets: 2 },
+  { name: "PSPCS - BGC", company_name: "KLEOXM 111", owner_id: 0, owner_name: "KLEOXM 111", latitude: 14.5537, longitude: 121.0509, address: "BGC High Street, Taguig", location: "Taguig City", is_active: true, battery_level: 92, total_visits: 89, cable_type_c: 1, cable_iphone: 2, cable_universal: 1, outlets: 1 },
+  { name: "PSPCS - Quiapo", company_name: "KLEOXM 111", owner_id: 0, owner_name: "KLEOXM 111", latitude: 14.5981, longitude: 120.9837, address: "Quiapo Church, Manila", location: "Manila", is_active: false, battery_level: 15, total_visits: 234, cable_type_c: 2, cable_iphone: 1, cable_universal: 2, outlets: 3 },
+  { name: "PSPCS - Cubao", company_name: "KLEOXM 111", owner_id: 0, owner_name: "KLEOXM 111", latitude: 14.6188, longitude: 121.0509, address: "Gateway Mall, Cubao", location: "Quezon City", is_active: true, battery_level: 78, total_visits: 67, cable_type_c: 1, cable_iphone: 1, cable_universal: 1, outlets: 1 },
+  { name: "PSPCS - Makati", company_name: "KLEOXM 111", owner_id: 0, owner_name: "KLEOXM 111", latitude: 14.5547, longitude: 121.0244, address: "Ayala Center, Makati", location: "Makati City", is_active: true, battery_level: 95, total_visits: 198, cable_type_c: 2, cable_iphone: 2, cable_universal: 1, outlets: 2 },
 ];
 
 export async function POST() {
   try {
-    for (const s of SAMPLES) {
-      await db.insert(chargingStations).values({
-        name: s.name, companyName: s.company, brand: "PSPCS", latitude: s.lat, longitude: s.lng,
-        address: s.addr, isActive: s.active, batteryLevel: s.battery, totalVisits: s.visits,
-        revenue: s.rev, cableTypeC: s.tc, cableIPhone: s.ip, cableUniversal: s.uv, outlets: s.out,
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "No Supabase config" });
+
+    // Check if tables exist
+    const { error: checkError } = await supabase.from("charging_stations").select("id").limit(1);
+    
+    if (checkError && (checkError.message.includes("Could not find the table") || checkError.message.includes("relation"))) {
+      return NextResponse.json({ 
+        error: "Tables not created. Run SQL schema first.",
+        setupRequired: true
       });
     }
-    return NextResponse.json({ success: true, message: "Sample data loaded!" });
-  } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+
+    // Check if sample data exists
+    const { data: existing } = await supabase.from("charging_stations").select("id").limit(1);
+    
+    if (!existing || existing.length === 0) {
+      const { error: insertError } = await supabase.from("charging_stations").insert(SAMPLE_STATIONS);
+      if (insertError) return NextResponse.json({ error: "Insert failed: " + insertError.message });
+    }
+
+    return NextResponse.json({ success: true, message: "Database ready!" });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) });
   }
 }
