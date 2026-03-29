@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api-fetch";
 interface Station {
   id: number;
   name: string;
+  companyName: string;
   brand: string;
   ownerId: number | null;
   latitude: number;
@@ -17,7 +18,11 @@ interface Station {
   isActive: boolean;
   solarWatts: number;
   batteryLevel: number;
-  totalSessions: number;
+  totalVisits: number;
+  cableTypeC: number;
+  cableIPhone: number;
+  cableUniversal: number;
+  outlets: number;
   ownerName: string | null;
   contactNumber: string | null;
 }
@@ -314,7 +319,7 @@ export default function CompanyOwnerDashboard() {
                           <div className={`w-2 h-2 rounded-full ${station.isActive ? "bg-green-400" : "bg-red-400"}`} />
                           <span className="text-sm text-white">{station.name}</span>
                         </div>
-                        <span className="text-xs text-slate-400">{station.totalSessions} sessions</span>
+                        <span className="text-xs text-slate-400">{station.totalVisits} sessions</span>
                       </div>
                     ))
                   )}
@@ -441,7 +446,7 @@ export default function CompanyOwnerDashboard() {
                         </div>
                       </div>
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
-                        <span className="text-[10px] text-slate-500">{station.totalSessions} sessions</span>
+                        <span className="text-[10px] text-slate-500">{station.totalVisits} sessions</span>
                         <button
                           onClick={() => toggleStationStatus(station)}
                           className={`px-3 py-1 text-[10px] font-bold rounded-full transition-all ${

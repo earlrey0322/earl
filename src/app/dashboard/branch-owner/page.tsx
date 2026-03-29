@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api-fetch";
 interface Station {
   id: number;
   name: string;
+  companyName: string;
   brand: string;
   ownerId: number | null;
   latitude: number;
@@ -17,7 +18,11 @@ interface Station {
   isActive: boolean;
   solarWatts: number;
   batteryLevel: number;
-  totalSessions: number;
+  totalVisits: number;
+  cableTypeC: number;
+  cableIPhone: number;
+  cableUniversal: number;
+  outlets: number;
   ownerName: string | null;
   contactNumber: string | null;
 }
@@ -186,7 +191,7 @@ export default function BranchOwnerDashboard() {
             </div>
             <div className="px-4 py-2 bg-blue-400/10 rounded-lg">
               <div className="text-lg font-bold text-blue-400">
-                {myStations.reduce((sum, s) => sum + (s.totalSessions || 0), 0)}
+                {myStations.reduce((sum, s) => sum + (s.totalVisits || 0), 0)}
               </div>
               <div className="text-xs text-slate-400">Total Sessions</div>
             </div>
@@ -308,7 +313,7 @@ export default function BranchOwnerDashboard() {
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
                   <div className="flex gap-2">
                     <span className="text-[10px] text-slate-500">{station.solarWatts}W Solar</span>
-                    <span className="text-[10px] text-slate-500">{station.totalSessions} sessions</span>
+                    <span className="text-[10px] text-slate-500">{station.totalVisits} sessions</span>
                   </div>
                   <button
                     onClick={() => toggleStationStatus(station)}

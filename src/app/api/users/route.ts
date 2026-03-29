@@ -20,12 +20,9 @@ export async function GET() {
       subscribedBranchOwners: branchOwners.filter((u) => u.isSubscribed).length,
       subscribedCustomers: customers.filter((u) => u.isSubscribed).length,
       users: allUsers.map((u) => ({
-        id: u.id,
-        email: u.email,
-        fullName: u.fullName,
-        role: u.role,
-        contactNumber: u.contactNumber,
-        isSubscribed: u.isSubscribed,
+        id: u.id, email: u.email, fullName: u.fullName, role: u.role,
+        contactNumber: u.contactNumber, isSubscribed: u.isSubscribed,
+        subscriptionPlan: u.subscriptionPlan, subscriptionExpiry: u.subscriptionExpiry,
       })),
     });
   } catch (error) {
