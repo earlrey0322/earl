@@ -51,9 +51,9 @@ export default function SignupPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          email: form.email,
+          email: form.email.trim(),
           password: form.password,
-          fullName: form.fullName,
+          fullName: form.fullName.trim(),
           role: form.role,
           phoneBrand: form.phoneBrand,
           contactNumber: form.contactNumber,
@@ -62,21 +62,28 @@ export default function SignupPage() {
         }),
       });
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setError("Server returned invalid response");
+        setLoading(false);
+        return;
+      }
 
       if (!res.ok) {
-        setError(data.error || "Signup failed");
+        setError(data.error || `Signup failed (${res.status})`);
         setLoading(false);
         return;
       }
 
       let url = "/dashboard/customer";
-      if (data.user.role === "company_owner") url = "/dashboard/company-owner";
-      else if (data.user.role === "branch_owner") url = "/dashboard/branch-owner";
+      if (data.user?.role === "company_owner") url = "/dashboard/company-owner";
+      else if (data.user?.role === "branch_owner") url = "/dashboard/branch-owner";
 
       window.location.href = url;
-    } catch {
-      setError("Network error. Please try again.");
+    } catch (err) {
+      setError("Network error: " + String(err));
       setLoading(false);
     }
   }

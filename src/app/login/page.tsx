@@ -18,25 +18,32 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim(), password }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Login failed");
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setError("Server returned invalid response");
         setLoading(false);
         return;
       }
 
-      // Full page reload to dashboard based on role
+      if (!res.ok) {
+        setError(data.error || `Login failed (${res.status})`);
+        setLoading(false);
+        return;
+      }
+
+      // Redirect based on role
       let url = "/dashboard/customer";
-      if (data.user.role === "company_owner") url = "/dashboard/company-owner";
-      else if (data.user.role === "branch_owner") url = "/dashboard/branch-owner";
+      if (data.user?.role === "company_owner") url = "/dashboard/company-owner";
+      else if (data.user?.role === "branch_owner") url = "/dashboard/branch-owner";
 
       window.location.href = url;
     } catch (err) {
-      setError("Network error. Please try again.");
+      setError("Network error: " + String(err));
       setLoading(false);
     }
   }
@@ -62,54 +69,27 @@ export default function LoginPage() {
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              suppressHydrationWarning
-              autoComplete="email"
-              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
-              placeholder="your@email.com"
-            />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required suppressHydrationWarning autoComplete="email"
+              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="your@email.com" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              suppressHydrationWarning
-              autoComplete="current-password"
-              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
-              placeholder="Enter your password"
-            />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required suppressHydrationWarning autoComplete="current-password"
+              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Enter your password" />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            suppressHydrationWarning
-            className="w-full py-3 text-lg font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg hover:shadow-lg transition-all disabled:opacity-50"
-          >
+          <button type="submit" disabled={loading} suppressHydrationWarning
+            className="w-full py-3 text-lg font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg hover:shadow-lg transition-all disabled:opacity-50">
             {loading ? "Logging in..." : "Log In"}
           </button>
 
           <p className="text-center text-sm text-slate-400">
-            Don&apos;t have an account?{" "}
-            <a href="/signup" className="text-amber-400 hover:underline">
-              Sign Up
-            </a>
+            Don&apos;t have an account? <a href="/signup" className="text-amber-400 hover:underline">Sign Up</a>
           </p>
         </form>
 
-        <a href="/" className="mt-6 block text-center text-sm text-slate-500 hover:text-slate-300">
-          Back to Home
-        </a>
-
-        {/* Company Info */}
+        <a href="/" className="mt-6 block text-center text-sm text-slate-500 hover:text-slate-300">Back to Home</a>
         <div className="mt-8 text-center text-xs text-slate-600 space-y-1">
           <p>KLEOXM 111 — Powered Solar Piso Charging Station</p>
           <p>Contact: 09469086926 | earlrey0322@gmail.com</p>

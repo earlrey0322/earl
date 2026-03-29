@@ -4,7 +4,13 @@ import { createToken } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
     const { email, password } = body;
 
     if (!email || !password) {
@@ -13,15 +19,28 @@ export async function POST(request: Request) {
 
     const user = store.findUserByEmail(email);
     if (!user) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json({ error: "Account not found. Please sign up first." }, { status: 401 });
     }
 
-    const valid = await store.verifyPassword(password, user.password);
+    let valid = false;
+    try {
+      valid = await store.verifyPassword(password, user.password);
+    } catch (e) {
+      console.error("Password verification error:", e);
+      return NextResponse.json({ error: "Password verification failed" }, { status: 500 });
+    }
+
     if (!valid) {
-      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      return NextResponse.json({ error: "Wrong password" }, { status: 401 });
     }
 
-    const token = await createToken({ userId: user.id, email: user.email, role: user.role });
+    let token: string;
+    try {
+      token = await createToken({ userId: user.id, email: user.email, role: user.role });
+    } catch (e) {
+      console.error("Token creation error:", e);
+      return NextResponse.json({ error: "Failed to create session" }, { status: 500 });
+    }
 
     const response = NextResponse.json({
       success: true,
@@ -39,6 +58,11 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     console.error("Login error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error: " + String(error) }, { status: 500 });
   }
+}
+
+// GET for testing
+export async function GET() {
+  return NextResponse.json({ status: "Login API is working", users: store.getAllUsers().length });
 }
