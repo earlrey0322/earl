@@ -14,14 +14,6 @@ function playClick() {
   try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 800; o.type = "sine"; g.gain.setValueAtTime(0.1, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15); o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.15); } catch {}
 }
 
-// Convert lat/lng to percentage position on the map
-function latLngToPercent(lat: number, lng: number) {
-  const minLat = 14.35, maxLat = 14.75, minLng = 120.85, maxLng = 121.15;
-  const x = ((lng - minLng) / (maxLng - minLng)) * 100;
-  const y = ((maxLat - lat) / (maxLat - minLat)) * 100;
-  return { x: Math.max(2, Math.min(98, x)), y: Math.max(2, Math.min(98, y)) };
-}
-
 export function RealMap({
   stations, onSelect, selectedId, showAllBrands = false, onUseLocation,
 }: {
@@ -32,7 +24,6 @@ export function RealMap({
   onUseLocation?: (lat: number, lng: number) => void;
 }) {
   const [filter, setFilter] = useState<"all" | "active" | "kleoxm">("all");
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
 
   const filteredStations = stations.filter((s) => {
     if (filter === "active") return s.isActive;
@@ -48,6 +39,10 @@ export function RealMap({
     );
   }
 
+  function openInGoogleMaps(lat: number, lng: number, name: string) {
+    window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(name)}`, "_blank");
+  }
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -55,7 +50,7 @@ export function RealMap({
         {(["all", "active", "kleoxm"] as const).map((f) => (
           <button key={f} onClick={() => { playClick(); setFilter(f); }}
             className={`px-4 py-1.5 text-xs font-medium rounded-full ${filter === f ? "bg-amber-400 text-[#0f172a]" : "bg-slate-800 text-slate-400"}`}>
-            {f === "all" ? "All" : f === "active" ? "Active" : "KLEOXM 111"}
+            {f === "all" ? `All (${stations.length})` : f === "active" ? `Active (${stations.filter(s => s.isActive).length})` : "KLEOXM 111"}
           </button>
         ))}
         {onUseLocation && (
@@ -66,109 +61,80 @@ export function RealMap({
         {!showAllBrands && <span className="px-4 py-1.5 text-xs text-amber-400 bg-amber-400/10 rounded-full">Premium = All</span>}
       </div>
 
-      {/* Map */}
-      <div className="glass-card rounded-2xl overflow-hidden relative" style={{ height: "420px" }}>
-        <iframe
-          src="https://www.openstreetmap.org/export/embed.html?bbox=120.85%2C14.35%2C121.15%2C14.75&layer=mapnik"
-          className="w-full h-full border-0"
-          title="Station Map"
-          loading="lazy"
-        />
-
-        {/* Station markers overlay */}
-        <div className="absolute inset-0">
-          {filteredStations.map((station) => {
-            const pos = latLngToPercent(station.latitude, station.longitude);
-            const color = !station.isActive ? "#ef4444" : station.companyName === "KLEOXM 111" ? "#f59e0b" : "#22c55e";
-            const isSelected = selectedId === station.id;
-            const isHovered = hoveredId === station.id;
-            return (
-              <div key={station.id} className="absolute" style={{ left: `${pos.x}%`, top: `${pos.y}%`, transform: "translate(-50%, -100%)" }}>
-                {/* Pin marker */}
-                <button
-                  onClick={() => { playClick(); onSelect?.(station); }}
-                  onMouseEnter={() => setHoveredId(station.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  className="relative cursor-pointer"
-                  style={{ filter: isSelected ? "drop-shadow(0 0 6px rgba(245,158,11,0.8))" : "none" }}
-                >
-                  <svg width="28" height="36" viewBox="0 0 28 36" fill="none">
-                    <path d="M14 0C6.268 0 0 6.268 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.268 21.732 0 14 0z" fill={color} />
-                    <circle cx="14" cy="13" r="6" fill="white" />
-                    <text x="14" y="17" textAnchor="middle" fontSize="10" fill={color}>⚡</text>
-                  </svg>
-                  {station.isActive && (
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />
-                  )}
-                </button>
-
-                {/* Tooltip on hover */}
-                {(isHovered || isSelected) && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-52">
-                    <div className="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-xs shadow-xl">
-                      <p className="font-bold text-white text-sm">{station.name}</p>
-                      <p style={{ color }} className="font-medium">{station.companyName}</p>
-                      <p className="text-slate-400 mt-1">{station.address}</p>
-                      <p className={station.isActive ? "text-green-400" : "text-red-400"}>
-                        {station.isActive ? "● Active" : "● Inactive"}
-                      </p>
-                      <div className="flex gap-2 mt-1 text-slate-500">
-                        <span>{station.totalVisits} visits</span>
-                        <span>{station.batteryLevel}%</span>
-                      </div>
-                      {(station.cableTypeC > 0 || station.cableIPhone > 0 || station.cableUniversal > 0) && (
-                        <div className="flex gap-1 mt-1">
-                          {station.cableTypeC > 0 && <span className="px-1 bg-blue-500/20 text-blue-400 rounded">TC:{station.cableTypeC}</span>}
-                          {station.cableIPhone > 0 && <span className="px-1 bg-purple-500/20 text-purple-400 rounded">iP:{station.cableIPhone}</span>}
-                          {station.cableUniversal > 0 && <span className="px-1 bg-slate-500/20 text-slate-400 rounded">USB:{station.cableUniversal}</span>}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Legend */}
-        <div className="absolute bottom-3 right-3 bg-slate-900/90 backdrop-blur rounded-lg p-2 text-[10px] space-y-1">
-          <div className="flex items-center gap-1.5"><svg width="12" height="16"><path d="M6 0C2.686 0 0 2.686 0 6c0 5.25 6 10 6 10s6-4.75 6-10C12 2.686 9.314 0 6 0z" fill="#f59e0b" /></svg><span className="text-slate-400">KLEOXM</span></div>
-          <div className="flex items-center gap-1.5"><svg width="12" height="16"><path d="M6 0C2.686 0 0 2.686 0 6c0 5.25 6 10 6 10s6-4.75 6-10C12 2.686 9.314 0 6 0z" fill="#22c55e" /></svg><span className="text-slate-400">Other</span></div>
-          <div className="flex items-center gap-1.5"><svg width="12" height="16"><path d="M6 0C2.686 0 0 2.686 0 6c0 5.25 6 10 6 10s6-4.75 6-10C12 2.686 9.314 0 6 0z" fill="#ef4444" /></svg><span className="text-slate-400">Inactive</span></div>
-        </div>
-      </div>
-
-      {/* Station List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      {/* Station Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredStations.map((station) => (
-          <button key={station.id} onClick={() => { playClick(); onSelect?.(station); }}
-            className={`text-left glass-card rounded-xl p-4 transition-all hover:border-amber-400/50 ${selectedId === station.id ? "border-amber-400 glow-solar" : ""}`}>
-            <div className="flex justify-between">
-              <div>
-                <h4 className="font-bold text-white text-sm">{station.name}</h4>
-                <p className="text-xs text-amber-400">{station.companyName}</p>
-                <p className="text-xs text-slate-400 mt-1">{station.address}</p>
-                <div className="flex gap-2 mt-2 flex-wrap">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${station.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>{station.isActive ? "Active" : "Inactive"}</span>
-                  <span className="text-[10px] text-slate-500">{station.totalVisits} visits</span>
-                  <span className="text-[10px] text-green-400">₱{station.revenue || 0}</span>
+          <div key={station.id}
+            onClick={() => { playClick(); onSelect?.(station); }}
+            className={`cursor-pointer glass-card rounded-xl p-5 transition-all hover:border-amber-400/50 ${selectedId === station.id ? "border-amber-400 glow-solar border-2" : "border border-slate-700/50"}`}>
+            {/* Header */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                  station.isActive
+                    ? station.companyName === "KLEOXM 111" ? "bg-amber-400/20" : "bg-green-400/20"
+                    : "bg-red-400/20"
+                }`}>
+                  📍
                 </div>
-                <div className="flex gap-1.5 mt-2">
-                  {station.cableTypeC > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded">TC:{station.cableTypeC}</span>}
-                  {station.cableIPhone > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded">iP:{station.cableIPhone}</span>}
-                  {station.cableUniversal > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-slate-500/10 text-slate-400 rounded">USB:{station.cableUniversal}</span>}
-                  {station.outlets > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">O:{station.outlets}</span>}
+                <div>
+                  <h4 className="font-bold text-white text-sm">{station.name}</h4>
+                  <p className={`text-xs font-medium ${station.companyName === "KLEOXM 111" ? "text-amber-400" : "text-green-400"}`}>
+                    {station.companyName}
+                  </p>
                 </div>
               </div>
-              <div className="text-right shrink-0">
-                <div className={`text-lg font-bold ${(station.batteryLevel || 0) > 50 ? "text-green-400" : "text-amber-400"}`}>{station.batteryLevel || 0}%</div>
-                <p className="text-[10px] text-slate-500">Battery</p>
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${
+                station.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"
+              }`}>
+                {station.isActive ? "● Active" : "● Inactive"}
+              </span>
+            </div>
+
+            {/* Address */}
+            <p className="text-xs text-slate-400 mb-3">{station.address}</p>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                <div className={`text-sm font-bold ${(station.batteryLevel || 0) > 50 ? "text-green-400" : "text-amber-400"}`}>{station.batteryLevel || 0}%</div>
+                <div className="text-[10px] text-slate-500">Battery</div>
+              </div>
+              <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                <div className="text-sm font-bold text-blue-400">{station.totalVisits}</div>
+                <div className="text-[10px] text-slate-500">Visits</div>
+              </div>
+              <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+                <div className="text-sm font-bold text-amber-400">{station.solarWatts}W</div>
+                <div className="text-[10px] text-slate-500">Solar</div>
               </div>
             </div>
-          </button>
+
+            {/* Cables */}
+            <div className="flex gap-1.5 mb-3 flex-wrap">
+              {station.cableTypeC > 0 && <span className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full">Type-C: {station.cableTypeC}</span>}
+              {station.cableIPhone > 0 && <span className="text-[10px] px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded-full">iPhone: {station.cableIPhone}</span>}
+              {station.cableUniversal > 0 && <span className="text-[10px] px-2 py-0.5 bg-slate-500/10 text-slate-400 rounded-full">USB: {station.cableUniversal}</span>}
+              {station.outlets > 0 && <span className="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full">Outlets: {station.outlets}</span>}
+            </div>
+
+            {/* Google Maps Link */}
+            <button
+              onClick={(e) => { e.stopPropagation(); playClick(); openInGoogleMaps(station.latitude, station.longitude, station.name); }}
+              className="w-full py-2 text-xs font-medium text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10 transition-all flex items-center justify-center gap-2">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              Open in Google Maps
+            </button>
+          </div>
         ))}
       </div>
+
+      {filteredStations.length === 0 && (
+        <div className="text-center py-12 text-slate-400">
+          <p className="text-4xl mb-2">📍</p>
+          <p className="text-sm">No stations found</p>
+        </div>
+      )}
     </div>
   );
 }
