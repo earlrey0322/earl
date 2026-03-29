@@ -134,7 +134,7 @@ export default function CompanyOwnerDashboard() {
   const branchOwners = usersData?.users?.filter((u) => u.role === "branch_owner") || [];
   const customers = usersData?.users?.filter((u) => u.role === "customer") || [];
   const totalRevenue = history.reduce((s, h) => s + h.costPesos, 0);
-  const totalVisits = stations.reduce((s, st) => s + st.totalVisits, 0);
+  const totalVisits = stations.reduce((s, st) => s + (st.totalVisits || 0), 0);
 
   return (
     <DashboardShell title="Company Owner Dashboard">
