@@ -1,0 +1,7 @@
+name = "pspcs-app"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+SUPABASE_URL = "https://ocrddgvdjogploplbblw.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_a0PiaTKOJoM0m8q8PckJjA_1eaoZGj3"
