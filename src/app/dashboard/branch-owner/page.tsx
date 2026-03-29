@@ -322,8 +322,11 @@ export default function BranchOwnerDashboard() {
               <div key={s.id} className="glass-card rounded-xl p-4">
                 <h4 className="font-bold text-white text-sm">{s.name}</h4>
                 <p className="text-xs text-slate-400 mt-1">{s.address}</p>
+                {(s as any).contactNumber && (
+                  <p className="text-xs text-green-400 mt-1">📞 {(s as any).contactNumber}</p>
+                )}
                 <div className="flex items-center gap-2 mt-2">
-                  {(s as any).companyName ? (
+                  {(s as any).companyName && (s as any).companyName !== "Pending" ? (
                     <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">{(s as any).companyName}</span>
                   ) : (
                     <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">Waiting for Company</span>
