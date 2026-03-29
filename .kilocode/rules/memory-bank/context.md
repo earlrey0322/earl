@@ -37,6 +37,14 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Revenue tracking for subscription + monthly payments only
 - [x] Station add blocked until monthly payment approved
 - [x] Added better error logging and handling for subscription/monthly payment requests
+- [x] View-based revenue system: ₱0.20 per view when someone views/clicks a station
+- [x] Station tracking API (/api/stations/view) to record views and add revenue
+- [x] Redemption system (/api/redemptions) - redeem ₱100+ for free charging station or GCash cashout
+- [x] Branch owner dashboard: removed charging session revenue, added view-based revenue
+- [x] Redemption UI with progress bar, modal for free station/GCash options
+- [x] Added views and view_revenue columns to charging_stations table in Supabase
+- [x] Added redemptions table to Supabase schema
+- [x] Company owner can approve/deliver free station or GCash redemption requests
 
 ## Current Structure
 
@@ -50,11 +58,15 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 | `src/app/dashboard/company-owner/page.tsx` | Company Owner dashboard |
 | `src/app/api/auth/` | Auth API routes (login, signup, me) |
 | `src/app/api/stations/route.ts` | Charging stations CRUD |
+| `src/app/api/stations/view/route.ts` | Track station views and add revenue (₱0.20/view) |
 | `src/app/api/sessions/route.ts` | Charging sessions CRUD |
 | `src/app/api/subscription/route.ts` | GCash subscription |
+| `src/app/api/subscription-requests/route.ts` | Subscription request system |
+| `src/app/api/monthly-payments/route.ts` | Monthly payment requests for branch owners |
+| `src/app/api/redemptions/route.ts` | Revenue redemption requests (free station or GCash) |
 | `src/app/api/notifications/route.ts` | Notification management |
 | `src/app/api/users/route.ts` | User management (company owner) |
-| `src/app/api/seed/route.ts` | Sample data seeding |
+| `src/app/api/admin/users/route.ts` | Admin premium toggle API |
 | `src/db/schema.ts` | Database schema (users, stations, sessions, notifications) |
 | `src/db/index.ts` | Database client with lazy initialization |
 | `src/lib/auth.ts` | JWT token creation/verification |
@@ -129,3 +141,6 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Changed "Approve" button to "Set Premium" for monthly payments |
 | 2026-03-29 | Added better error logging to subscription-requests and monthly-payments API routes |
 | 2026-03-29 | Improved error handling in customer, branch owner, and company owner dashboards |
+| 2026-03-29 | View-based revenue: ₱0.20 per station view, redemption at ₱100 (free station or GCash) |
+| 2026-03-29 | Removed charging session revenue from branch owner, added views/viewRevenue to stations |
+| 2026-03-29 | Added redemptions table and API for handling revenue redemption requests |
