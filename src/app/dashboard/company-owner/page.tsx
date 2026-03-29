@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { RealMap } from "@/components/RealMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
-import { SUBSCRIPTION_PLANS } from "@/lib/store";
+import { PLANS } from "@/lib/store";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface Station {
@@ -265,7 +265,7 @@ export default function CompanyOwnerDashboard() {
             <div className="glass-card rounded-2xl p-6">
               <h4 className="font-bold text-white mb-4">Subscription Plans</h4>
               <div className="space-y-2">
-                {SUBSCRIPTION_PLANS.map((p) => (
+                {PLANS.map((p) => (
                   <div key={p.id} className="flex justify-between py-2 border-b border-slate-700/50 text-sm">
                     <span className="text-slate-400">{p.label}</span><span className="text-amber-400 font-bold">₱{p.price}</span>
                   </div>

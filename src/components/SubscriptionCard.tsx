@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SUBSCRIPTION_PLANS } from "@/lib/store";
+import { PLANS } from "@/lib/store";
 import { apiFetch } from "@/lib/api-fetch";
 
 function playClick() {
@@ -76,7 +76,7 @@ export function SubscriptionCard({
           <>
             <h4 className="text-xs font-bold text-amber-400 uppercase">Choose a Plan</h4>
             <div className="grid grid-cols-2 gap-2">
-              {SUBSCRIPTION_PLANS.map((plan) => (
+              {PLANS.map((plan) => (
                 <button
                   key={plan.id}
                   onClick={() => setSelectedPlan(plan.id)}
@@ -97,8 +97,8 @@ export function SubscriptionCard({
               <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl p-4 space-y-3">
                 <h4 className="text-sm font-bold text-blue-400">GCash Payment</h4>
                 <div className="space-y-1 text-sm">
-                  <div className="flex justify-between"><span className="text-slate-400">Plan</span><span className="text-white">{SUBSCRIPTION_PLANS.find((p) => p.id === selectedPlan)?.label}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-white font-bold">₱{SUBSCRIPTION_PLANS.find((p) => p.id === selectedPlan)?.price}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Plan</span><span className="text-white">{PLANS.find((p) => p.id === selectedPlan)?.label}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-white font-bold">₱{PLANS.find((p) => p.id === selectedPlan)?.price}</span></div>
                   <div className="flex justify-between"><span className="text-slate-400">GCash</span><span className="text-white font-bold">09469086926</span></div>
                   <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
                 </div>
