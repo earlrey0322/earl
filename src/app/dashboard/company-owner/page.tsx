@@ -350,7 +350,18 @@ export default function CompanyOwnerDashboard() {
               {stations.map((s) => (
                 <div key={s.id} className="bg-slate-800/50 rounded-xl p-4">
                   <h4 className="font-bold text-white text-sm">{s.name}</h4>
-                  <p className="text-xs text-amber-400">{s.companyName}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-amber-400">{s.companyName || "Pending"}</p>
+                    {s.companyName && s.companyName !== "KLEOXM 111" && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded">Premium</span>
+                    )}
+                    {s.companyName === "KLEOXM 111" && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded">Regular</span>
+                    )}
+                    {!s.companyName && (
+                      <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">Needs Setup</span>
+                    )}
+                  </div>
                   {(s as any).location && <p className="text-xs text-green-400 mt-1">📍 {(s as any).location}</p>}
                   <p className="text-xs text-slate-400 mt-1">{s.address}</p>
                   <div className="flex gap-1.5 mt-2">
@@ -398,7 +409,8 @@ export default function CompanyOwnerDashboard() {
                 <div>
                   <label className="block text-sm text-slate-300 mb-1">Company Name</label>
                   <input type="text" value={editForm.company} onChange={(e) => setEditForm((p) => ({ ...p, company: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="KLEOXM 111 or other company" />
+                  <p className="text-xs text-slate-500 mt-1">KLEOXM 111 = Regular (visible to all), Other = Premium only</p>
                 </div>
                 <div>
                   <label className="block text-sm text-slate-300 mb-1">Address</label>

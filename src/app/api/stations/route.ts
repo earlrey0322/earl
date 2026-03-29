@@ -3,11 +3,15 @@ import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
 function toStation(s: any, isPremium: boolean, isOwner: boolean) {
-  const canSeeLocation = isPremium || isOwner || s.company_name !== "KLEOXM 111";
+  // KLEOXM 111 stations = visible to all (regular)
+  // Other companies = need premium subscription to see
+  const isKleoXM = s.company_name === "KLEOXM 111" || !s.company_name || s.company_name === "";
+  const canSeeStation = isKleoXM || isPremium || isOwner;
+  const canSeeLocation = canSeeStation && (isPremium || isOwner || isKleoXM);
+  
   return {
-    id: s.id, name: s.name, companyName: s.company_name, brand: s.brand || "PSPCS",
+    id: s.id, name: s.name, companyName: s.company_name || "Pending", brand: s.brand || "PSPCS",
     ownerId: s.owner_id, ownerName: s.owner_name,
-    // Show exact location for premium users, owners, or non-KLEOXM stations
     latitude: canSeeLocation ? s.latitude : 0,
     longitude: canSeeLocation ? s.longitude : 0,
     address: s.address,
@@ -33,9 +37,17 @@ export async function GET() {
     }
 
     let query = supabase.from("charging_stations").select("*").order("id");
-    // Company owner sees all, others see KLEOXM 111 only
-    if (!auth || auth.role !== "company_owner") {
-      query = query.eq("company_name", "KLEOXM 111");
+    
+    // Company owner sees ALL stations
+    // Others see: KLEOXM 111 stations + their own stations (even if company is blank)
+    if (auth && auth.role === "company_owner") {
+      // See all
+    } else if (auth) {
+      // See KLEOXM 111 and own stations
+      query = query.or(`company_name.eq.KLEOXM 111,company_name.eq.,owner_id.eq.${auth.id}`);
+    } else {
+      // Not logged in - see only KLEOXM 111
+      query = query.or("company_name.eq.KLEOXM 111,company_name.eq.");
     }
 
     const { data, error } = await query;
@@ -64,9 +76,17 @@ export async function POST(req: Request) {
     // Get owner name
     const { data: profile } = await supabase.from("users").select("full_name").eq("id", auth.id).single();
 
+    // Branch owner adds with blank company name (company owner will set it later)
+    // Company owner can specify company name
+    let companyName = "";
+    if (auth.role === "company_owner") {
+      companyName = body.company || "KLEOXM 111";
+    }
+    // Branch owner: companyName stays blank
+
     const { data, error } = await supabase.from("charging_stations").insert({
       name: body.name.trim(),
-      company_name: auth.role === "company_owner" ? (body.company || "KLEOXM 111") : "KLEOXM 111",
+      company_name: companyName,
       brand: "PSPCS",
       owner_id: auth.id,
       owner_name: profile?.full_name || "Unknown",
@@ -82,6 +102,7 @@ export async function POST(req: Request) {
       cable_iphone: Number(body.cableIPhone) || 0,
       cable_universal: Number(body.cableUniversal) || 0,
       outlets: Number(body.outlets) || 1,
+      contact_number: (body.contactNumber || "").trim(),
     }).select().single();
 
     if (error) return NextResponse.json({ error: error.message });
@@ -107,32 +128,15 @@ export async function PATCH(req: Request) {
     if (body.name) updateData.name = body.name;
     if (body.address) updateData.address = body.address;
     if (body.location !== undefined) updateData.location = body.location;
-    if (body.company && auth.role === "company_owner") updateData.company_name = body.company;
+    // Only company owner can change company name
+    if (body.company !== undefined && auth.role === "company_owner") updateData.company_name = body.company;
     if (body.cableTypeC !== undefined) updateData.cable_type_c = Number(body.cableTypeC);
     if (body.cableIPhone !== undefined) updateData.cable_iphone = Number(body.cableIPhone);
     if (body.cableUniversal !== undefined) updateData.cable_universal = Number(body.cableUniversal);
     if (body.outlets !== undefined) updateData.outlets = Number(body.outlets);
+    if (body.contactNumber !== undefined) updateData.contact_number = body.contactNumber;
 
     const { error } = await supabase.from("charging_stations").update(updateData).eq("id", body.id);
-    if (error) return NextResponse.json({ error: error.message });
-    return NextResponse.json({ success: true });
-  } catch (e) {
-    return NextResponse.json({ error: String(e) });
-  }
-}
-
-export async function DELETE(req: Request) {
-  try {
-    const auth = await getAuthUser();
-    if (!auth) return NextResponse.json({ error: "Unauthorized" });
-
-    const body = await req.json();
-    if (!body.id) return NextResponse.json({ error: "ID required" });
-
-    const supabase = getSupabase();
-    if (!supabase) return NextResponse.json({ error: "Database not set up" });
-
-    const { error } = await supabase.from("charging_stations").delete().eq("id", body.id);
     if (error) return NextResponse.json({ error: error.message });
     return NextResponse.json({ success: true });
   } catch (e) {

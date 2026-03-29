@@ -277,6 +277,13 @@ export default function BranchOwnerDashboard() {
               <div key={s.id} className="glass-card rounded-xl p-4">
                 <h4 className="font-bold text-white text-sm">{s.name}</h4>
                 <p className="text-xs text-slate-400 mt-1">{s.address}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  {(s as any).companyName ? (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">{(s as any).companyName}</span>
+                  ) : (
+                    <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">Waiting for Company</span>
+                  )}
+                </div>
                 <div className="flex gap-1.5 mt-2">
                   {s.cableTypeC > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded">TC:{s.cableTypeC}</span>}
                   {s.cableIPhone > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded">iP:{s.cableIPhone}</span>}
