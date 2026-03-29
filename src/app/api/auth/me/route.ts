@@ -17,7 +17,8 @@ export async function GET() {
       user: {
         id: user.id, email: user.email, fullName: user.full_name, role: user.role,
         phoneBrand: user.phone_brand, contactNumber: user.contact_number, address: user.address,
-        isSubscribed: user.is_subscribed || false, subPlan: user.subscription_plan, subExpiry: null,
+        isSubscribed: user.is_subscribed || false, subscriptionPlan: user.subscription_plan,
+        subscriptionExpiry: user.subscription_expiry,
       },
     });
   } catch (e) {
