@@ -17,78 +17,85 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid verification answer" }, { status: 403 });
     }
 
-    if (isSupabaseConfigured()) {
-      const supabase = getSupabase()!;
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        error: "Database not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY environment variables in your deployment settings.",
+        setupRequired: true,
+      }, { status: 503 });
+    }
 
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-      });
+    const supabase = getSupabase()!;
 
-      if (authError) {
-        if (authError.message.includes("already registered") || authError.message.includes("already exists")) {
-          return NextResponse.json({ error: "Email already registered" }, { status: 409 });
-        }
-        return NextResponse.json({ error: authError.message }, { status: 400 });
+    // Sign up with email confirmation - Supabase will send verification email
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: {
+          full_name: fullName.trim(),
+          role,
+        },
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || ""}/auth/callback`,
+      },
+    });
+
+    if (authError) {
+      if (authError.message.includes("already registered") || authError.message.includes("already exists") || authError.message.includes("already in use")) {
+        return NextResponse.json({ error: "Email already registered" }, { status: 409 });
       }
+      return NextResponse.json({ error: authError.message }, { status: 400 });
+    }
 
-      if (!authData.user) {
-        return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
-      }
+    if (!authData.user) {
+      return NextResponse.json({ error: "Failed to create account" }, { status: 500 });
+    }
 
-      const { error: profileError } = await supabase.from("users").insert({
-        id: Number(authData.user.id),
-        email: email.trim(),
-        password: password,
-        full_name: fullName.trim(),
-        role,
-        phone_brand: phoneBrand || null,
-        contact_number: contactNumber || null,
-        address: address || null,
-        is_subscribed: false,
-      });
+    // Insert user profile into users table
+    const { error: profileError } = await supabase.from("users").insert({
+      id: Number(authData.user.id),
+      email: email.trim(),
+      password: password,
+      full_name: fullName.trim(),
+      role,
+      phone_brand: phoneBrand || null,
+      contact_number: contactNumber || null,
+      address: address || null,
+      is_subscribed: false,
+    });
 
-      if (profileError) {
-        console.error("Profile insert error:", profileError);
-      }
+    if (profileError) {
+      console.error("Profile insert error:", profileError);
+    }
 
-      await supabase.from("notifications").insert({
-        recipient_email: "earlrey0322@gmail.com",
-        subject: `New ${role} - ${fullName}`,
-        message: `${fullName} (${email}) signed up as ${role}`,
-        type: "signup",
-      });
+    // Create notification for company owner
+    await supabase.from("notifications").insert({
+      recipient_email: "earlrey0322@gmail.com",
+      subject: `New ${role} - ${fullName}`,
+      message: `${fullName} (${email}) signed up as ${role}`,
+      type: "signup",
+    });
 
-      const token = btoa(JSON.stringify({ id: Number(authData.user.id), email: authData.user.email, role }));
-      const res = NextResponse.json({
+    // Check if email confirmation is required
+    const emailConfirmed = authData.user.email_confirmed_at != null;
+
+    if (!emailConfirmed) {
+      // Email not yet confirmed - return message to check email
+      return NextResponse.json({
         success: true,
-        user: { id: Number(authData.user.id), email: authData.user.email, fullName: fullName.trim(), role, isSubscribed: false },
+        emailConfirmationRequired: true,
+        message: "Please check your email to confirm your account before logging in.",
       });
-      res.cookies.set("token", token, { httpOnly: false, secure: false, sameSite: "lax", maxAge: 604800, path: "/" });
-      return res;
     }
 
-    // Fallback to local store
-    const { users, uid } = getStore();
-    if (users.find((u: any) => u.email === email.trim())) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 409 });
-    }
-
-    const user = {
-      id: uid(), email: email.trim(), password, fullName: fullName.trim(), role,
-      phoneBrand: phoneBrand || null, contactNumber: contactNumber || null, address: address || null,
-      isSubscribed: false, subPlan: null, subExpiry: null,
-    };
-    users.push(user);
-    persistData();
-
-    const token = btoa(JSON.stringify({ id: user.id, email: user.email, role: user.role }));
+    // Email already confirmed (if email confirmation is disabled in Supabase)
+    const token = btoa(JSON.stringify({ id: Number(authData.user.id), email: authData.user.email, role }));
     const res = NextResponse.json({
       success: true,
-      user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role, isSubscribed: false },
+      user: { id: Number(authData.user.id), email: authData.user.email, fullName: fullName.trim(), role, isSubscribed: false },
     });
     res.cookies.set("token", token, { httpOnly: false, secure: false, sameSite: "lax", maxAge: 604800, path: "/" });
     return res;
+
   } catch (e) {
     console.error("Signup error:", e);
     return NextResponse.json({ error: String(e) }, { status: 500 });

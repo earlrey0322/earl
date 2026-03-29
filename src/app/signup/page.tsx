@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
 
   const [form, setForm] = useState({
     role: "" as Role | "",
@@ -72,7 +73,18 @@ export default function SignupPage() {
       }
 
       if (!res.ok) {
-        setError(data.error || `Signup failed (${res.status})`);
+        if (data.setupRequired) {
+          setError("Database not configured. Please contact the administrator to set up Supabase database.");
+        } else {
+          setError(data.error || `Signup failed (${res.status})`);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Check if email confirmation is required
+      if (data.emailConfirmationRequired) {
+        setEmailConfirmationSent(true);
         setLoading(false);
         return;
       }
@@ -86,6 +98,35 @@ export default function SignupPage() {
       setError("Network error: " + String(err));
       setLoading(false);
     }
+  }
+
+  // Show email confirmation message
+  if (emailConfirmationSent) {
+    return (
+      <main className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <div className="glass-card rounded-2xl p-8">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
+              <svg className="w-10 h-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Check Your Email</h2>
+            <p className="text-slate-400 text-sm mb-4">
+              We sent a verification link to <span className="text-amber-400 font-medium">{form.email}</span>
+            </p>
+            <p className="text-slate-500 text-xs mb-6">
+              Click the link in the email to verify your account. The link will expire in 24 hours.
+              Check your spam folder if you don&apos;t see it.
+            </p>
+            <a href="/login"
+              className="inline-block w-full py-3 font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg">
+              Go to Login
+            </a>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   return (
