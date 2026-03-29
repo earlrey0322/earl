@@ -42,6 +42,7 @@ next-env.d.ts
 
 # persistent data store
 data-store.json
+data/
 *.db
 *.db-wal
 *.db-shm

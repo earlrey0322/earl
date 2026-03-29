@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/database";
+import { findUserByEmail, addUser, addNotification } from "@/lib/database";
 
 export async function POST(req: Request) {
   try {
@@ -9,7 +9,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    // Worklife verification
     if (role === "company_owner" && worklifeAnswer?.toUpperCase() !== "SUSTAINABILITY") {
       return NextResponse.json({ error: "Invalid verification answer" }, { status: 403 });
     }
@@ -17,32 +16,34 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid verification answer" }, { status: 403 });
     }
 
-    const db = getDb();
-
-    // Check if email already exists
-    const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email.trim());
-    if (existing) {
+    if (findUserByEmail(email.trim())) {
       return NextResponse.json({ error: "Email already registered" }, { status: 409 });
     }
 
-    // Insert user
-    const result = db.prepare(`
-      INSERT INTO users (email, password, full_name, role, phone_brand, contact_number, address)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(email.trim(), password, fullName.trim(), role, phoneBrand || null, contactNumber || null, address || null);
+    const user = addUser({
+      email: email.trim(),
+      password,
+      full_name: fullName.trim(),
+      role,
+      phone_brand: phoneBrand || null,
+      contact_number: contactNumber || null,
+      address: address || null,
+      is_subscribed: false,
+      subscription_plan: null,
+    });
 
-    const userId = result.lastInsertRowid;
+    addNotification({
+      recipient_email: "earlrey0322@gmail.com",
+      subject: `New ${role} - ${fullName}`,
+      message: `${fullName} (${email}) signed up as ${role}`,
+      type: "signup",
+      is_read: false,
+    });
 
-    // Create notification for company owner
-    db.prepare(`
-      INSERT INTO notifications (recipient_email, subject, message, type)
-      VALUES (?, ?, ?, ?)
-    `).run("earlrey0322@gmail.com", `New ${role} - ${fullName}`, `${fullName} (${email}) signed up as ${role}`, "signup");
-
-    const token = btoa(JSON.stringify({ id: userId, email: email.trim(), role }));
+    const token = btoa(JSON.stringify({ id: user.id, email: user.email, role: user.role }));
     const res = NextResponse.json({
       success: true,
-      user: { id: userId, email: email.trim(), fullName: fullName.trim(), role, isSubscribed: false },
+      user: { id: user.id, email: user.email, fullName: user.full_name, role: user.role, isSubscribed: false },
     });
     res.cookies.set("token", token, { httpOnly: false, secure: false, sameSite: "lax", maxAge: 604800, path: "/" });
     return res;

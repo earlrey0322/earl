@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/database";
+import { findUserByEmail, addNotification } from "@/lib/database";
 
 export async function POST(req: Request) {
   try {
@@ -9,9 +9,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 });
     }
 
-    const db = getDb();
-
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email.trim()) as any;
+    const user = findUserByEmail(email.trim());
     if (!user) {
       return NextResponse.json({ error: "Account not found" }, { status: 401 });
     }
@@ -20,11 +18,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Wrong password" }, { status: 401 });
     }
 
-    // Create notification
-    db.prepare(`
-      INSERT INTO notifications (recipient_email, subject, message, type)
-      VALUES (?, ?, ?, ?)
-    `).run("earlrey0322@gmail.com", `Login - ${user.full_name}`, `${user.full_name} (${user.email}) logged in as ${user.role}`, "login");
+    addNotification({
+      recipient_email: "earlrey0322@gmail.com",
+      subject: `Login - ${user.full_name}`,
+      message: `${user.full_name} (${user.email}) logged in as ${user.role}`,
+      type: "login",
+      is_read: false,
+    });
 
     const token = btoa(JSON.stringify({ id: user.id, email: user.email, role: user.role }));
     const res = NextResponse.json({
