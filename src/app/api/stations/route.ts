@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 import { getStore, persistData } from "@/lib/data";
 import { getAuthUser } from "@/lib/api-auth";
-
-function isSupabaseConfigured() {
-  return !!(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
-}
 
 function transformSupabaseStation(s: any) {
   return {
@@ -60,9 +56,9 @@ function transformLocalStation(s: any) {
 export async function GET() {
   const auth = await getAuthUser();
 
-  // Use Supabase if configured
   if (isSupabaseConfigured()) {
-    const { data: stations, error } = await supabase
+    const supabase = getSupabase();
+    const { data: stations, error } = await supabase!
       .from("charging_stations")
       .select("*")
       .order("id", { ascending: true });
@@ -74,9 +70,8 @@ export async function GET() {
 
     let result = stations || [];
 
-    // Filter for non-auth users or non-subscribed users
-    if (!auth || (auth.role !== "company_owner")) {
-      const { data: userProfile } = await supabase
+    if (!auth || auth.role !== "company_owner") {
+      const { data: userProfile } = await supabase!
         .from("users")
         .select("is_subscribed")
         .eq("id", auth?.id || 0)
@@ -90,7 +85,6 @@ export async function GET() {
     return NextResponse.json({ stations: result.map(transformSupabaseStation) });
   }
 
-  // Fallback to local store
   const { stations, users } = getStore();
   if (!auth) return NextResponse.json({ stations: stations.filter((s: any) => s.company === "KLEOXM 111").map(transformLocalStation) });
   const user = users.find((u: any) => u.id === auth.id);
@@ -109,14 +103,14 @@ export async function POST(req: Request) {
     }
 
     if (isSupabaseConfigured()) {
-      // Get owner name
-      const { data: userProfile } = await supabase
+      const supabase = getSupabase();
+      const { data: userProfile } = await supabase!
         .from("users")
         .select("full_name")
         .eq("id", auth.id)
         .single();
 
-      const { data: station, error } = await supabase
+      const { data: station, error } = await supabase!
         .from("charging_stations")
         .insert({
           name: body.name.trim(),
@@ -144,7 +138,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, station: transformSupabaseStation(station) });
     }
 
-    // Fallback to local store
     const { users, stations, sid } = getStore();
     const user = users.find((u: any) => u.id === auth.id);
     const station = {
@@ -176,6 +169,7 @@ export async function PATCH(req: Request) {
     if (!body.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
     if (isSupabaseConfigured()) {
+      const supabase = getSupabase();
       const updateData: any = {};
       if (body.active !== undefined) updateData.is_active = body.active;
       if (body.name) updateData.name = body.name;
@@ -187,7 +181,7 @@ export async function PATCH(req: Request) {
       if (body.cableUniversal !== undefined) updateData.cable_universal = Number(body.cableUniversal);
       if (body.outlets !== undefined) updateData.outlets = Number(body.outlets);
 
-      const { error } = await supabase
+      const { error } = await supabase!
         .from("charging_stations")
         .update(updateData)
         .eq("id", body.id);
@@ -196,7 +190,6 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // Fallback
     const { stations } = getStore();
     const s = stations.find((s: any) => s.id === body.id);
     if (!s) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -227,7 +220,8 @@ export async function DELETE(req: Request) {
     if (!body.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
     if (isSupabaseConfigured()) {
-      const { error } = await supabase
+      const supabase = getSupabase();
+      const { error } = await supabase!
         .from("charging_stations")
         .delete()
         .eq("id", body.id);
@@ -236,7 +230,6 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // Fallback
     const { stations } = getStore();
     const s = stations.find((s: any) => s.id === body.id);
     if (!s) return NextResponse.json({ error: "Not found" }, { status: 404 });
