@@ -3,21 +3,22 @@ import { findUserByEmail, addUser, addNotification } from "@/lib/database";
 
 export async function POST(req: Request) {
   try {
-    const { email, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer } = await req.json();
+    const body = await req.json();
+    const { email, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer } = body;
 
     if (!email || !password || !fullName || !role) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+      return NextResponse.json({ error: "Missing fields" });
     }
 
-    if (role === "company_owner" && worklifeAnswer?.toUpperCase() !== "SUSTAINABILITY") {
-      return NextResponse.json({ error: "Invalid verification answer" }, { status: 403 });
+    if (role === "company_owner" && String(worklifeAnswer || "").toUpperCase() !== "SUSTAINABILITY") {
+      return NextResponse.json({ error: "Invalid verification answer" });
     }
-    if (role === "branch_owner" && worklifeAnswer?.toUpperCase() !== "ENVIRONMENT") {
-      return NextResponse.json({ error: "Invalid verification answer" }, { status: 403 });
+    if (role === "branch_owner" && String(worklifeAnswer || "").toUpperCase() !== "ENVIRONMENT") {
+      return NextResponse.json({ error: "Invalid verification answer" });
     }
 
-    if (findUserByEmail(email.trim())) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 409 });
+    if (findUserByEmail(email)) {
+      return NextResponse.json({ error: "Email already registered" });
     }
 
     const user = addUser({
@@ -40,15 +41,11 @@ export async function POST(req: Request) {
       is_read: false,
     });
 
-    const token = btoa(JSON.stringify({ id: user.id, email: user.email, role: user.role }));
-    const res = NextResponse.json({
-      success: true,
-      user: { id: user.id, email: user.email, fullName: user.full_name, role: user.role, isSubscribed: false },
-    });
+    const token = Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role })).toString("base64");
+    const res = NextResponse.json({ success: true, user: { id: user.id, email: user.email, fullName: user.full_name, role: user.role, isSubscribed: false } });
     res.cookies.set("token", token, { httpOnly: false, secure: false, sameSite: "lax", maxAge: 604800, path: "/" });
     return res;
   } catch (e) {
-    console.error("Signup error:", e);
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    return NextResponse.json({ error: "Server error: " + String(e) });
   }
 }

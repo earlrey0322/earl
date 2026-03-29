@@ -7,14 +7,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
-  const [resendSuccess, setResendSuccess] = useState(false);
-  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setEmailNotConfirmed(false);
     setLoading(true);
 
     try {
@@ -34,50 +30,21 @@ export default function LoginPage() {
         return;
       }
 
-      if (!res.ok) {
-        if (data.emailNotConfirmed) {
-          setEmailNotConfirmed(true);
-        }
-        if (data.setupRequired) {
-          setError("Database not configured. Please contact the administrator to set up Supabase database.");
-        } else {
-          setError(data.error || `Login failed (${res.status})`);
-        }
+      if (!res.ok || data.error) {
+        setError(data.error || "Login failed");
         setLoading(false);
         return;
       }
 
-      // Redirect based on role
       let url = "/dashboard/customer";
       if (data.user?.role === "company_owner") url = "/dashboard/company-owner";
       else if (data.user?.role === "branch_owner") url = "/dashboard/branch-owner";
 
       window.location.href = url;
     } catch (err) {
-      setError("Network error: " + String(err));
+      setError("Network error");
       setLoading(false);
     }
-  }
-
-  async function resendConfirmation() {
-    setResendLoading(true);
-    setResendSuccess(false);
-    try {
-      const res = await fetch("/api/auth/resend-confirmation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      if (res.ok) {
-        setResendSuccess(true);
-      } else {
-        const data = await res.json();
-        setError(data.error || "Failed to resend email");
-      }
-    } catch {
-      setError("Failed to resend verification email");
-    }
-    setResendLoading(false);
   }
 
   return (
@@ -99,29 +66,15 @@ export default function LoginPage() {
             </div>
           )}
 
-          {emailNotConfirmed && (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3 space-y-2">
-              <p className="text-amber-400 text-sm">Your email is not verified yet.</p>
-              {resendSuccess ? (
-                <p className="text-green-400 text-xs">Verification email sent! Check your inbox.</p>
-              ) : (
-                <button type="button" onClick={resendConfirmation} disabled={resendLoading || !email}
-                  className="text-xs text-amber-300 hover:text-amber-200 underline disabled:opacity-50">
-                  {resendLoading ? "Sending..." : "Resend verification email"}
-                </button>
-              )}
-            </div>
-          )}
-
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required suppressHydrationWarning autoComplete="email"
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required suppressHydrationWarning
               className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="your@email.com" />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required suppressHydrationWarning autoComplete="current-password"
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required suppressHydrationWarning
               className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Enter your password" />
           </div>
 
@@ -134,12 +87,6 @@ export default function LoginPage() {
             Don&apos;t have an account? <a href="/signup" className="text-amber-400 hover:underline">Sign Up</a>
           </p>
         </form>
-
-        <a href="/" className="mt-6 block text-center text-sm text-slate-500 hover:text-slate-300">Back to Home</a>
-        <div className="mt-8 text-center text-xs text-slate-600 space-y-1">
-          <p>KLEOXM 111 — Powered Solar Piso Charging Station</p>
-          <p>Contact: 09469086926 | earlrey0322@gmail.com</p>
-        </div>
       </div>
     </main>
   );

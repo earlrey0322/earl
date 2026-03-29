@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 
-const PHONE_BRANDS = [
-  "Apple iPhone", "Samsung Galaxy", "Xiaomi", "Huawei", "OPPO", "Vivo",
-  "Realme", "OnePlus", "Nokia", "Google Pixel", "Infinix", "Tecno", "Other",
-];
+const PHONE_BRANDS = ["Apple iPhone", "Samsung Galaxy", "Xiaomi", "Huawei", "OPPO", "Vivo", "Realme", "OnePlus", "Nokia", "Google Pixel", "Other"];
 
 type Role = "customer" | "branch_owner" | "company_owner";
 
@@ -13,18 +10,10 @@ export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
 
   const [form, setForm] = useState({
-    role: "" as Role | "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    fullName: "",
-    contactNumber: "",
-    address: "",
-    phoneBrand: "",
-    worklifeAnswer: "",
+    role: "" as Role | "", email: "", password: "", confirmPassword: "",
+    fullName: "", contactNumber: "", address: "", phoneBrand: "", worklifeAnswer: "",
   });
 
   function update(field: string, value: string) {
@@ -52,14 +41,9 @@ export default function SignupPage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          email: form.email.trim(),
-          password: form.password,
-          fullName: form.fullName.trim(),
-          role: form.role,
-          phoneBrand: form.phoneBrand,
-          contactNumber: form.contactNumber,
-          address: form.address,
-          worklifeAnswer: form.worklifeAnswer,
+          email: form.email.trim(), password: form.password, fullName: form.fullName.trim(),
+          role: form.role, phoneBrand: form.phoneBrand, contactNumber: form.contactNumber,
+          address: form.address, worklifeAnswer: form.worklifeAnswer,
         }),
       });
 
@@ -72,19 +56,8 @@ export default function SignupPage() {
         return;
       }
 
-      if (!res.ok) {
-        if (data.setupRequired) {
-          setError("Database not configured. Please contact the administrator to set up Supabase database.");
-        } else {
-          setError(data.error || `Signup failed (${res.status})`);
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Check if email confirmation is required
-      if (data.emailConfirmationRequired) {
-        setEmailConfirmationSent(true);
+      if (!res.ok || data.error) {
+        setError(data.error || "Signup failed");
         setLoading(false);
         return;
       }
@@ -95,38 +68,9 @@ export default function SignupPage() {
 
       window.location.href = url;
     } catch (err) {
-      setError("Network error: " + String(err));
+      setError("Network error");
       setLoading(false);
     }
-  }
-
-  // Show email confirmation message
-  if (emailConfirmationSent) {
-    return (
-      <main className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="glass-card rounded-2xl p-8">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-green-500/20 flex items-center justify-center">
-              <svg className="w-10 h-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Check Your Email</h2>
-            <p className="text-slate-400 text-sm mb-4">
-              We sent a verification link to <span className="text-amber-400 font-medium">{form.email}</span>
-            </p>
-            <p className="text-slate-500 text-xs mb-6">
-              Click the link in the email to verify your account. The link will expire in 24 hours.
-              Check your spam folder if you don&apos;t see it.
-            </p>
-            <a href="/login"
-              className="inline-block w-full py-3 font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg">
-              Go to Login
-            </a>
-          </div>
-        </div>
-      </main>
-    );
   }
 
   return (
@@ -167,9 +111,7 @@ export default function SignupPage() {
                 </button>
               ))}
               <button type="button" disabled={!form.role} onClick={() => setStep(2)}
-                className="w-full py-3 font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg disabled:opacity-50">
-                Continue
-              </button>
+                className="w-full py-3 font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg disabled:opacity-50">Continue</button>
             </div>
           )}
 
@@ -184,17 +126,12 @@ export default function SignupPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
                 <input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} required
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="your@email.com" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="your@gmail.com" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Contact Number</label>
                 <input type="tel" value={form.contactNumber} onChange={(e) => update("contactNumber", e.target.value)}
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="09XXXXXXXXX" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Address</label>
-                <input type="text" value={form.address} onChange={(e) => update("address", e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="City, Province" />
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(1)} className="flex-1 py-3 font-medium text-slate-300 border border-slate-600 rounded-lg">Back</button>
@@ -210,7 +147,7 @@ export default function SignupPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Worklife Focus</label>
                 <input type="text" value={form.worklifeAnswer} onChange={(e) => update("worklifeAnswer", e.target.value)} required
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 uppercase" placeholder="Enter your worklife focus" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 uppercase" placeholder="Enter your worklife focus" />
               </div>
               {form.role === "customer" && (
                 <div>
@@ -232,9 +169,6 @@ export default function SignupPage() {
                 <input type="password" value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} required
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Confirm password" />
               </div>
-              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg px-4 py-3 text-blue-400 text-xs">
-                Notification sent to earlrey0322@gmail.com on signup.
-              </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(2)} className="flex-1 py-3 font-medium text-slate-300 border border-slate-600 rounded-lg">Back</button>
                 <button type="submit" disabled={loading || !form.password || !form.confirmPassword}
@@ -249,8 +183,6 @@ export default function SignupPage() {
             Already have an account? <a href="/login" className="text-amber-400 hover:underline">Log In</a>
           </p>
         </form>
-
-        <a href="/" className="mt-6 block text-center text-sm text-slate-500 hover:text-slate-300">Back to Home</a>
       </div>
     </main>
   );
