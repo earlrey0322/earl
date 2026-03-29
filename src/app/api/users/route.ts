@@ -1,18 +1,15 @@
 import { NextResponse } from "next/server";
-import { store } from "@/lib/store";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
   try {
     const auth = await getAuthUser();
-    if (!auth || auth.role !== "company_owner") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const allUsers = store.getAllUsers();
+    if (!auth || auth.role !== "company_owner") return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const allUsers = await db.select().from(users);
     const branchOwners = allUsers.filter((u) => u.role === "branch_owner");
     const customers = allUsers.filter((u) => u.role === "customer");
-
     return NextResponse.json({
       totalUsers: allUsers.length,
       totalBranchOwners: branchOwners.length,
@@ -26,6 +23,6 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

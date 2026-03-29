@@ -162,15 +162,14 @@ export default function Home() {
         </div>
         <h2 className="text-4xl md:text-6xl font-bold mb-4">
           <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 bg-clip-text text-transparent">
-            Solar Powered
+            Powered Solar Piso
           </span>
           <br />
           <span className="text-white">Charging Station</span>
         </h2>
         <p className="text-lg md:text-xl text-slate-300 max-w-2xl mb-8">
           The <span className="text-amber-400 font-semibold">PSPCS</span> by KLEOXM 111 — 
-          charge your phone for just <span className="text-green-400 font-semibold">1 peso per 5 minutes</span> 
-          {" "}using clean solar energy. Find stations near you, track your charging, and go green!
+          a solar-powered phone charging station. Find stations near you, track your charging, and go green!
         </p>
         <div className="flex flex-col sm:flex-row gap-4 mb-12">
           <button
@@ -275,6 +274,30 @@ export default function Home() {
           >
             Create Account
           </button>
+        </div>
+      </section>
+
+      {/* Innovators */}
+      <section className="relative z-10 px-6 md:px-12 py-16">
+        <h3 className="text-2xl font-bold text-center text-white mb-8">Innovators</h3>
+        <div className="max-w-2xl mx-auto glass-card rounded-2xl p-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              "Arena, Felix Miguel",
+              "Durian, Gio",
+              "Jacela, Kizjamira",
+              "Rey, Earl Christian",
+              "Wesca, Luckie Lorenz",
+              "Zabaldica, Patrick",
+            ].map((name, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[#0f172a] font-bold text-xs">
+                  {name.charAt(0)}
+                </div>
+                <span className="text-sm text-white">{name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

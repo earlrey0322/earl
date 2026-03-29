@@ -1,82 +1,60 @@
 import { NextResponse } from "next/server";
-import { store } from "@/lib/store";
+import { db } from "@/db";
+import { users, notifications } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 import { createToken } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
-    let body;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
-    }
-
+    const body = await request.json();
     const { email, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer } = body;
 
     if (!email || !password || !fullName || !role) {
-      return NextResponse.json({ error: "Missing required fields (email, password, fullName, role)" }, { status: 400 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Worklife verification (only for company_owner and branch_owner)
-    if (role === "company_owner") {
-      if (!worklifeAnswer || worklifeAnswer.toUpperCase() !== "SUSTAINABILITY") {
-        return NextResponse.json({ error: "Company owners must answer SUSTAINABILITY for worklife" }, { status: 403 });
-      }
+    if (role === "company_owner" && worklifeAnswer?.toUpperCase() !== "SUSTAINABILITY") {
+      return NextResponse.json({ error: "Company owners must answer SUSTAINABILITY" }, { status: 403 });
     }
-    if (role === "branch_owner") {
-      if (!worklifeAnswer || worklifeAnswer.toUpperCase() !== "ENVIRONMENT") {
-        return NextResponse.json({ error: "Branch owners must answer ENVIRONMENT for worklife" }, { status: 403 });
-      }
+    if (role === "branch_owner" && worklifeAnswer?.toUpperCase() !== "ENVIRONMENT") {
+      return NextResponse.json({ error: "Branch owners must answer ENVIRONMENT" }, { status: 403 });
     }
 
-    // Create user
-    let user;
-    try {
-      user = await store.createUser({ email, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer });
-    } catch (e: unknown) {
-      if (e instanceof Error && e.message === "Email already registered") {
-        return NextResponse.json({ error: "This email is already registered" }, { status: 409 });
-      }
-      console.error("Create user error:", e);
-      return NextResponse.json({ error: "Failed to create account: " + String(e) }, { status: 500 });
+    const existing = await db.select().from(users).where(eq(users.email, email.trim()));
+    if (existing.length > 0) {
+      return NextResponse.json({ error: "This email is already registered" }, { status: 409 });
     }
 
-    // Notification
-    try {
-      store.addNotification({
-        recipientEmail: "earlrey0322@gmail.com",
-        subject: `New Account - ${role}`,
-        message: `${fullName} (${email}) signed up as ${role}`,
-        type: "new_account",
-        isRead: false,
-      });
-    } catch {}
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create token
-    let token: string;
-    try {
-      token = await createToken({ userId: user.id, email: user.email, role: user.role });
-    } catch (e) {
-      console.error("Token error:", e);
-      return NextResponse.json({ error: "Account created but session failed" }, { status: 500 });
-    }
+    const newUser = await db.insert(users).values({
+      email: email.trim(),
+      password: hashedPassword,
+      fullName: fullName.trim(),
+      role,
+      phoneBrand: phoneBrand || null,
+      contactNumber: contactNumber || null,
+      address: address || null,
+      worklifeAnswer: worklifeAnswer || null,
+    }).returning();
 
+    await db.insert(notifications).values({
+      recipientEmail: "earlrey0322@gmail.com",
+      subject: `New Account - ${role}`,
+      message: `${fullName} (${email}) signed up as ${role}`,
+      type: "new_account",
+    });
+
+    const token = await createToken({ userId: newUser[0].id, email: newUser[0].email, role: newUser[0].role });
     const response = NextResponse.json({
       success: true,
-      user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role, isSubscribed: user.isSubscribed },
+      user: { id: newUser[0].id, email: newUser[0].email, fullName: newUser[0].fullName, role: newUser[0].role, isSubscribed: newUser[0].isSubscribed },
     });
-
-    response.cookies.set("auth_token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60,
-      path: "/",
-    });
-
+    response.cookies.set("auth_token", token, { httpOnly: true, secure: false, sameSite: "lax", maxAge: 604800, path: "/" });
     return response;
   } catch (error) {
     console.error("Signup error:", error);
-    return NextResponse.json({ error: "Server error: " + String(error) }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

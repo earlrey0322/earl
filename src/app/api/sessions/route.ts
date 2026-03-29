@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
-import { store } from "@/lib/store";
+import { db } from "@/db";
+import { chargingHistory, chargingStations, users } from "@/db/schema";
+import { eq, desc } from "drizzle-orm";
 import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // Company owner sees all history, others see their own
-    const history = auth.role === "company_owner" || auth.role === "branch_owner"
-      ? store.getAllHistory()
-      : store.getHistoryByUser(auth.userId);
+    const user = await db.select().from(users).where(eq(users.id, auth.userId));
+    const role = user[0]?.role;
+    const history = role === "company_owner" || role === "branch_owner"
+      ? await db.select().from(chargingHistory).orderBy(desc(chargingHistory.createdAt))
+      : await db.select().from(chargingHistory).where(eq(chargingHistory.userId, auth.userId)).orderBy(desc(chargingHistory.createdAt));
     return NextResponse.json({ history });
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -20,32 +23,35 @@ export async function POST(request: Request) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     const body = await request.json();
     const { stationId, phoneBrand, startBattery, targetBattery, costPesos, durationMinutes } = body;
-    if (!stationId || !phoneBrand || startBattery === undefined || !costPesos || !durationMinutes) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!stationId || !phoneBrand || startBattery === undefined) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+
+    const user = await db.select().from(users).where(eq(users.id, auth.userId));
+    const station = await db.select().from(chargingStations).where(eq(chargingStations.id, stationId));
+
+    // Increment station visits and revenue
+    if (station[0]) {
+      await db.update(chargingStations).set({
+        totalVisits: (station[0].totalVisits || 0) + 1,
+        revenue: (station[0].revenue || 0) + costPesos,
+      }).where(eq(chargingStations.id, stationId));
     }
 
-    const station = store.getStationById(stationId);
-    const user = store.findUserById(auth.userId);
-
-    store.incrementStationVisit(stationId);
-
-    const history = store.addChargingHistory({
+    const newHistory = await db.insert(chargingHistory).values({
       userId: auth.userId,
-      userEmail: user?.email || "",
+      userEmail: user[0]?.email || "",
       stationId,
-      stationName: station?.name || "Unknown",
+      stationName: station[0]?.name || "Unknown",
       phoneBrand,
       startBattery,
       targetBattery: targetBattery || 100,
       costPesos,
       durationMinutes,
-    });
+    }).returning();
 
-    return NextResponse.json({ success: true, history });
+    return NextResponse.json({ success: true, history: newHistory[0] });
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

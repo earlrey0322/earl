@@ -1,27 +1,27 @@
 import { NextResponse } from "next/server";
-import { store } from "@/lib/store";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const user = store.findUserById(auth.userId);
-    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
-
+    const result = await db.select().from(users).where(eq(users.id, auth.userId));
+    if (result.length === 0) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const u = result[0];
     return NextResponse.json({
       user: {
-        id: user.id, email: user.email, fullName: user.fullName, role: user.role,
-        phoneBrand: user.phoneBrand, phoneBattery: user.phoneBattery,
-        contactNumber: user.contactNumber, address: user.address,
-        isSubscribed: user.isSubscribed, subscriptionPlan: user.subscriptionPlan,
-        subscriptionExpiry: user.subscriptionExpiry, gcashNumber: user.gcashNumber,
-        createdAt: user.createdAt,
+        id: u.id, email: u.email, fullName: u.fullName, role: u.role,
+        phoneBrand: u.phoneBrand, contactNumber: u.contactNumber, address: u.address,
+        isSubscribed: u.isSubscribed, subscriptionPlan: u.subscriptionPlan,
+        subscriptionExpiry: u.subscriptionExpiry, createdAt: u.createdAt,
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -29,26 +29,18 @@ export async function PATCH(request: Request) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     const body = await request.json();
-    const { fullName, email, password, contactNumber, address, phoneBrand } = body;
-
-    const updateData: Record<string, unknown> = {};
-    if (fullName) updateData.fullName = fullName;
-    if (email) updateData.email = email;
-    if (contactNumber !== undefined) updateData.contactNumber = contactNumber;
-    if (address !== undefined) updateData.address = address;
-    if (phoneBrand !== undefined) updateData.phoneBrand = phoneBrand;
-
-    if (password) {
-      const bcrypt = await import("bcryptjs");
-      updateData.password = await bcrypt.hash(password, 10);
-    }
-
-    store.updateUser(auth.userId, updateData);
-    return NextResponse.json({ success: true, message: "Profile updated" });
+    const update: Record<string, unknown> = {};
+    if (body.fullName) update.fullName = body.fullName;
+    if (body.email) update.email = body.email;
+    if (body.contactNumber !== undefined) update.contactNumber = body.contactNumber;
+    if (body.address !== undefined) update.address = body.address;
+    if (body.phoneBrand !== undefined) update.phoneBrand = body.phoneBrand;
+    if (body.password) update.password = await bcrypt.hash(body.password, 10);
+    await db.update(users).set(update).where(eq(users.id, auth.userId));
+    return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -56,17 +48,11 @@ export async function DELETE() {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    store.deleteUser(auth.userId);
-    const response = NextResponse.json({ success: true, message: "Account deleted" });
+    await db.delete(users).where(eq(users.id, auth.userId));
+    const response = NextResponse.json({ success: true });
     response.cookies.set("auth_token", "", { maxAge: 0, path: "/" });
     return response;
   } catch (error) {
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-}
-
-export async function POST() {
-  const response = NextResponse.json({ success: true });
-  response.cookies.set("auth_token", "", { maxAge: 0, path: "/" });
-  return response;
 }
