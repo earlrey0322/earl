@@ -2,14 +2,39 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/data";
 import { getAuthUser } from "@/lib/api-auth";
 
+function transformStation(s: any) {
+  return {
+    id: s.id,
+    name: s.name,
+    companyName: s.company,
+    brand: s.brand || "PSPCS",
+    ownerId: s.ownerId,
+    ownerName: s.owner,
+    latitude: s.lat,
+    longitude: s.lng,
+    address: s.addr,
+    location: s.location || "",
+    contactNumber: s.contactNumber || null,
+    isActive: s.active,
+    solarWatts: s.solarWatts || 50,
+    batteryLevel: s.battery,
+    totalVisits: s.visits,
+    revenue: s.revenue || 0,
+    cableTypeC: s.tc,
+    cableIPhone: s.ip,
+    cableUniversal: s.uv,
+    outlets: s.out,
+  };
+}
+
 export async function GET() {
   const auth = await getAuthUser();
   const { stations } = getStore();
-  if (!auth) return NextResponse.json({ stations: stations.filter((s: any) => s.company === "KLEOXM 111") });
+  if (!auth) return NextResponse.json({ stations: stations.filter((s: any) => s.company === "KLEOXM 111").map(transformStation) });
   const { users } = getStore();
   const user = users.find((u: any) => u.id === auth.id);
-  if (auth.role === "company_owner" || user?.isSubscribed) return NextResponse.json({ stations });
-  return NextResponse.json({ stations: stations.filter((s: any) => s.company === "KLEOXM 111") });
+  if (auth.role === "company_owner" || user?.isSubscribed) return NextResponse.json({ stations: stations.map(transformStation) });
+  return NextResponse.json({ stations: stations.filter((s: any) => s.company === "KLEOXM 111").map(transformStation) });
 }
 
 export async function POST(req: Request) {
@@ -34,7 +59,7 @@ export async function POST(req: Request) {
       uv: Number(body.cableUniversal) || 0, out: Number(body.outlets) || 1,
     };
     stations.push(station);
-    return NextResponse.json({ success: true, station });
+    return NextResponse.json({ success: true, station: transformStation(station) });
   } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }); }
 }
 
