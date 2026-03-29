@@ -22,6 +22,8 @@ function toStation(s: any, isPremium: boolean, isOwner: boolean) {
     solarWatts: s.solar_watts || 50,
     batteryLevel: s.battery_level,
     totalVisits: s.total_visits || 0,
+    views: s.views || 0,
+    viewRevenue: s.view_revenue || 0,
     revenue: s.revenue || 0,
     cableTypeC: s.cable_type_c,
     cableIPhone: s.cable_iphone,

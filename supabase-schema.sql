@@ -58,6 +58,8 @@ CREATE TABLE charging_stations (
   solar_watts DOUBLE PRECISION DEFAULT 50,
   battery_level DOUBLE PRECISION DEFAULT 100,
   total_visits INTEGER DEFAULT 0,
+  views INTEGER DEFAULT 0,
+  view_revenue DOUBLE PRECISION DEFAULT 0,
   revenue DOUBLE PRECISION DEFAULT 0,
   cable_type_c INTEGER DEFAULT 0,
   cable_iphone INTEGER DEFAULT 0,
@@ -77,18 +79,36 @@ CREATE TABLE notifications (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE TABLE redemptions (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id BIGINT NOT NULL,
+  user_email TEXT NOT NULL,
+  user_name TEXT NOT NULL,
+  redemption_type TEXT NOT NULL, -- 'free_station' or 'gcash'
+  amount DOUBLE PRECISION NOT NULL,
+  -- For free station redemption
+  contact_name TEXT,
+  contact_number TEXT,
+  delivery_address TEXT,
+  status TEXT NOT NULL DEFAULT 'pending', -- 'pending', 'approved', 'delivered'
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Allow all access (for this app)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE charging_stations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscription_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monthly_payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE redemptions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow all" ON users FOR ALL USING (true);
 CREATE POLICY "Allow all" ON charging_stations FOR ALL USING (true);
 CREATE POLICY "Allow all" ON notifications FOR ALL USING (true);
 CREATE POLICY "Allow all" ON subscription_requests FOR ALL USING (true);
 CREATE POLICY "Allow all" ON monthly_payments FOR ALL USING (true);
+CREATE POLICY "Allow all" ON redemptions FOR ALL USING (true);
 
 -- Sample stations
 INSERT INTO charging_stations (name, company_name, owner_id, owner_name, latitude, longitude, address, location, is_active, battery_level, total_visits, cable_type_c, cable_iphone, cable_universal, outlets)

@@ -2,25 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
-import { StationMap } from "@/components/StationMap";
-import { ChargingCalculator } from "@/components/ChargingCalculator";
+import { StationMap, Station } from "@/components/StationMap";
 import { apiFetch } from "@/lib/api-fetch";
-
-interface Station {
-  id: number; name: string; companyName: string; brand: string; ownerId: number | null;
-  latitude: number; longitude: number; address: string; isActive: boolean;
-  solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
-  cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
-  ownerName: string | null;
-}
-
-interface HistoryItem {
-  id: number; phoneBrand: string; startBattery: number; targetBattery: number;
-  costPesos: number; durationMinutes: number; stationName: string; userEmail: string; createdAt: string;
-}
 
 interface SubscriptionRequest { id: number; plan: string; status: string; created_at: string; reference_number: string; }
 interface MonthlyPayment { id: number; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
+interface Redemption { id: number; redemption_type: string; amount: number; status: string; contact_name: string | null; contact_number: string | null; delivery_address: string | null; created_at: string; }
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; contactNumber: string | null; subscriptionExpiry: string | null; }
 
 const PLANS = [
@@ -39,17 +26,21 @@ function playClick() {
 export default function BranchOwnerDashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
+  const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [monthlyReferenceNumber, setMonthlyReferenceNumber] = useState("");
   const [requesting, setRequesting] = useState(false);
   const [requestingMonthly, setRequestingMonthly] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [redeemType, setRedeemType] = useState<"free_station" | "gcash" | null>(null);
+  const [redeemForm, setRedeemForm] = useState({ contactName: "", contactNumber: "", deliveryAddress: "" });
+  const [requestingRedeem, setRequestingRedeem] = useState(false);
   const [newStation, setNewStation] = useState({
     name: "", address: "", latitude: 14.5995, longitude: 120.9842,
     cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1,
@@ -59,15 +50,15 @@ export default function BranchOwnerDashboard() {
     Promise.allSettled([
       apiFetch("/api/auth/me").then((r) => r.json()),
       apiFetch("/api/stations").then((r) => r.json()),
-      apiFetch("/api/sessions").then((r) => r.json()),
       apiFetch("/api/subscription-requests").then((r) => r.json()),
       apiFetch("/api/monthly-payments").then((r) => r.json()),
-    ]).then(([meRes, stRes, hRes, srRes, mpRes]) => {
+      apiFetch("/api/redemptions").then((r) => r.json()),
+    ]).then(([meRes, stRes, srRes, mpRes, rdRes]) => {
       if (meRes.status === "fulfilled" && meRes.value.user) setUserData(meRes.value.user);
       if (stRes.status === "fulfilled" && stRes.value.stations) setStations(stRes.value.stations);
-      if (hRes.status === "fulfilled" && hRes.value.history) setHistory(hRes.value.history);
       if (srRes.status === "fulfilled" && srRes.value.requests) setSubRequests(srRes.value.requests);
       if (mpRes.status === "fulfilled" && mpRes.value.payments) setMonthlyPayments(mpRes.value.payments);
+      if (rdRes.status === "fulfilled" && rdRes.value.redemptions) setRedemptions(rdRes.value.redemptions);
     }).catch(() => {});
   }, []);
 
@@ -109,7 +100,6 @@ export default function BranchOwnerDashboard() {
         alert("Subscription request sent! Waiting for company owner approval.");
         setSelectedPlan(null);
         setReferenceNumber("");
-        // Refresh subscription requests
         try {
           const refreshRes = await apiFetch("/api/subscription-requests");
           const refreshData = await refreshRes.json();
@@ -134,13 +124,12 @@ export default function BranchOwnerDashboard() {
     }
     setRequestingMonthly(true);
     try {
-      const currentMonth = new Date().toISOString().slice(0, 7); // e.g., "2026-03"
+      const currentMonth = new Date().toISOString().slice(0, 7);
       const res = await apiFetch("/api/monthly-payments", { method: "POST", body: JSON.stringify({ referenceNumber: monthlyReferenceNumber.trim(), paidForMonth: currentMonth }) });
       const data = await res.json();
       if (res.ok) {
         alert("Monthly payment request sent! Waiting for company owner approval.");
         setMonthlyReferenceNumber("");
-        // Refresh monthly payments
         try {
           const refreshRes = await apiFetch("/api/monthly-payments");
           const refreshData = await refreshRes.json();
@@ -156,6 +145,48 @@ export default function BranchOwnerDashboard() {
       alert("Error sending request: " + String(err)); 
     }
     setRequestingMonthly(false);
+  }
+
+  async function requestRedemption() {
+    if (!redeemType) return;
+    
+    setRequestingRedeem(true);
+    try {
+      const body: any = { redemptionType: redeemType };
+      if (redeemType === "free_station") {
+        body.contactName = redeemForm.contactName;
+        body.contactNumber = redeemForm.contactNumber;
+        body.deliveryAddress = redeemForm.deliveryAddress;
+      }
+      
+      const res = await apiFetch("/api/redemptions", { method: "POST", body: JSON.stringify(body) });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Redemption request submitted! Company owner will process it soon.");
+        setShowRedeemModal(false);
+        setRedeemType(null);
+        setRedeemForm({ contactName: "", contactNumber: "", deliveryAddress: "" });
+        // Refresh data
+        try {
+          const [stRes, rdRes] = await Promise.all([
+            apiFetch("/api/stations"),
+            apiFetch("/api/redemptions"),
+          ]);
+          const stData = await stRes.json();
+          const rdData = await rdRes.json();
+          if (stData.stations) setStations(stData.stations);
+          if (rdData.redemptions) setRedemptions(rdData.redemptions);
+        } catch (refreshErr) {
+          console.error("Error refreshing:", refreshErr);
+        }
+      } else {
+        alert("Error: " + (data.error || "Failed to submit redemption"));
+      }
+    } catch (err) {
+      console.error("Error submitting redemption:", err);
+      alert("Error: " + String(err));
+    }
+    setRequestingRedeem(false);
   }
 
   async function addStation() {
@@ -223,13 +254,10 @@ export default function BranchOwnerDashboard() {
     );
   }
 
-  function handleRefresh() {
-    apiFetch("/api/auth/me").then((r) => r.json()).then((d) => { if (d.user) setUserData(d.user); }).catch(() => {});
-  }
-
   const myStations = stations.filter((s) => s.ownerId === userData?.id);
-  const totalVisits = myStations.reduce((sum, s) => sum + s.totalVisits, 0);
-  // Branch owner and other branch need to pay monthly fee to add stations
+  const totalViews = myStations.reduce((sum, s) => sum + (s.views || 0), 0);
+  const totalViewRevenue = myStations.reduce((sum, s) => sum + (s.viewRevenue || 0), 0);
+  const canRedeem = totalViewRevenue >= 100;
   const canAddStation = userData?.isSubscribed === true;
   const monthlyFee = userData?.role === "other_branch" ? 250 : 200;
 
@@ -239,9 +267,11 @@ export default function BranchOwnerDashboard() {
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-green-400/10 to-emerald-500/5">
           <h2 className="text-2xl font-bold text-white">Welcome, {userData?.fullName || "Station Owner"}!</h2>
           <p className="text-slate-400 mt-1">Manage your PSPCS stations.</p>
-          <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{myStations.length}</div><div className="text-xs text-slate-400">My Stations</div></div>
             <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{myStations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
+            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalViews}</div><div className="text-xs text-slate-400">Total Views</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">₱{totalViewRevenue.toFixed(2)}</div><div className="text-xs text-slate-400">View Revenue</div></div>
           </div>
         </div>
 
@@ -349,7 +379,7 @@ export default function BranchOwnerDashboard() {
                   {s.outlets > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">O:{s.outlets}</span>}
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
-                  <span className="text-[10px] text-slate-500">{s.totalVisits} visits | {s.solarWatts}W</span>
+                  <span className="text-[10px] text-slate-500">{s.views || 0} views | ₱{(s.viewRevenue || 0).toFixed(2)}</span>
                   <div className="flex gap-2">
                     <button onClick={() => toggleStation(s)}
                       className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
@@ -430,37 +460,67 @@ export default function BranchOwnerDashboard() {
           <StationMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
         </section>
 
-        <section id="sessions">
-          <h3 className="text-lg font-bold text-white mb-4">Charging Sessions</h3>
-          {selectedStation && <p className="text-sm text-amber-400 mb-2">Selected: {selectedStation.name}</p>}
-          <ChargingCalculator stationId={selectedStation?.id} stationName={selectedStation?.name}
-            onSessionStart={async (data) => {
-              const res = await apiFetch("/api/sessions", { method: "POST", body: JSON.stringify(data) });
-              if (res.ok) { const r = await res.json(); setHistory((p) => [r.history, ...p]); alert(`Started! ₱${data.costPesos}`); }
-            }} history={history} />
-        </section>
-
-        {/* Revenue */}
+        {/* Revenue - View Based */}
         <section id="revenue" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Revenue</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-green-400">₱{myStations.reduce((s, st) => s + (st.revenue || 0), 0)}</div><div className="text-xs text-slate-400">Station Revenue</div></div>
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-amber-400">{totalVisits}</div><div className="text-xs text-slate-400">Total Visits</div></div>
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-blue-400">{history.length}</div><div className="text-xs text-slate-400">Charging Sessions</div></div>
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-purple-400">{myStations.length}</div><div className="text-xs text-slate-400">Your Stations</div></div>
+          <h3 className="text-lg font-bold text-white">View Revenue</h3>
+          <p className="text-sm text-slate-400">Earn ₱0.20 per view when someone views your station!</p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="glass-card rounded-xl p-4">
+              <div className="text-2xl font-bold text-green-400">{myStations.length}</div>
+              <div className="text-xs text-slate-400">Your Stations</div>
+            </div>
+            <div className="glass-card rounded-xl p-4">
+              <div className="text-2xl font-bold text-amber-400">{totalViews}</div>
+              <div className="text-xs text-slate-400">Total Views</div>
+            </div>
+            <div className="glass-card rounded-xl p-4">
+              <div className="text-2xl font-bold text-blue-400">₱{totalViewRevenue.toFixed(2)}</div>
+              <div className="text-xs text-slate-400">Available Revenue</div>
+            </div>
           </div>
+
+          {/* Redemption Section */}
+          <div className="glass-card rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h4 className="font-bold text-white">Redeem Earnings</h4>
+                <p className="text-sm text-slate-400">Minimum ₱100 required to redeem</p>
+              </div>
+              {canRedeem && (
+                <button onClick={() => { playClick(); setShowRedeemModal(true); }}
+                  className="px-4 py-2 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg">
+                  Redeem ₱{Math.floor(totalViewRevenue)}
+                </button>
+              )}
+            </div>
+            
+            {!canRedeem && (
+              <div className="p-4 bg-slate-800/50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-slate-400">Progress to ₱100</span>
+                  <span className="text-sm font-bold text-amber-400">{Math.floor(totalViewRevenue)} / 100</span>
+                </div>
+                <div className="w-full bg-slate-700 rounded-full h-2">
+                  <div className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full" style={{ width: `${Math.min(totalViewRevenue, 100)}%` }}></div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Per Station Views */}
           {myStations.length > 0 && (
             <div className="glass-card rounded-2xl p-6">
-              <h4 className="font-bold text-white mb-4">Per Station Revenue</h4>
+              <h4 className="font-bold text-white mb-4">Views per Station</h4>
               <div className="space-y-3">
                 {myStations.map((s) => (
                   <div key={s.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium text-white">{s.name}</p>
-                      <p className="text-xs text-slate-400">{s.totalVisits} visits</p>
+                      <p className="text-xs text-slate-400">{s.views || 0} views</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-green-400">₱{s.revenue || 0}</p>
+                      <p className="text-lg font-bold text-green-400">₱{(s.viewRevenue || 0).toFixed(2)}</p>
                       <p className="text-[10px] text-slate-500">{s.isActive ? "Active" : "Inactive"}</p>
                     </div>
                   </div>
@@ -469,6 +529,106 @@ export default function BranchOwnerDashboard() {
             </div>
           )}
         </section>
+
+        {/* Redemption History */}
+        {redemptions.length > 0 && (
+          <section className="space-y-4">
+            <h3 className="text-lg font-bold text-white">Redemption History</h3>
+            <div className="glass-card rounded-2xl p-6">
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {redemptions.map((r) => (
+                  <div key={r.id} className="p-3 bg-slate-800/50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-white">
+                          ₱{r.amount} - {r.redemption_type === "free_station" ? "Free Station" : "GCash Cashout"}
+                        </p>
+                        <p className="text-xs text-slate-400">{new Date(r.created_at).toLocaleDateString()}</p>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${r.status === "approved" ? "bg-green-400/10 text-green-400" : r.status === "delivered" ? "bg-blue-400/10 text-blue-400" : r.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
+                        {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Redemption Modal */}
+        {showRedeemModal && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="glass-card rounded-2xl p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold text-white mb-4">Redeem Earnings</h3>
+              <p className="text-sm text-slate-400 mb-4">Available: ₱{Math.floor(totalViewRevenue)}</p>
+              
+              <div className="space-y-4">
+                <button onClick={() => setRedeemType("free_station")}
+                  className={`w-full p-4 rounded-xl border text-left transition-all ${redeemType === "free_station" ? "border-green-400 bg-green-400/10" : "border-slate-600 hover:border-slate-500"}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏪</span>
+                    <div>
+                      <p className="text-sm font-bold text-white">Free Charging Station</p>
+                      <p className="text-xs text-slate-400">Company will deliver to your address</p>
+                    </div>
+                  </div>
+                </button>
+                
+                <button onClick={() => setRedeemType("gcash")}
+                  className={`w-full p-4 rounded-xl border text-left transition-all ${redeemType === "gcash" ? "border-green-400 bg-green-400/10" : "border-slate-600 hover:border-slate-500"}`}>
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">💰</span>
+                    <div>
+                      <p className="text-sm font-bold text-white">GCash Cashout</p>
+                      <p className="text-xs text-slate-400">Email earlrey0322@gmail.com to receive GCash</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {redeemType === "free_station" && (
+                <div className="space-y-4 mt-4 p-4 bg-slate-800/50 rounded-lg">
+                  <div>
+                    <label className="block text-sm text-slate-300 mb-1">Full Name</label>
+                    <input type="text" value={redeemForm.contactName} onChange={(e) => setRedeemForm((p) => ({ ...p, contactName: e.target.value }))}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="Your full name" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-300 mb-1">Contact Number</label>
+                    <input type="text" value={redeemForm.contactNumber} onChange={(e) => setRedeemForm((p) => ({ ...p, contactNumber: e.target.value }))}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="09XX XXX XXXX" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-300 mb-1">Delivery Address</label>
+                    <textarea value={redeemForm.deliveryAddress} onChange={(e) => setRedeemForm((p) => ({ ...p, deliveryAddress: e.target.value }))}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" rows={3} placeholder="Full delivery address" />
+                  </div>
+                </div>
+              )}
+
+              {redeemType === "gcash" && (
+                <div className="mt-4 p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl">
+                  <p className="text-xs text-blue-400 mb-2">GCash Details</p>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between"><span className="text-slate-400">Number</span><span className="text-white font-bold">09469086926</span></div>
+                    <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
+                  </div>
+                  <p className="text-xs text-amber-400 mt-3">Email earlrey0322@gmail.com with your reference number after sending.</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 mt-6">
+                <button onClick={requestRedemption} disabled={!redeemType || requestingRedeem || (redeemType === "free_station" && (!redeemForm.contactName || !redeemForm.contactNumber || !redeemForm.deliveryAddress))}
+                  className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg disabled:opacity-50">
+                  {requestingRedeem ? "Submitting..." : "Submit Redemption"}
+                </button>
+                <button onClick={() => { setShowRedeemModal(false); setRedeemType(null); }}
+                  className="px-6 py-3 text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <section id="subscription">
           <h3 className="text-lg font-bold text-white mb-4">Subscription</h3>
@@ -558,7 +718,7 @@ export default function BranchOwnerDashboard() {
           </div>
         </section>
 
-        {/* Monthly Payment Section - Only for branch_owner and other_branch */}
+        {/* Monthly Payment Section */}
         <section id="monthly-payment" className="space-y-6">
           <h3 className="text-lg font-bold text-white mb-4">Monthly Station Fee</h3>
           <div className="glass-card rounded-2xl p-6">

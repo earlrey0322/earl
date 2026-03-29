@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 
-interface Station {
+export interface Station {
   id: number; name: string; companyName: string; brand: string;
   ownerId: number | null; ownerName: string | null;
   latitude: number; longitude: number; address: string; location?: string;
   isActive: boolean;
-  solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
+  solarWatts: number; batteryLevel: number; totalVisits?: number; views?: number; viewRevenue?: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
 }
 

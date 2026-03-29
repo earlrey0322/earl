@@ -2,17 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
-import { StationMap } from "@/components/StationMap";
+import { StationMap, Station } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { apiFetch } from "@/lib/api-fetch";
-
-interface Station {
-  id: number; name: string; companyName: string; brand: string; ownerId: number | null;
-  latitude: number; longitude: number; address: string; isActive: boolean;
-  solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
-  cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
-  ownerName: string | null;
-}
 
 interface HistoryItem {
   id: number; phoneBrand: string; startBattery: number; targetBattery: number;
