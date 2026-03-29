@@ -15,6 +15,7 @@
     "@kilocode/app-builder-db": "github:Kilo-Org/app-builder-db#main",
     "@supabase/supabase-js": "^2.100.1",
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.8.0",
     "drizzle-orm": "^0.45.2",
     "jose": "^6.2.2",
     "leaflet": "^1.9.4",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.17",
     "@types/bcryptjs": "^3.0.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^24.10.2",
     "@types/react": "^19.2.7",
