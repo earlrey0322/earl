@@ -11,7 +11,7 @@ import { apiFetch } from "@/lib/api-fetch";
 interface Station {
   id: number; name: string; companyName: string; brand: string; ownerId: number | null;
   latitude: number; longitude: number; address: string; isActive: boolean;
-  solarWatts: number; batteryLevel: number; totalVisits: number; revenue: number;
+  solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
   ownerName: string | null; contactNumber: string | null;
 }
@@ -84,7 +84,17 @@ export default function CompanyOwnerDashboard() {
   }
 
   function useLocation() {
-    navigator.geolocation.getCurrentPosition((p) => setAddForm((f) => ({ ...f, latitude: p.coords.latitude, longitude: p.coords.longitude })));
+    if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+        setAddForm((f) => ({ ...f, latitude: lat, longitude: lng }));
+        alert(`Location set: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      },
+      (err) => { alert("Location error: " + err.message); },
+      { enableHighAccuracy: false, timeout: 10000 }
+    );
   }
 
   async function removeStation(id: number, name: string) {

@@ -10,7 +10,7 @@ import { apiFetch } from "@/lib/api-fetch";
 interface Station {
   id: number; name: string; companyName: string; brand: string; ownerId: number | null;
   latitude: number; longitude: number; address: string; isActive: boolean;
-  solarWatts: number; batteryLevel: number; totalVisits: number; revenue: number;
+  solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
   ownerName: string | null; contactNumber: string | null;
 }
@@ -71,10 +71,21 @@ export default function BranchOwnerDashboard() {
   }
 
   function useCurrentLocation() {
-    if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported by your browser");
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
-      (pos) => setNewStation((p) => ({ ...p, latitude: pos.coords.latitude, longitude: pos.coords.longitude })),
-      () => alert("Could not get location")
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setNewStation((p) => ({ ...p, latitude: lat, longitude: lng }));
+        alert(`Location set: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+      },
+      (err) => {
+        alert("Location error: " + err.message + "\n\nPlease allow location access or enter coordinates manually.");
+      },
+      { enableHighAccuracy: false, timeout: 10000 }
     );
   }
 
