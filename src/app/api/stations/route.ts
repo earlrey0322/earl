@@ -13,7 +13,7 @@ export async function GET() {
     if (!user[0]?.isSubscribed) return NextResponse.json({ stations: allStations.filter((s) => s.companyName === "KLEOXM 111") });
     return NextResponse.json({ stations: allStations });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
@@ -23,7 +23,8 @@ export async function POST(request: Request) {
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const body = await request.json();
     const { name, latitude, longitude, address, contactNumber, isActive, cableTypeC, cableIPhone, cableUniversal, outlets, companyName } = body;
-    if (!name || !latitude || !longitude || !address) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    if (!name || latitude == null || longitude == null || !address) return NextResponse.json({ error: "Missing fields: name, latitude, longitude, address required" }, { status: 400 });
+
     const user = await db.select().from(users).where(eq(users.id, auth.userId));
     const newStation = await db.insert(chargingStations).values({
       name,
@@ -31,9 +32,13 @@ export async function POST(request: Request) {
       brand: "PSPCS",
       ownerId: auth.userId,
       ownerName: user[0]?.fullName || null,
-      latitude, longitude, address,
+      latitude: Number(latitude),
+      longitude: Number(longitude),
+      address,
       contactNumber: contactNumber || null,
       isActive: isActive ?? true,
+      solarWatts: 50,
+      batteryLevel: 100,
       cableTypeC: cableTypeC || 0,
       cableIPhone: cableIPhone || 0,
       cableUniversal: cableUniversal || 0,
@@ -41,7 +46,8 @@ export async function POST(request: Request) {
     }).returning();
     return NextResponse.json({ success: true, station: newStation[0] });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    console.error("Station POST error:", error);
+    return NextResponse.json({ error: "Failed to add station: " + String(error) }, { status: 500 });
   }
 }
 
@@ -56,7 +62,7 @@ export async function PATCH(request: Request) {
     await db.update(chargingStations).set(updateData).where(eq(chargingStations.id, id));
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
@@ -69,6 +75,6 @@ export async function DELETE(request: Request) {
     await db.delete(chargingStations).where(eq(chargingStations.id, body.id));
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
