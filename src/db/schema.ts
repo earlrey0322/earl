@@ -64,3 +64,18 @@ export const notifications = sqliteTable("notifications", {
   isRead: integer("is_read", { mode: "boolean" }).default(false),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
 });
+
+export const orders = sqliteTable("orders", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id").references(() => users.id),
+  buyerName: text("buyer_name").notNull(),
+  buyerEmail: text("buyer_email"),
+  buyerPhone: text("buyer_phone").notNull(),
+  buyerAddress: text("buyer_address").notNull(),
+  product: text("product").notNull(),
+  quantity: integer("quantity").default(1),
+  totalPrice: real("total_price").notNull(),
+  status: text("status").default("pending"),
+  notes: text("notes"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+});
