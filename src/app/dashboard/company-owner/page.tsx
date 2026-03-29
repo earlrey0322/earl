@@ -45,7 +45,7 @@ export default function CompanyOwnerDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ name: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
+  const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
 
   useEffect(() => {
     Promise.allSettled([
@@ -70,19 +70,19 @@ export default function CompanyOwnerDashboard() {
   }
 
   const [editStation, setEditStation] = useState<Station | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", address: "", company: "", active: true, cableTypeC: 0, cableIPhone: 0, cableUniversal: 0, outlets: 1 });
+  const [editForm, setEditForm] = useState({ name: "", location: "", address: "", company: "", active: true, cableTypeC: 0, cableIPhone: 0, cableUniversal: 0, outlets: 1 });
 
   function startEdit(s: Station) {
     playClick();
     setEditStation(s);
-    setEditForm({ name: s.name, address: s.address, company: s.companyName, active: s.isActive, cableTypeC: s.cableTypeC || 0, cableIPhone: s.cableIPhone || 0, cableUniversal: s.cableUniversal || 0, outlets: s.outlets || 1 });
+    setEditForm({ name: s.name, location: (s as any).location || "", address: s.address, company: s.companyName, active: s.isActive, cableTypeC: s.cableTypeC || 0, cableIPhone: s.cableIPhone || 0, cableUniversal: s.cableUniversal || 0, outlets: s.outlets || 1 });
   }
 
   async function saveEdit() {
     if (!editStation) return;
     playClick();
-    await apiFetch("/api/stations", { method: "PATCH", body: JSON.stringify({ id: editStation.id, name: editForm.name, address: editForm.address, company: editForm.company, active: editForm.active, cableTypeC: editForm.cableTypeC, cableIPhone: editForm.cableIPhone, cableUniversal: editForm.cableUniversal, outlets: editForm.outlets }) });
-    setStations((prev) => prev.map((s) => s.id === editStation.id ? { ...s, name: editForm.name, address: editForm.address, companyName: editForm.company, isActive: editForm.active, cableTypeC: editForm.cableTypeC, cableIPhone: editForm.cableIPhone, cableUniversal: editForm.cableUniversal, outlets: editForm.outlets } : s));
+    await apiFetch("/api/stations", { method: "PATCH", body: JSON.stringify({ id: editStation.id, name: editForm.name, location: editForm.location, address: editForm.address, company: editForm.company, active: editForm.active, cableTypeC: editForm.cableTypeC, cableIPhone: editForm.cableIPhone, cableUniversal: editForm.cableUniversal, outlets: editForm.outlets }) });
+    setStations((prev) => prev.map((s) => s.id === editStation.id ? { ...s, name: editForm.name, location: editForm.location, address: editForm.address, companyName: editForm.company, isActive: editForm.active, cableTypeC: editForm.cableTypeC, cableIPhone: editForm.cableIPhone, cableUniversal: editForm.cableUniversal, outlets: editForm.outlets } : s));
     setEditStation(null);
   }
 
@@ -199,6 +199,7 @@ export default function CompanyOwnerDashboard() {
               <h4 className="font-bold text-white mb-4">Add New Station</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><label className="block text-sm text-slate-300 mb-1">Name</label><input type="text" value={addForm.name} onChange={(e) => setAddForm((p) => ({ ...p, name: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="PSPCS Station - Name" /></div>
+                <div><label className="block text-sm text-slate-300 mb-1">Location</label><input type="text" value={addForm.location} onChange={(e) => setAddForm((p) => ({ ...p, location: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="e.g. Lucena City, Quezon" /></div>
                 <div><label className="block text-sm text-slate-300 mb-1">Company Name</label><input type="text" value={addForm.companyName} onChange={(e) => setAddForm((p) => ({ ...p, companyName: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div><label className="block text-sm text-slate-300 mb-1">Address</label><input type="text" value={addForm.address} onChange={(e) => setAddForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div><label className="block text-sm text-slate-300 mb-1">Latitude</label><input type="number" step="0.0001" value={addForm.latitude} onChange={(e) => setAddForm((p) => ({ ...p, latitude: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
@@ -225,6 +226,7 @@ export default function CompanyOwnerDashboard() {
                 <div key={s.id} className="bg-slate-800/50 rounded-xl p-4">
                   <h4 className="font-bold text-white text-sm">{s.name}</h4>
                   <p className="text-xs text-amber-400">{s.companyName}</p>
+                  {(s as any).location && <p className="text-xs text-green-400 mt-1">📍 {(s as any).location}</p>}
                   <p className="text-xs text-slate-400 mt-1">{s.address}</p>
                   <div className="flex gap-1.5 mt-2">
                     {s.cableTypeC > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded">TC:{s.cableTypeC}</span>}
@@ -262,6 +264,11 @@ export default function CompanyOwnerDashboard() {
                   <label className="block text-sm text-slate-300 mb-1">Name</label>
                   <input type="text" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
                     className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                </div>
+                <div>
+                  <label className="block text-sm text-slate-300 mb-1">Location</label>
+                  <input type="text" value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}
+                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="e.g. Lucena City, Quezon" />
                 </div>
                 <div>
                   <label className="block text-sm text-slate-300 mb-1">Company Name</label>

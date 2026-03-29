@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       company: auth.role === "company_owner" ? (body.company || "KLEOXM 111") : "KLEOXM 111",
       ownerId: auth.id, owner: user?.fullName || "Unknown",
       lat: Number(body.latitude), lng: Number(body.longitude),
+      location: body.location?.trim() || "",
       addr: body.address.trim(), active: body.active !== false,
       battery: 100, visits: 0,
       tc: Number(body.cableTypeC) || 0, ip: Number(body.cableIPhone) || 0,
@@ -50,6 +51,7 @@ export async function PATCH(req: Request) {
     if (body.active !== undefined) s.active = body.active;
     if (body.name) s.name = body.name;
     if (body.address) s.addr = body.address;
+    if (body.location !== undefined) s.location = body.location;
     if (body.company && auth.role === "company_owner") s.company = body.company;
     if (body.cableTypeC !== undefined) s.tc = Number(body.cableTypeC);
     if (body.cableIPhone !== undefined) s.ip = Number(body.cableIPhone);
