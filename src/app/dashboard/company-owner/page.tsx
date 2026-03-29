@@ -504,8 +504,6 @@ export default function CompanyOwnerDashboard() {
               <div className="glass-card rounded-2xl p-6">
                 <h3 className="font-bold text-white mb-4">Revenue</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-green-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0)}</div><div className="text-xs text-slate-400">Station Revenue</div></div>
-                  <div className="bg-amber-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-amber-400">₱{history.reduce((s, h) => s + h.costPesos, 0)}</div><div className="text-xs text-slate-400">Charging Revenue</div></div>
                   <div className="bg-blue-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-blue-400">₱{subscriptionRevenue}</div><div className="text-xs text-slate-400">Subscription Revenue</div></div>
                   <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">₱{monthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Monthly Payments</div></div>
                 </div>
@@ -513,9 +511,9 @@ export default function CompanyOwnerDashboard() {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm font-bold text-green-400">Total Revenue</p>
-                      <p className="text-xs text-slate-400">Station + Charging + Subscriptions + Monthly</p>
+                      <p className="text-xs text-slate-400">Subscriptions + Monthly Payments</p>
                     </div>
-                    <p className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0) + history.reduce((s, h) => s + h.costPesos, 0) + subscriptionRevenue + monthlyPaymentRevenue}</p>
+                    <p className="text-2xl font-bold text-green-400">₱{subscriptionRevenue + monthlyPaymentRevenue}</p>
                   </div>
                 </div>
               </div>
