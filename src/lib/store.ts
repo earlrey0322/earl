@@ -34,6 +34,7 @@ export interface Station {
   batteryLevel: number;
   outputVoltage: string;
   totalVisits: number;
+  revenue: number;
   cableTypeC: number;
   cableIPhone: number;
   cableUniversal: number;
@@ -77,6 +78,7 @@ class InMemoryStore {
   stations: Station[] = [];
   chargingHistory: ChargingHistory[] = [];
   notifications: Notification[] = [];
+  subscriptionRevenue: number = 0;
   private nextId = 1;
 
   private getId() { return this.nextId++; }
@@ -99,7 +101,7 @@ class InMemoryStore {
         ownerId: null, ownerName: "KLEOXM 111", latitude: s.lat, longitude: s.lng,
         address: s.addr, contactNumber: "09469086926", isActive: s.active,
         solarWatts: 50, batteryLevel: s.battery, outputVoltage: "3.6VDC",
-        totalVisits: s.visits, cableTypeC: s.cTypeC, cableIPhone: s.cIPhone,
+        totalVisits: s.visits, revenue: Math.floor(s.visits * 5), cableTypeC: s.cTypeC, cableIPhone: s.cIPhone,
         cableUniversal: s.cUniv, outlets: s.outlets, createdAt: new Date(),
       });
     }
@@ -142,8 +144,13 @@ class InMemoryStore {
   addChargingHistory(data: Omit<ChargingHistory, "id" | "createdAt">) {
     const h: ChargingHistory = { ...data, id: this.getId(), createdAt: new Date() };
     this.chargingHistory.push(h);
+    // Add revenue to station (branch owner earns from charging)
+    const station = this.stations.find((s) => s.id === data.stationId);
+    if (station) station.revenue = (station.revenue || 0) + data.costPesos;
     return h;
   }
+  addSubscriptionRevenue(amount: number) { this.subscriptionRevenue += amount; }
+  getStationRevenue(ownerId: number) { return this.stations.filter((s) => s.ownerId === ownerId).reduce((sum, s) => sum + (s.revenue || 0), 0); }
   getHistoryByUser(userId: number) { return this.chargingHistory.filter((h) => h.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); }
   getHistoryByStation(stationId: number) { return this.chargingHistory.filter((h) => h.stationId === stationId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); }
   getAllHistory() { return [...this.chargingHistory].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); }

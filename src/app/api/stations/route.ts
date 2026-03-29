@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       solarWatts: solarWatts || 50,
       batteryLevel: 100,
       outputVoltage: "3.6VDC",
-      totalVisits: 0,
+      totalVisits: 0, revenue: 0,
       cableTypeC: cableTypeC || 0,
       cableIPhone: cableIPhone || 0,
       cableUniversal: cableUniversal || 0,

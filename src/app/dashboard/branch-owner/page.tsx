@@ -10,7 +10,7 @@ import { apiFetch } from "@/lib/api-fetch";
 interface Station {
   id: number; name: string; companyName: string; brand: string; ownerId: number | null;
   latitude: number; longitude: number; address: string; isActive: boolean;
-  solarWatts: number; batteryLevel: number; totalVisits: number;
+  solarWatts: number; batteryLevel: number; totalVisits: number; revenue: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
   ownerName: string | null; contactNumber: string | null;
 }
@@ -211,13 +211,33 @@ export default function BranchOwnerDashboard() {
         </section>
 
         {/* Revenue */}
-        <section id="revenue" className="glass-card rounded-2xl p-6">
-          <h3 className="font-bold text-white mb-4">Revenue</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-green-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-green-400">{totalVisits}</div><div className="text-xs text-slate-400">Total Station Visits</div></div>
-            <div className="bg-amber-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-amber-400">₱{history.reduce((s, h) => s + h.costPesos, 0)}</div><div className="text-xs text-slate-400">Total Charging Revenue</div></div>
-            <div className="bg-blue-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-blue-400">{history.length}</div><div className="text-xs text-slate-400">Total Sessions</div></div>
+        <section id="revenue" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Revenue</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-green-400">₱{myStations.reduce((s, st) => s + (st.revenue || 0), 0)}</div><div className="text-xs text-slate-400">Station Revenue</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-amber-400">{totalVisits}</div><div className="text-xs text-slate-400">Total Visits</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-blue-400">{history.length}</div><div className="text-xs text-slate-400">Charging Sessions</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-purple-400">{myStations.length}</div><div className="text-xs text-slate-400">Your Stations</div></div>
           </div>
+          {myStations.length > 0 && (
+            <div className="glass-card rounded-2xl p-6">
+              <h4 className="font-bold text-white mb-4">Per Station Revenue</h4>
+              <div className="space-y-3">
+                {myStations.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-white">{s.name}</p>
+                      <p className="text-xs text-slate-400">{s.totalVisits} visits</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-green-400">₱{s.revenue || 0}</p>
+                      <p className="text-[10px] text-slate-500">{s.isActive ? "Active" : "Inactive"}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
         <section id="subscription">

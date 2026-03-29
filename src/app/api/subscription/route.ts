@@ -28,6 +28,9 @@ export async function POST(request: Request) {
       type: "subscription", isRead: false,
     });
 
+    // Track company owner subscription revenue
+    store.addSubscriptionRevenue(plan.price);
+
     return NextResponse.json({
       success: true, message: `${plan.label} subscription activated!`,
       gcashDetails: { number: "09469086926", name: "Earl Christian Rey", amount: plan.price },

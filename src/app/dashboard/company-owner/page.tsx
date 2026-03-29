@@ -11,7 +11,7 @@ import { apiFetch } from "@/lib/api-fetch";
 interface Station {
   id: number; name: string; companyName: string; brand: string; ownerId: number | null;
   latitude: number; longitude: number; address: string; isActive: boolean;
-  solarWatts: number; batteryLevel: number; totalVisits: number;
+  solarWatts: number; batteryLevel: number; totalVisits: number; revenue: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
   ownerName: string | null; contactNumber: string | null;
 }
@@ -220,10 +220,19 @@ export default function CompanyOwnerDashboard() {
               <div className="glass-card rounded-2xl p-6">
                 <h3 className="font-bold text-white mb-4">Revenue</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-green-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-green-400">₱{totalRevenue}</div><div className="text-xs text-slate-400">Charging Revenue</div></div>
-                  <div className="bg-amber-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-amber-400">{totalVisits}</div><div className="text-xs text-slate-400">Total Visits</div></div>
+                  <div className="bg-green-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0)}</div><div className="text-xs text-slate-400">Station Revenue</div></div>
+                  <div className="bg-amber-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-amber-400">₱{history.reduce((s, h) => s + h.costPesos, 0)}</div><div className="text-xs text-slate-400">Charging Revenue</div></div>
                   <div className="bg-blue-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-blue-400">{history.length}</div><div className="text-xs text-slate-400">Total Sessions</div></div>
-                  <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">{(usersData?.subscribedBranchOwners || 0) + (usersData?.subscribedCustomers || 0)}</div><div className="text-xs text-slate-400">Subscribers</div></div>
+                  <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">{totalVisits}</div><div className="text-xs text-slate-400">Total Visits</div></div>
+                </div>
+                <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-bold text-green-400">Total Revenue</p>
+                      <p className="text-xs text-slate-400">Station + Charging combined</p>
+                    </div>
+                    <p className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0) + history.reduce((s, h) => s + h.costPesos, 0)}</p>
+                  </div>
                 </div>
               </div>
             </div>
