@@ -7,7 +7,7 @@ export async function GET() {
     const auth = await getAuthUser();
     const all = store.getAllStations();
     if (!auth) return NextResponse.json({ stations: all.filter(s => s.companyName === "KLEOXM 111") });
-    const user = store.findUserById(auth.userId);
+    const user = store.findUserById(auth.id);
     if (auth.role === "company_owner" || user?.isSubscribed) return NextResponse.json({ stations: all });
     return NextResponse.json({ stations: all.filter(s => s.companyName === "KLEOXM 111") });
   } catch { return NextResponse.json({ stations: [] }); }
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Name, address, latitude, longitude required" }, { status: 400 });
     }
 
-    const user = store.findUserById(auth.userId);
+    const user = store.findUserById(auth.id);
 
     // Branch owner: can only create stations under KLEOXM 111
     // Company owner: can set any company name
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
 
     const station = store.addStation({
       name: name.trim(), companyName: stationCompany,
-      ownerId: auth.userId, ownerName: user?.fullName || "Unknown",
+      ownerId: auth.id, ownerName: user?.fullName || "Unknown",
       latitude: Number(latitude), longitude: Number(longitude),
       address: address.trim(), contactNumber: contactNumber || null,
       isActive: isActive !== false, solarWatts: 50, batteryLevel: 100,
@@ -56,7 +56,7 @@ export async function PATCH(request: Request) {
     if (!station) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // Only owner or company_owner can edit
-    if (auth.role !== "company_owner" && station.ownerId !== auth.userId) {
+    if (auth.role !== "company_owner" && station.ownerId !== auth.id) {
       return NextResponse.json({ error: "Not your station" }, { status: 403 });
     }
 
@@ -79,7 +79,7 @@ export async function DELETE(request: Request) {
     if (!station) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // Company owner can delete any, branch owner only their own
-    if (auth.role !== "company_owner" && station.ownerId !== auth.userId) {
+    if (auth.role !== "company_owner" && station.ownerId !== auth.id) {
       return NextResponse.json({ error: "Can only delete your own station" }, { status: 403 });
     }
 

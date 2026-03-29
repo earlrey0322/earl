@@ -8,11 +8,11 @@ export async function GET() {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const user = await db.select().from(users).where(eq(users.id, auth.userId));
+    const user = await db.select().from(users).where(eq(users.id, auth.id));
     const role = user[0]?.role;
     const history = role === "company_owner" || role === "branch_owner"
       ? await db.select().from(chargingHistory).orderBy(desc(chargingHistory.createdAt))
-      : await db.select().from(chargingHistory).where(eq(chargingHistory.userId, auth.userId)).orderBy(desc(chargingHistory.createdAt));
+      : await db.select().from(chargingHistory).where(eq(chargingHistory.userId, auth.id)).orderBy(desc(chargingHistory.createdAt));
     return NextResponse.json({ history });
   } catch (error) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     const { stationId, phoneBrand, startBattery, targetBattery, costPesos, durationMinutes } = body;
     if (!stationId || !phoneBrand || startBattery === undefined) return NextResponse.json({ error: "Missing fields" }, { status: 400 });
 
-    const user = await db.select().from(users).where(eq(users.id, auth.userId));
+    const user = await db.select().from(users).where(eq(users.id, auth.id));
     const station = await db.select().from(chargingStations).where(eq(chargingStations.id, stationId));
 
     // Increment station visits and revenue
@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     const newHistory = await db.insert(chargingHistory).values({
-      userId: auth.userId,
+      userId: auth.id,
       userEmail: user[0]?.email || "",
       stationId,
       stationName: station[0]?.name || "Unknown",

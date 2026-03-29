@@ -6,7 +6,7 @@ export async function GET() {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    const user = store.findUserById(auth.userId);
+    const user = store.findUserById(auth.id);
     return NextResponse.json({ isSubscribed: user?.isSubscribed || false, plan: user?.subscriptionPlan || null, plans: PLANS });
   } catch { return NextResponse.json({ error: "Server error" }, { status: 500 }); }
 }
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     const plan = PLANS.find(p => p.id === body.planId);
     if (!plan) return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
 
-    const userId = (auth.role === "company_owner" && body.targetUserId) ? body.targetUserId : auth.userId;
+    const userId = (auth.role === "company_owner" && body.targetUserId) ? body.targetUserId : auth.id;
     const expiry = Date.now() + plan.days * 24 * 60 * 60 * 1000;
     store.updateUser(userId, { isSubscribed: true, subscriptionPlan: plan.id, subscriptionExpiry: expiry });
 
