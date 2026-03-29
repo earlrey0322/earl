@@ -209,6 +209,9 @@ export default function BranchOwnerDashboard() {
 
   const myStations = stations.filter((s) => s.ownerId === userData?.id);
   const totalVisits = myStations.reduce((sum, s) => sum + s.totalVisits, 0);
+  // Branch owner and other branch need to pay monthly fee to add stations
+  const canAddStation = userData?.isSubscribed === true;
+  const monthlyFee = userData?.role === "other_branch" ? 250 : 200;
 
   return (
     <DashboardShell title="Branch Owner Dashboard">
@@ -227,11 +230,26 @@ export default function BranchOwnerDashboard() {
         {/* Add Station */}
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-white">Your Stations</h3>
-          <button onClick={() => { playClick(); setShowAdd(!showAdd); }}
-            className="px-4 py-2 text-sm font-medium text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg">
-            + Add Station
-          </button>
+          {canAddStation ? (
+            <button onClick={() => { playClick(); setShowAdd(!showAdd); }}
+              className="px-4 py-2 text-sm font-medium text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg">
+              + Add Station
+            </button>
+          ) : (
+            <span className="text-xs px-3 py-1 bg-red-400/10 text-red-400 rounded-full">Payment Required</span>
+          )}
         </div>
+
+        {!canAddStation && (
+          <div className="glass-card rounded-2xl p-6 border-2 border-red-400/30">
+            <div className="text-center">
+              <div className="text-4xl mb-3">💳</div>
+              <h4 className="text-lg font-bold text-white mb-2">Monthly Payment Required</h4>
+              <p className="text-sm text-slate-400 mb-4">You need to pay your monthly station fee (₱{monthlyFee}/month) before you can add stations.</p>
+              <p className="text-xs text-amber-400">Scroll down to the Monthly Station Fee section to make your payment.</p>
+            </div>
+          </div>
+        )}
 
         {showAdd && (
           <div className="glass-card rounded-2xl p-6">

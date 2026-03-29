@@ -73,6 +73,14 @@ export async function POST(req: Request) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
+    // Branch owner and other branch must have active subscription (paid monthly fee) to add stations
+    if (auth.role === "branch_owner" || auth.role === "other_branch") {
+      const { data: userProfile } = await supabase.from("users").select("is_subscribed").eq("id", auth.id).single();
+      if (!userProfile?.is_subscribed) {
+        return NextResponse.json({ error: "Monthly payment required. Please pay your monthly station fee before adding stations." });
+      }
+    }
+
     // Get owner name
     const { data: profile } = await supabase.from("users").select("full_name").eq("id", auth.id).single();
 
