@@ -63,7 +63,7 @@ CREATE TABLE charging_stations (
   cable_iphone INTEGER DEFAULT 0,
   cable_universal INTEGER DEFAULT 0,
   outlets INTEGER DEFAULT 1,
-  contact_number TEXT DEFAULT '',
+  fb_name TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

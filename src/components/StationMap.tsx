@@ -6,7 +6,7 @@ interface Station {
   id: number; name: string; companyName: string; brand: string;
   ownerId: number | null; ownerName: string | null;
   latitude: number; longitude: number; address: string; location?: string;
-  contactNumber: string | null; isActive: boolean;
+  fbName: string | null; isActive: boolean;
   solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
 }

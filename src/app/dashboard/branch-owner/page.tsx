@@ -11,7 +11,7 @@ interface Station {
   latitude: number; longitude: number; address: string; isActive: boolean;
   solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
-  ownerName: string | null; contactNumber: string | null;
+  ownerName: string | null; fbName: string | null;
 }
 
 interface HistoryItem {
@@ -51,7 +51,7 @@ export default function BranchOwnerDashboard() {
   const [requestingMonthly, setRequestingMonthly] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [newStation, setNewStation] = useState({
-    name: "", address: "", latitude: 14.5995, longitude: 120.9842, contactNumber: "",
+    name: "", address: "", latitude: 14.5995, longitude: 120.9842, fbName: "",
     cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1,
   });
 
@@ -146,7 +146,7 @@ export default function BranchOwnerDashboard() {
       if (res.ok && data.station) {
         setStations((prev) => [...prev, data.station]);
         setShowAdd(false);
-        setNewStation({ name: "", address: "", latitude: 14.5995, longitude: 120.9842, contactNumber: "", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
+        setNewStation({ name: "", address: "", latitude: 14.5995, longitude: 120.9842, fbName: "", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
       } else {
         alert("Error: " + (data.error || "Failed to add station"));
       }
@@ -302,9 +302,9 @@ export default function BranchOwnerDashboard() {
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" />
               </div>
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Contact Number</label>
-                <input type="tel" value={newStation.contactNumber} onChange={(e) => setNewStation((p) => ({ ...p, contactNumber: e.target.value }))}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="09XXXXXXXXX" />
+                <label className="block text-sm text-slate-300 mb-1">Facebook Name</label>
+                <input type="text" value={newStation.fbName} onChange={(e) => setNewStation((p) => ({ ...p, fbName: e.target.value }))}
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="Facebook profile name" />
               </div>
               <div className="flex items-end gap-3">
                 <button onClick={addStation} disabled={!newStation.name || !newStation.address}
@@ -322,8 +322,8 @@ export default function BranchOwnerDashboard() {
               <div key={s.id} className="glass-card rounded-xl p-4">
                 <h4 className="font-bold text-white text-sm">{s.name}</h4>
                 <p className="text-xs text-slate-400 mt-1">{s.address}</p>
-                {(s as any).contactNumber && (
-                  <p className="text-xs text-green-400 mt-1">📞 {(s as any).contactNumber}</p>
+                {(s as any).fbName && (
+                  <p className="text-xs text-green-400 mt-1">👤 {(s as any).fbName}</p>
                 )}
                 <div className="flex items-center gap-2 mt-2">
                   {(s as any).companyName && (s as any).companyName !== "Pending" ? (

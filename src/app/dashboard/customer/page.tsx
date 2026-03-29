@@ -11,7 +11,7 @@ interface Station {
   latitude: number; longitude: number; address: string; isActive: boolean;
   solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
-  ownerName: string | null; contactNumber: string | null;
+  ownerName: string | null; fbName: string | null;
 }
 
 interface HistoryItem {

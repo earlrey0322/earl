@@ -16,7 +16,7 @@ function toStation(s: any, isPremium: boolean, isOwner: boolean) {
     longitude: canSeeLocation ? s.longitude : 0,
     address: s.address,
     location: canSeeLocation ? (s.location || "") : "",
-    contactNumber: s.contact_number || null,
+    fbName: s.fb_name || "",
     isActive: !!s.is_active, solarWatts: s.solar_watts || 50, batteryLevel: s.battery_level,
     totalVisits: s.total_visits || 0, revenue: s.revenue || 0,
     cableTypeC: s.cable_type_c, cableIPhone: s.cable_iphone, cableUniversal: s.cable_universal, outlets: s.outlets,
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
       cable_iphone: Number(body.cableIPhone) || 0,
       cable_universal: Number(body.cableUniversal) || 0,
       outlets: Number(body.outlets) || 1,
-      contact_number: (body.contactNumber || "").trim(),
+      fb_name: (body.fbName || "").trim(),
     }).select().single();
 
     if (error) return NextResponse.json({ error: error.message });
@@ -142,9 +142,28 @@ export async function PATCH(req: Request) {
     if (body.cableIPhone !== undefined) updateData.cable_iphone = Number(body.cableIPhone);
     if (body.cableUniversal !== undefined) updateData.cable_universal = Number(body.cableUniversal);
     if (body.outlets !== undefined) updateData.outlets = Number(body.outlets);
-    if (body.contactNumber !== undefined) updateData.contact_number = body.contactNumber;
+    if (body.fbName !== undefined) updateData.fb_name = body.fbName;
 
     const { error } = await supabase.from("charging_stations").update(updateData).eq("id", body.id);
+    if (error) return NextResponse.json({ error: error.message });
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const auth = await getAuthUser();
+    if (!auth) return NextResponse.json({ error: "Unauthorized" });
+
+    const body = await req.json();
+    if (!body.id) return NextResponse.json({ error: "ID required" });
+
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "Database not set up" });
+
+    const { error } = await supabase.from("charging_stations").delete().eq("id", body.id);
     if (error) return NextResponse.json({ error: error.message });
     return NextResponse.json({ success: true });
   } catch (e) {

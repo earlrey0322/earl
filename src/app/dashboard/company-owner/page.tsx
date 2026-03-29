@@ -20,7 +20,7 @@ interface Station {
   latitude: number; longitude: number; address: string; isActive: boolean;
   solarWatts: number; batteryLevel: number; totalVisits: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
-  ownerName: string | null; contactNumber: string | null;
+  ownerName: string | null; fbName: string | null;
 }
 
 interface HistoryItem {
@@ -55,7 +55,7 @@ export default function CompanyOwnerDashboard() {
   const [approveDays, setApproveDays] = useState(1);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1, contactNumber: "" });
+  const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1, fbName: "" });
 
   useEffect(() => {
     Promise.allSettled([
@@ -369,7 +369,7 @@ export default function CompanyOwnerDashboard() {
                 <div><label className="block text-sm text-slate-300 mb-1">iPhone</label><input type="number" min={0} value={addForm.cableIPhone} onChange={(e) => setAddForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div><label className="block text-sm text-slate-300 mb-1">USB</label><input type="number" min={0} value={addForm.cableUniversal} onChange={(e) => setAddForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div><label className="block text-sm text-slate-300 mb-1">Outlets</label><input type="number" min={0} value={addForm.outlets} onChange={(e) => setAddForm((p) => ({ ...p, outlets: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Contact Number</label><input type="tel" value={(addForm as any).contactNumber || ""} onChange={(e) => setAddForm((p) => ({ ...p, contactNumber: e.target.value } as any))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="09XXXXXXXXX" /></div>
+                <div><label className="block text-sm text-slate-300 mb-1">Facebook Name</label><input type="text" value={(addForm as any).fbName || ""} onChange={(e) => setAddForm((p) => ({ ...p, fbName: e.target.value } as any))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="Facebook profile name" /></div>
                 <div className="md:col-span-2 flex gap-3">
                   <button onClick={addStation} disabled={!addForm.name || !addForm.address} className="flex-1 py-3 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg disabled:opacity-50">Add Station</button>
                   <button onClick={() => setShowAdd(false)} className="px-6 py-3 text-sm text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
