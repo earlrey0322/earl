@@ -71,7 +71,7 @@ export function RealMap({
                 <svg className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                 <div>
                   <p className="text-sm text-white font-medium">{s.address}</p>
-                  <p className="text-[10px] text-slate-500 mt-1">{s.latitude.toFixed(4)}, {s.longitude.toFixed(4)}</p>
+                  <p className="text-[10px] text-slate-500 mt-1">{(s.latitude ?? 0).toFixed(4)}, {(s.longitude ?? 0).toFixed(4)}</p>
                 </div>
               </div>
             </div>
