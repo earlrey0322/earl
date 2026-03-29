@@ -72,7 +72,7 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 ### GCash Payment
 - Number: 09469086926
 - Name: Earl Christian Rey
-- Amount: ₱50/month
+- Pricing: 1 Day ₱20 | 1 Week ₱50 | 1 Month ₱100 | 3 Months ₱170 | 6 Months ₱220 | 1 Year ₱300
 
 ### Account Verification
 - Company Owner: Must answer "SUSTAINABILITY"
@@ -111,5 +111,9 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Replaced SQLite with pure JSON file storage for serverless compatibility |
 | 2026-03-29 | Added Supabase cloud database integration (ocrddgvdjogploplbblw) with hardcoded credentials for Cloudflare deployment |
 | 2026-03-29 | Company owner auto-gets lifetime premium on signup, admin API for premium toggle |
-| 2026-03-29 | Subscription request system - users request plans (1 day, 1 week, 1 month, 1 year), company owner approves/rejects |
+| 2026-03-29 | Subscription request system - users request plans, company owner approves/rejects |
 | 2026-03-29 | Added subscription_expiry and subscription_requests tables to Supabase schema |
+| 2026-03-29 | Removed SubscriptionCard from company owner dashboard (auto lifetime premium) |
+| 2026-03-29 | Subscription pricing: 1 Day ₱20, 1 Week ₱50, 1 Month ₱100, 3 Months ₱170, 6 Months ₱220, 1 Year ₱300 |
+| 2026-03-29 | Added contact number field to company owner add station form |
+| 2026-03-29 | Updated /api/users to read from Supabase (was using old globalThis._u) |

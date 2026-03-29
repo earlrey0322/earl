@@ -4,10 +4,12 @@ import { useState } from "react";
 import { apiFetch } from "@/lib/api-fetch";
 
 const PLANS = [
-  { id: "1day", label: "1 Day", days: 1, price: 15 },
-  { id: "1week", label: "1 Week", days: 7, price: 50 },
-  { id: "1month", label: "1 Month", days: 30, price: 120 },
-  { id: "1year", label: "1 Year", days: 365, price: 300 },
+  { id: "1_day", label: "1 Day", days: 1, price: 20 },
+  { id: "1_week", label: "1 Week", days: 7, price: 50 },
+  { id: "1_month", label: "1 Month", days: 30, price: 100 },
+  { id: "3_months", label: "3 Months", days: 90, price: 170 },
+  { id: "6_months", label: "6 Months", days: 180, price: 220 },
+  { id: "1_year", label: "1 Year", days: 365, price: 300 },
 ];
 
 function playClick() {

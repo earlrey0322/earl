@@ -35,8 +35,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { plan } = body; // "1_day", "1_week", "1_month", "1_year"
 
-    if (!plan || !["1_day", "1_week", "1_month", "1_year"].includes(plan)) {
-      return NextResponse.json({ error: "Invalid plan. Choose: 1_day, 1_week, 1_month, 1_year" });
+    if (!plan || !["1_day", "1_week", "1_month", "3_months", "6_months", "1_year"].includes(plan)) {
+      return NextResponse.json({ error: "Invalid plan. Choose: 1_day, 1_week, 1_month, 3_months, 6_months, 1_year" });
     }
 
     const supabase = getSupabase();
@@ -106,6 +106,8 @@ export async function PATCH(req: Request) {
       if (request.plan === "1_day") daysToAdd = 1;
       else if (request.plan === "1_week") daysToAdd = 7;
       else if (request.plan === "1_month") daysToAdd = 30;
+      else if (request.plan === "3_months") daysToAdd = 90;
+      else if (request.plan === "6_months") daysToAdd = 180;
       else if (request.plan === "1_year") daysToAdd = 365;
 
       const expiry = new Date();

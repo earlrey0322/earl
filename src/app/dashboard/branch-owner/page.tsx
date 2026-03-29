@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
-import { SubscriptionCard } from "@/components/SubscriptionCard";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface Station {
@@ -24,9 +23,11 @@ interface SubscriptionRequest { id: number; plan: string; status: string; create
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; contactNumber: string | null; }
 
 const PLANS = [
-  { id: "1_day", label: "1 Day", days: 1, price: 15 },
+  { id: "1_day", label: "1 Day", days: 1, price: 20 },
   { id: "1_week", label: "1 Week", days: 7, price: 50 },
-  { id: "1_month", label: "1 Month", days: 30, price: 120 },
+  { id: "1_month", label: "1 Month", days: 30, price: 100 },
+  { id: "3_months", label: "3 Months", days: 90, price: 170 },
+  { id: "6_months", label: "6 Months", days: 180, price: 220 },
   { id: "1_year", label: "1 Year", days: 365, price: 300 },
 ];
 
@@ -376,12 +377,15 @@ export default function BranchOwnerDashboard() {
         <section id="subscription">
           <h3 className="text-lg font-bold text-white mb-4">Subscription</h3>
           <div className="space-y-6">
-            <SubscriptionCard role="branch_owner" isSubscribed={userData?.isSubscribed || false} onSubscribe={handleRefresh} />
-
-            {!userData?.isSubscribed && (
+            {!userData?.isSubscribed ? (
               <div className="glass-card rounded-2xl p-6">
-                <h4 className="font-bold text-white mb-4">Request Subscription</h4>
-                <p className="text-sm text-slate-400 mb-4">Select a plan and request approval from company owner.</p>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="font-bold text-white">Request Premium Access</h4>
+                    <p className="text-sm text-slate-400">Select a plan and send request to company owner</p>
+                  </div>
+                  <span className="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-full">Free Plan</span>
+                </div>
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {PLANS.map((plan) => (
                     <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
@@ -398,6 +402,16 @@ export default function BranchOwnerDashboard() {
                   </button>
                 )}
               </div>
+            ) : (
+              <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/20 to-orange-500/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-white">Premium Active</h4>
+                    <p className="text-sm text-slate-400">You have full access to all features</p>
+                  </div>
+                  <div className="px-3 py-1 bg-amber-400 text-[#0f172a] text-xs font-bold rounded-full">★ PREMIUM</div>
+                </div>
+              </div>
             )}
 
             {subRequests.length > 0 && (
@@ -407,7 +421,7 @@ export default function BranchOwnerDashboard() {
                   {subRequests.map((req) => (
                     <div key={req.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
                       <div>
-                        <p className="text-sm font-medium text-white">{req.plan.replace("_", " ")}</p>
+                        <p className="text-sm font-medium text-white">{req.plan.replace(/_/g, " ")}</p>
                         <p className="text-xs text-slate-400">{new Date(req.created_at).toLocaleDateString()}</p>
                       </div>
                       <span className={`text-xs px-2 py-1 rounded-full ${req.status === "approved" ? "bg-green-400/10 text-green-400" : req.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
