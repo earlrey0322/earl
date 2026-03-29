@@ -100,10 +100,12 @@ export default function CompanyOwnerDashboard() {
     } catch (err) { alert("Error: " + String(err)); }
   }
 
-  async function removeSub(userId: number) {
+  async function togglePremium(userId: number, makePremium: boolean) {
     playClick();
-    await apiFetch("/api/subscription", { method: "DELETE", body: JSON.stringify({ targetUserId: userId }) });
-    if (usersData) setUsersData({ ...usersData, users: usersData.users.map((u) => u.id === userId ? { ...u, isSubscribed: false } : u) });
+    try {
+      await apiFetch("/api/admin/users", { method: "PATCH", body: JSON.stringify({ userId, isPremium: makePremium }) });
+      if (usersData) setUsersData({ ...usersData, users: usersData.users.map((u) => u.id === userId ? { ...u, isSubscribed: makePremium, subscriptionPlan: makePremium ? "lifetime" : null } : u) });
+    } catch (err) { alert("Error: " + String(err)); }
   }
 
   function useLocation() {
@@ -173,7 +175,7 @@ export default function CompanyOwnerDashboard() {
             <h4 className="font-bold text-white mb-4">Branch Owners ({branchOwners.length})</h4>
             {branchOwners.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {branchOwners.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? u.subscriptionPlan || "Premium" : "Free"}</span></td><td className="py-3">{u.isSubscribed && <button onClick={() => removeSub(u.id)} className="text-xs text-red-400 hover:underline">Remove</button>}</td></tr>))}
+                {branchOwners.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Lifetime" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>{u.isSubscribed ? "Remove Premium" : "Make Premium"}</button></td></tr>))}
               </tbody></table></div>
             )}
           </div>
@@ -181,7 +183,7 @@ export default function CompanyOwnerDashboard() {
             <h4 className="font-bold text-white mb-4">Customers ({customers.length})</h4>
             {customers.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {customers.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? u.subscriptionPlan || "Premium" : "Free"}</span></td><td className="py-3">{u.isSubscribed && <button onClick={() => removeSub(u.id)} className="text-xs text-red-400 hover:underline">Remove</button>}</td></tr>))}
+                {customers.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Lifetime" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>{u.isSubscribed ? "Remove Premium" : "Make Premium"}</button></td></tr>))}
               </tbody></table></div>
             )}
           </div>

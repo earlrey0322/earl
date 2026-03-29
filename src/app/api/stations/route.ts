@@ -2,11 +2,16 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
-function toStation(s: any) {
+function toStation(s: any, isPremium: boolean) {
   return {
     id: s.id, name: s.name, companyName: s.company_name, brand: s.brand || "PSPCS",
-    ownerId: s.owner_id, ownerName: s.owner_name, latitude: s.latitude, longitude: s.longitude,
-    address: s.address, location: s.location || "", contactNumber: null,
+    ownerId: s.owner_id, ownerName: s.owner_name,
+    // Hide exact location for non-premium users
+    latitude: isPremium ? s.latitude : 0,
+    longitude: isPremium ? s.longitude : 0,
+    address: s.address,
+    location: isPremium ? (s.location || "") : "",
+    contactNumber: null,
     isActive: !!s.is_active, solarWatts: s.solar_watts || 50, batteryLevel: s.battery_level,
     totalVisits: s.total_visits || 0, revenue: s.revenue || 0,
     cableTypeC: s.cable_type_c, cableIPhone: s.cable_iphone, cableUniversal: s.cable_universal, outlets: s.outlets,
@@ -19,6 +24,13 @@ export async function GET() {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
+    // Check if user is premium
+    let isPremium = false;
+    if (auth) {
+      const { data: user } = await supabase.from("users").select("is_subscribed").eq("id", auth.id).single();
+      isPremium = !!user?.is_subscribed;
+    }
+
     let query = supabase.from("charging_stations").select("*").order("id");
     if (!auth || auth.role !== "company_owner") {
       query = query.eq("company_name", "KLEOXM 111");
@@ -26,7 +38,7 @@ export async function GET() {
 
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message });
-    return NextResponse.json({ stations: (data || []).map(toStation) });
+    return NextResponse.json({ stations: (data || []).map((s: any) => toStation(s, isPremium)) });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
   }
@@ -69,7 +81,7 @@ export async function POST(req: Request) {
     }).select().single();
 
     if (error) return NextResponse.json({ error: error.message });
-    return NextResponse.json({ success: true, station: toStation(data) });
+    return NextResponse.json({ success: true, station: toStation(data, true) });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
   }
