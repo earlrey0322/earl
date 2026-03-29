@@ -6,6 +6,15 @@ import { StationMap } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { apiFetch } from "@/lib/api-fetch";
 
+const PLAN_PRICES: Record<string, number> = {
+  "1_day": 20,
+  "1_week": 60,
+  "1_month": 100,
+  "3_months": 170,
+  "6_months": 220,
+  "1_year": 300,
+};
+
 interface Station {
   id: number; name: string; companyName: string; brand: string; ownerId: number | null;
   latitude: number; longitude: number; address: string; isActive: boolean;
@@ -161,6 +170,10 @@ export default function CompanyOwnerDashboard() {
   const customers = usersData?.users?.filter((u) => u.role === "customer") || [];
   const totalRevenue = history.reduce((s, h) => s + h.costPesos, 0);
   const totalVisits = stations.reduce((s, st) => s + (st.totalVisits || 0), 0);
+  // Calculate subscription revenue from approved requests
+  const subscriptionRevenue = subRequests
+    .filter((r) => r.status === "approved")
+    .reduce((s, r) => s + (PLAN_PRICES[r.plan] || 0), 0);
 
   return (
     <DashboardShell title="Company Owner Dashboard">
@@ -445,16 +458,16 @@ export default function CompanyOwnerDashboard() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-green-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0)}</div><div className="text-xs text-slate-400">Station Revenue</div></div>
                   <div className="bg-amber-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-amber-400">₱{history.reduce((s, h) => s + h.costPesos, 0)}</div><div className="text-xs text-slate-400">Charging Revenue</div></div>
-                  <div className="bg-blue-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-blue-400">{history.length}</div><div className="text-xs text-slate-400">Total Sessions</div></div>
-                  <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">{totalVisits}</div><div className="text-xs text-slate-400">Total Visits</div></div>
+                  <div className="bg-blue-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-blue-400">₱{subscriptionRevenue}</div><div className="text-xs text-slate-400">Subscription Revenue</div></div>
+                  <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">{subRequests.filter((r) => r.status === "approved").length}</div><div className="text-xs text-slate-400">Approved Subscriptions</div></div>
                 </div>
                 <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-sm font-bold text-green-400">Total Revenue</p>
-                      <p className="text-xs text-slate-400">Station + Charging combined</p>
+                      <p className="text-xs text-slate-400">Station + Charging + Subscriptions</p>
                     </div>
-                    <p className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0) + history.reduce((s, h) => s + h.costPesos, 0)}</p>
+                    <p className="text-2xl font-bold text-green-400">₱{stations.reduce((s, st) => s + (st.revenue || 0), 0) + history.reduce((s, h) => s + h.costPesos, 0) + subscriptionRevenue}</p>
                   </div>
                 </div>
               </div>
@@ -492,7 +505,7 @@ export default function CompanyOwnerDashboard() {
                 <h5 className="text-xs font-bold text-slate-500 uppercase mb-2">Pricing</h5>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between"><span className="text-slate-400">1 Day</span><span className="text-amber-400 font-bold">₱20</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">1 Week</span><span className="text-amber-400 font-bold">₱50</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">1 Week</span><span className="text-amber-400 font-bold">₱60</span></div>
                   <div className="flex justify-between"><span className="text-slate-400">1 Month</span><span className="text-amber-400 font-bold">₱100</span></div>
                   <div className="flex justify-between"><span className="text-slate-400">3 Months</span><span className="text-amber-400 font-bold">₱170</span></div>
                   <div className="flex justify-between"><span className="text-slate-400">6 Months</span><span className="text-amber-400 font-bold">₱220</span></div>
@@ -541,6 +554,55 @@ export default function CompanyOwnerDashboard() {
               ))}
             </div>
           )}
+        </section>
+
+        {/* Active Subscription Timers */}
+        <section id="subscription-timers" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Active Subscription Timers</h3>
+          {(() => {
+            const activeSubscribers = [...branchOwners, ...customers].filter((u) => u.isSubscribed);
+            if (activeSubscribers.length === 0) {
+              return <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No active subscriptions.</div>;
+            }
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeSubscribers.map((u) => {
+                  // Calculate time remaining
+                  const getExpiryTime = () => {
+                    if (!(u as any).subscriptionExpiry) return "Lifetime";
+                    const expiry = new Date((u as any).subscriptionExpiry).getTime();
+                    const now = Date.now();
+                    const diff = expiry - now;
+                    if (diff <= 0) return "Expired";
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+                    if (hours > 0) return `${hours}h ${minutes}m`;
+                    return `${minutes}m`;
+                  };
+                  return (
+                    <div key={u.id} className="glass-card rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <p className="text-sm font-bold text-white">{u.fullName}</p>
+                          <p className="text-xs text-slate-400">{u.email}</p>
+                        </div>
+                        <span className="text-[10px] px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full">{u.role === "branch_owner" ? "BO" : "C"}</span>
+                      </div>
+                      <div className="p-3 bg-slate-900/50 rounded-lg">
+                        <p className="text-xs text-slate-400 mb-1">Time Remaining</p>
+                        <p className="text-xl font-bold text-amber-400">{getExpiryTime()}</p>
+                        {(u as any).subscriptionExpiry && (
+                          <p className="text-[10px] text-slate-500 mt-1">Expires: {new Date((u as any).subscriptionExpiry).toLocaleDateString()}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </section>
       </div>
     </DashboardShell>

@@ -12,7 +12,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from("users")
-      .select("id, email, full_name, role, contact_number, is_subscribed, subscription_plan")
+      .select("id, email, full_name, role, contact_number, is_subscribed, subscription_plan, subscription_expiry")
       .neq("role", "company_owner")
       .order("created_at", { ascending: false });
 
@@ -26,6 +26,7 @@ export async function GET() {
       contactNumber: u.contact_number,
       isSubscribed: u.is_subscribed,
       subscriptionPlan: u.subscription_plan,
+      subscriptionExpiry: u.subscription_expiry,
     }));
 
     const bo = users.filter((u) => u.role === "branch_owner");

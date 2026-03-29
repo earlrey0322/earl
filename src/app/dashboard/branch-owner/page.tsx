@@ -24,7 +24,7 @@ interface UserData { id: number; email: string; fullName: string; role: string; 
 
 const PLANS = [
   { id: "1_day", label: "1 Day", days: 1, price: 20 },
-  { id: "1_week", label: "1 Week", days: 7, price: 50 },
+  { id: "1_week", label: "1 Week", days: 7, price: 60 },
   { id: "1_month", label: "1 Month", days: 30, price: 100 },
   { id: "3_months", label: "3 Months", days: 90, price: 170 },
   { id: "6_months", label: "6 Months", days: 180, price: 220 },

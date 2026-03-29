@@ -2,16 +2,17 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
-function toStation(s: any, isPremium: boolean) {
+function toStation(s: any, isPremium: boolean, isOwner: boolean) {
+  const canSeeLocation = isPremium || isOwner || s.company_name !== "KLEOXM 111";
   return {
     id: s.id, name: s.name, companyName: s.company_name, brand: s.brand || "PSPCS",
     ownerId: s.owner_id, ownerName: s.owner_name,
-    // Hide exact location for non-premium users
-    latitude: isPremium ? s.latitude : 0,
-    longitude: isPremium ? s.longitude : 0,
+    // Show exact location for premium users, owners, or non-KLEOXM stations
+    latitude: canSeeLocation ? s.latitude : 0,
+    longitude: canSeeLocation ? s.longitude : 0,
     address: s.address,
-    location: isPremium ? (s.location || "") : "",
-    contactNumber: null,
+    location: canSeeLocation ? (s.location || "") : "",
+    contactNumber: s.contact_number || null,
     isActive: !!s.is_active, solarWatts: s.solar_watts || 50, batteryLevel: s.battery_level,
     totalVisits: s.total_visits || 0, revenue: s.revenue || 0,
     cableTypeC: s.cable_type_c, cableIPhone: s.cable_iphone, cableUniversal: s.cable_universal, outlets: s.outlets,
@@ -32,13 +33,16 @@ export async function GET() {
     }
 
     let query = supabase.from("charging_stations").select("*").order("id");
+    // Company owner sees all, others see KLEOXM 111 only
     if (!auth || auth.role !== "company_owner") {
       query = query.eq("company_name", "KLEOXM 111");
     }
 
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message });
-    return NextResponse.json({ stations: (data || []).map((s: any) => toStation(s, isPremium)) });
+    return NextResponse.json({
+      stations: (data || []).map((s: any) => toStation(s, isPremium, auth?.id === s.owner_id))
+    });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
   }
@@ -81,7 +85,7 @@ export async function POST(req: Request) {
     }).select().single();
 
     if (error) return NextResponse.json({ error: error.message });
-    return NextResponse.json({ success: true, station: toStation(data, true) });
+    return NextResponse.json({ success: true, station: toStation(data, true, true) });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
   }
