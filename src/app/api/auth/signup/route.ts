@@ -28,7 +28,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email already registered" });
     }
 
-    // Create user with numeric ID
+    // Company owners get lifetime premium automatically
+    const isPremium = role === "company_owner";
     const userId = Date.now();
     const { error: insertError } = await supabase.from("users").insert({
       id: userId,
@@ -39,7 +40,8 @@ export async function POST(req: Request) {
       phone_brand: phoneBrand || null,
       contact_number: contactNumber || null,
       address: address || null,
-      is_subscribed: false,
+      is_subscribed: isPremium,
+      subscription_plan: isPremium ? "lifetime" : null,
     });
 
     if (insertError) {
@@ -50,14 +52,14 @@ export async function POST(req: Request) {
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `New ${role} - ${fullName}`,
-      message: `${fullName} (${email}) signed up as ${role}`,
+      message: `${fullName} (${email}) signed up as ${role}${isPremium ? " (LIFETIME PREMIUM)" : ""}`,
       type: "signup",
     });
 
     const token = Buffer.from(JSON.stringify({ id: userId, email: email.trim(), role })).toString("base64");
     const res = NextResponse.json({
       success: true,
-      user: { id: userId, email: email.trim(), fullName: fullName.trim(), role, isSubscribed: false },
+      user: { id: userId, email: email.trim(), fullName: fullName.trim(), role, isSubscribed: isPremium },
     });
     res.cookies.set("token", token, { httpOnly: false, secure: false, sameSite: "lax", maxAge: 604800, path: "/" });
     return res;
