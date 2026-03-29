@@ -5,8 +5,14 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { RealMap } from "@/components/RealMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
-import { PLANS } from "@/lib/store";
 import { apiFetch } from "@/lib/api-fetch";
+
+const PLANS = [
+  { id: "1day", label: "1 Day", days: 1, price: 15 },
+  { id: "1week", label: "1 Week", days: 7, price: 50 },
+  { id: "1month", label: "1 Month", days: 30, price: 120 },
+  { id: "1year", label: "1 Year", days: 365, price: 300 },
+];
 
 interface Station {
   id: number; name: string; companyName: string; brand: string; ownerId: number | null;

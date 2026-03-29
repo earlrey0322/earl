@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { PLANS } from "@/lib/store";
 import { apiFetch } from "@/lib/api-fetch";
+
+const PLANS = [
+  { id: "1day", label: "1 Day", days: 1, price: 15 },
+  { id: "1week", label: "1 Week", days: 7, price: 50 },
+  { id: "1month", label: "1 Month", days: 30, price: 120 },
+  { id: "1year", label: "1 Year", days: 365, price: 300 },
+];
 
 function playClick() {
   try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 800; o.type = "sine"; g.gain.setValueAtTime(0.1, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15); o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.15); } catch {}
