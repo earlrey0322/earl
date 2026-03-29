@@ -45,8 +45,8 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 | `src/lib/charging.ts` | Charging calculation logic |
 | `src/lib/sample-data.ts` | Sample station data for Metro Manila |
 | `src/components/DashboardShell.tsx` | Shared dashboard layout |
-| `src/components/StationMap.tsx` | Station map wrapper with filters |
-| `src/components/LeafletMap.tsx` | Leaflet/OpenStreetMap renderer |
+| `src/components/StationMap.tsx` | Station map with Google Maps iframe & location cards |
+| `src/components/LeafletMap.tsx` | (removed) Leaflet map - replaced with Google Maps |
 | `src/components/ChargingCalculator.tsx` | Battery-to-cost calculator |
 | `src/components/SubscriptionCard.tsx` | GCash subscription component |
 
@@ -90,3 +90,4 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Replaced CSS map with interactive Leaflet/OpenStreetMap, color-coded markers (blue=KLEOXM, yellow=premium, green border=active, red border=inactive) |
 | 2026-03-29 | Fixed deployment crash - skip db:migrate when DB_URL/DB_TOKEN not set |
 | 2026-03-29 | Rewrote map with direct Leaflet API + next/dynamic for reliable rendering |
+| 2026-03-29 | Replaced Leaflet with Google Maps embedded iframe, added location field to stations |
