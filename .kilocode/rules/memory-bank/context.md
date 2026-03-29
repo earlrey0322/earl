@@ -12,6 +12,7 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Role-based authentication (Customer, Branch Owner, Company Owner)
 - [x] Worklife verification for account creation (SUSTAINABILITY/ENVIRONMENT)
 - [x] Charging station map with active/inactive markers
+- [x] Interactive Leaflet/OpenStreetMap with color-coded markers
 - [x] Charging session calculator (battery % to cost, 1 peso = 5 min)
 - [x] GCash subscription system (₱50/month to 09469086926 - Earl Christian Rey)
 - [x] Email notification to earlrey0322@gmail.com on new signups
@@ -85,3 +86,4 @@ The app is complete and ready for use. All features are implemented:
 |------|---------|
 | Initial | Template created with base setup |
 | Session 1 | Complete PSPCS app built with all features |
+| 2026-03-29 | Replaced CSS map with interactive Leaflet/OpenStreetMap, color-coded markers (blue=KLEOXM, yellow=premium, green border=active, red border=inactive) |
