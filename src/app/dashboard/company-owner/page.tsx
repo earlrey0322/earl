@@ -29,6 +29,8 @@ interface HistoryItem {
 
 interface Notification { id: number; subject: string; message: string; type: string; isRead: boolean; }
 
+interface SubscriptionRequest { id: number; user_id: number; user_email: string; user_name: string; user_role: string; plan: string; status: string; created_at: string; }
+
 interface CompanyUser { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionPlan: string | null; }
 
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; }
@@ -43,6 +45,7 @@ export default function CompanyOwnerDashboard() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [usersData, setUsersData] = useState<{ totalUsers: number; totalBranchOwners: number; totalCustomers: number; subscribedBranchOwners: number; subscribedCustomers: number; users: CompanyUser[] } | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
@@ -54,12 +57,14 @@ export default function CompanyOwnerDashboard() {
       apiFetch("/api/sessions").then((r) => r.json()),
       apiFetch("/api/users").then((r) => r.json()),
       apiFetch("/api/notifications").then((r) => r.json()),
-    ]).then(([meR, stR, hiR, usR, noR]) => {
+      apiFetch("/api/subscription-requests").then((r) => r.json()),
+    ]).then(([meR, stR, hiR, usR, noR, srR]) => {
       if (meR.status === "fulfilled" && meR.value.user) setUserData(meR.value.user);
       if (stR.status === "fulfilled" && stR.value.stations) setStations(stR.value.stations);
       if (hiR.status === "fulfilled" && hiR.value.history) setHistory(hiR.value.history);
       if (usR.status === "fulfilled" && usR.value.totalUsers !== undefined) setUsersData(usR.value);
       if (noR.status === "fulfilled" && noR.value.notifications) setNotifications(noR.value.notifications);
+      if (srR.status === "fulfilled" && srR.value.requests) setSubRequests(srR.value.requests);
     }).catch(() => {});
   }, []);
 
@@ -106,6 +111,19 @@ export default function CompanyOwnerDashboard() {
       await apiFetch("/api/admin/users", { method: "PATCH", body: JSON.stringify({ userId, isPremium: makePremium }) });
       if (usersData) setUsersData({ ...usersData, users: usersData.users.map((u) => u.id === userId ? { ...u, isSubscribed: makePremium, subscriptionPlan: makePremium ? "lifetime" : null } : u) });
     } catch (err) { alert("Error: " + String(err)); }
+  }
+
+  async function handleSubscriptionRequest(requestId: number, approve: boolean) {
+    playClick();
+    try {
+      const res = await apiFetch("/api/subscription-requests", { method: "PATCH", body: JSON.stringify({ requestId, approve }) });
+      if (res.ok) {
+        setSubRequests((prev) => prev.map((r) => r.id === requestId ? { ...r, status: approve ? "approved" : "rejected" } : r));
+        alert(`Request ${approve ? "approved" : "rejected"}!`);
+      } else {
+        alert("Failed to update request");
+      }
+    } catch { alert("Error updating request"); }
   }
 
   function useLocation() {
@@ -187,6 +205,46 @@ export default function CompanyOwnerDashboard() {
               </tbody></table></div>
             )}
           </div>
+        </section>
+
+        {/* Subscription Requests */}
+        <section id="subscription-requests" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Subscription Requests</h3>
+          {subRequests.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No subscription requests yet.</div>
+          ) : (
+            <div className="space-y-3">
+              {subRequests.map((req) => (
+                <div key={req.id} className="glass-card rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{req.user_name}</p>
+                      <p className="text-xs text-slate-400">{req.user_email} ({req.user_role})</p>
+                      <p className="text-xs text-amber-400 mt-1">Plan: {req.plan.replace("_", " ")}</p>
+                      <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${req.status === "approved" ? "bg-green-400/10 text-green-400" : req.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
+                        {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                      </span>
+                      {req.status === "pending" && (
+                        <div className="flex gap-2 mt-1">
+                          <button onClick={() => handleSubscriptionRequest(req.id, true)}
+                            className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                            Approve
+                          </button>
+                          <button onClick={() => handleSubscriptionRequest(req.id, false)}
+                            className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Stations */}

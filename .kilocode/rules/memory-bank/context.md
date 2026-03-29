@@ -12,7 +12,7 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Role-based authentication (Customer, Branch Owner, Company Owner)
 - [x] Worklife verification for account creation (SUSTAINABILITY/ENVIRONMENT)
 - [x] Charging station map with active/inactive markers
-- [x] Interactive Leaflet/OpenStreetMap with color-coded markers
+- [x] Interactive Leaflet/OpenStreetMap with color-coded markers (blue=KLEOXM, yellow=premium, green border=active, red border=inactive)
 - [x] Charging session calculator (battery % to cost, 1 peso = 5 min)
 - [x] GCash subscription system (₱50/month to 09469086926 - Earl Christian Rey)
 - [x] Email notification to earlrey0322@gmail.com on new signups
@@ -21,6 +21,14 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] JWT-based authentication
 - [x] Beautiful dark theme UI with Tailwind CSS 4
 - [x] Responsive design (mobile + desktop)
+- [x] Company owner auto-gets lifetime premium on signup
+- [x] Admin API for premium management (/api/admin/users)
+- [x] Non-premium users see limited location data (no exact coordinates)
+- [x] Subscription requests API (/api/subscription-requests) - POST creates, PATCH approves/rejects
+- [x] Customer dashboard subscription request UI with plan selector (1 day, 1 week, 1 month, 1 year)
+- [x] Branch-owner dashboard subscription request UI with plan selector
+- [x] Company owner dashboard subscription requests timeline with approve/reject buttons
+- [x] Added subscription_expiry and subscription_requests table to Supabase schema
 
 ## Current Structure
 
@@ -76,10 +84,12 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 The app is complete and ready for use. All features are implemented:
 1. Landing page with product info
 2. 3-role authentication with worklife verification
-3. Interactive station map
+3. Interactive station map with Google Maps
 4. Charging calculator
-5. GCash subscription system
-6. Company owner management dashboard
+5. GCash subscription system with GCash payment details
+6. Company owner management dashboard with user/subscription management
+7. Subscription request system - users can request plans, company owner approves/rejects
+8. Premium access control - non-premium users see limited location data
 
 ## Session History
 
@@ -99,3 +109,7 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Added email verification via Supabase Auth with resend confirmation option |
 | 2026-03-29 | Switched to SQLite database (better-sqlite3) for simple permanent storage |
 | 2026-03-29 | Replaced SQLite with pure JSON file storage for serverless compatibility |
+| 2026-03-29 | Added Supabase cloud database integration (ocrddgvdjogploplbblw) with hardcoded credentials for Cloudflare deployment |
+| 2026-03-29 | Company owner auto-gets lifetime premium on signup, admin API for premium toggle |
+| 2026-03-29 | Subscription request system - users request plans (1 day, 1 week, 1 month, 1 year), company owner approves/rejects |
+| 2026-03-29 | Added subscription_expiry and subscription_requests tables to Supabase schema |
