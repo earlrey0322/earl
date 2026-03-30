@@ -57,7 +57,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   function goHome() {
     playClick();
     setSidebarOpen(false);
-    window.location.assign(`/dashboard/${user?.role || "customer"}`);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   if (loading) {
