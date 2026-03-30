@@ -205,7 +205,7 @@ export default function BranchOwnerDashboard() {
   }
 
   const myStations = stations.filter((s) => Number(s.ownerId) === Number(userData?.id));
-  const activeStations = myStations.filter((s) => s.isActive);
+  const allActiveStations = stations.filter((s) => s.isActive);
   const totalViews = myStations.reduce((sum, s) => sum + (s.views || 0), 0);
   const totalViewRevenue = myStations.reduce((sum, s) => sum + (s.viewRevenue || 0), 0);
   const canRedeem = totalViewRevenue >= 100;
@@ -219,10 +219,10 @@ export default function BranchOwnerDashboard() {
           <h2 className="text-2xl font-bold text-white">Welcome, {userData?.fullName || "Station Owner"}!</h2>
           <p className="text-slate-400 mt-1">Manage your PSPCS stations.</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{myStations.length}</div><div className="text-xs text-slate-400">My Stations</div></div>
-            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{activeStations.length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
-            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalViews}</div><div className="text-xs text-slate-400">Total Views</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">{totalViewRevenue.toFixed(1)}</div><div className="text-xs text-slate-400">Points</div></div>
+            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{stations.length}</div><div className="text-xs text-slate-400">All Stations</div></div>
+            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{allActiveStations.length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
+            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalViews}</div><div className="text-xs text-slate-400">My Views</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">{totalViewRevenue.toFixed(1)}</div><div className="text-xs text-slate-400">My Points</div></div>
           </div>
         </div>
 
