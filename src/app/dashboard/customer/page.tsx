@@ -34,6 +34,16 @@ export default function CustomerDashboard() {
   const [requesting, setRequesting] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
+  // Handle station selection and track view
+  async function handleSelectStation(station: Station) {
+    setSelectedStation(station);
+    try {
+      await apiFetch("/api/stations/view", { method: "POST", body: JSON.stringify({ stationId: station.id }) });
+    } catch (err) {
+      console.error("View tracking error:", err);
+    }
+  }
+
   useEffect(() => {
     Promise.allSettled([
       apiFetch("/api/auth/me").then((r) => r.json()),
@@ -134,7 +144,7 @@ export default function CustomerDashboard() {
 
         <section id="stations">
           <h3 className="text-lg font-bold text-white mb-4">Charging Stations</h3>
-          <StationMap stations={stations} onSelect={setSelectedStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+          <StationMap stations={stations} onSelect={handleSelectStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
         </section>
 
         <section id="sessions">

@@ -20,6 +20,23 @@ export default function BranchOwnerDashboard() {
   const [stations, setStations] = useState<Station[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+
+  // Handle station selection and track view
+  async function handleSelectStation(station: Station) {
+    setSelectedStation(station);
+    try {
+      const res = await apiFetch("/api/stations/view", { method: "POST", body: JSON.stringify({ stationId: station.id }) });
+      const data = await res.json();
+      if (data.views !== undefined) {
+        // Update the stations array with new view count
+        setStations(prev => prev.map(s => s.id === station.id ? { ...s, views: data.views, viewRevenue: data.points } : s));
+        // Update selected station too
+        setSelectedStation(prev => prev && prev.id === station.id ? { ...prev, views: data.views, viewRevenue: data.points } : prev);
+      }
+    } catch (err) {
+      console.error("View tracking error:", err);
+    }
+  }
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [monthlyReferenceNumber, setMonthlyReferenceNumber] = useState("");
@@ -408,7 +425,7 @@ export default function BranchOwnerDashboard() {
 
         <section id="stations">
           <h3 className="text-lg font-bold text-white mb-4">All PSPCS Stations</h3>
-          <StationMap stations={stations} onSelect={setSelectedStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+          <StationMap stations={stations} onSelect={handleSelectStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
         </section>
 
         {/* Charging Calculator */}

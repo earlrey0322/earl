@@ -59,8 +59,6 @@ export function StationMap({
     setSelected(s);
     setLockedStation(null);
     onSelect?.(s);
-    // Track station view - 0.1 points per view
-    apiFetch("/api/stations/view", { method: "POST", body: JSON.stringify({ stationId: s.id }) }).catch(() => {});
   };
 
   const getCompanyColor = (companyName: string) => {
@@ -285,15 +283,9 @@ export function StationMap({
                   {selected.outlets > 0 && <span className="text-xs px-2 py-1 bg-amber-500/10 text-amber-400 rounded-lg">Outlets: {selected.outlets}</span>}
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-green-400">{selected.batteryLevel || 0}%</div>
-                  <div className="text-[10px] text-slate-500">Battery</div>
-                </div>
-                <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-                  <div className="text-lg font-bold text-blue-400">{selected.totalVisits}</div>
-                  <div className="text-[10px] text-slate-500">Visits</div>
-                </div>
+              <div className="bg-slate-800/50 rounded-lg p-3 text-center mt-2">
+                <div className="text-lg font-bold text-blue-400">{selected.totalVisits || selected.views || 0}</div>
+                <div className="text-[10px] text-slate-500">Total Views</div>
               </div>
             </div>
           </div>
