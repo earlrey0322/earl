@@ -244,7 +244,6 @@ export default function Home() {
               { label: "Converter", value: "Transformer to 12VAC" },
               { label: "Rectifier", value: "12VAC to DC Conversion" },
               { label: "Final Output", value: "3.6VDC Rotary — All Types" },
-              { label: "Rate", value: "1 Peso = 5 Minutes" },
               { label: "Brand", value: "KLEOXM 111 PSPCS" },
             ].map((spec, i) => (
               <div key={i} className="flex justify-between items-center py-2 border-b border-slate-700/50">

@@ -53,7 +53,7 @@ export function ChargingCalculator({
           </div>
           <div>
             <h3 className="font-bold text-white">Charging Calculator</h3>
-            <p className="text-xs text-slate-400">Calculate cost (1 peso = 5 minutes)</p>
+            <p className="text-xs text-slate-400">Calculate estimated charging time and cost</p>
           </div>
         </div>
 

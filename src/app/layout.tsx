@@ -10,7 +10,7 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "PSPCS - Powered Solar Piso Charging Station | KLEOXM 111",
   description:
-    "KLEOXM 111's Powered Solar Piso Charging Station (PSPCS) - Solar-powered charging for all devices. 1 peso = 5 minutes. Find active stations, calculate charging costs, and subscribe for premium features.",
+    "KLEOXM 111's Powered Solar Piso Charging Station (PSPCS) - Solar-powered charging for all devices. Find active stations, calculate charging costs, and subscribe for premium features.",
   keywords: "solar charging, piso charging, KLEOXM 111, PSPCS, solar panel, charging station",
 };
 
