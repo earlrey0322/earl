@@ -11,7 +11,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email is required" });
     }
 
-    // Validate email format
     if (!email.includes("@") || !email.includes(".")) {
       return NextResponse.json({ error: "Invalid email format" });
     }
@@ -32,44 +31,43 @@ export async function POST(req: Request) {
       created_at: new Date().toISOString(),
     });
 
-    // Send actual email using Resend
     const resendApiKey = process.env.RESEND_API_KEY;
     
-    if (!resendApiKey || resendApiKey === "re_your_api_key_here") {
-      console.log("RESEND_API_KEY not configured. Email code:", code);
+    if (!resendApiKey) {
       return NextResponse.json({ 
-        error: "Email service not configured. Please add RESEND_API_KEY in .env.local or Cloudflare Workers settings. Get free key at https://resend.com",
+        error: "RESEND_API_KEY not found in environment variables. Add it in Cloudflare Workers → Settings → Variables"
       });
     }
 
     const resend = new Resend(resendApiKey);
     
     const { data, error: emailError } = await resend.emails.send({
-      from: "PSPCS Verification <onboarding@resend.dev>",
+      from: "PSPCS <onboarding@resend.dev>",
       to: email.trim().toLowerCase(),
       subject: "Your PSPCS Verification Code",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <div style="width: 60px; height: 60px; margin: 0 auto; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #f97316); display: flex; align-items: center; justify-content: center;">
-              <span style="font-size: 24px; font-weight: bold; color: #0f172a;">K</span>
-            </div>
-          </div>
-          <h2 style="color: #0f172a; text-align: center;">Email Verification</h2>
-          <p style="color: #64748b; text-align: center;">Your verification code for PSPCS by KLEOXM 111</p>
+          <h2 style="color: #0f172a; text-align: center;">PSPCS Email Verification</h2>
+          <p style="color: #64748b; text-align: center;">Your verification code for KLEOXM 111</p>
           <div style="background: #1e293b; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
             <p style="color: #94a3b8; font-size: 14px; margin: 0 0 8px 0;">Your verification code is</p>
             <p style="color: #f59e0b; font-size: 32px; font-weight: bold; letter-spacing: 8px; margin: 0;">${code}</p>
           </div>
           <p style="color: #64748b; font-size: 12px; text-align: center;">This code expires in 10 minutes.</p>
-          <p style="color: #64748b; font-size: 12px; text-align: center;">If you didn't request this, please ignore this email.</p>
         </div>
       `,
     });
 
     if (emailError) {
-      console.error("Resend error:", emailError);
-      return NextResponse.json({ error: "Failed to send email: " + emailError.message });
+      console.error("Resend error:", JSON.stringify(emailError));
+      // Check if it's a domain verification issue
+      const errorMsg = emailError.message || JSON.stringify(emailError);
+      if (errorMsg.includes("domain") || errorMsg.includes("verify")) {
+        return NextResponse.json({ 
+          error: "Email domain not verified. In Resend dashboard, go to Domains and verify your email domain, or use a verified email address." 
+        });
+      }
+      return NextResponse.json({ error: "Failed to send email: " + errorMsg });
     }
 
     // Notify company owner
@@ -82,6 +80,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, messageId: data?.id });
   } catch (e) {
+    console.error("Verification error:", e);
     return NextResponse.json({ error: "Error: " + String(e) });
   }
 }
