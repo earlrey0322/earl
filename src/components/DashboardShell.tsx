@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { apiFetch } from "@/lib/api-fetch";
 
@@ -46,7 +46,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
       setTimeout(() => {
         const el = document.getElementById(sectionId);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+      }, 200);
     }
   }, [loading]);
 
@@ -57,35 +57,41 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
     window.location.href = "/login";
   }
 
-  const basePath = user ? `/dashboard/${user.role}` : "/dashboard";
+  const dashboardPath = user ? `/dashboard/${user.role}` : null;
 
-  // Navigate to dashboard with section hash
-  function goToSection(sectionId: string) {
+  const navigateTo = useCallback((sectionId: string) => {
     playClick();
     setSidebarOpen(false);
-    
-    // Check if we're on the dashboard page (not settings or other pages)
-    const isOnDashboard = pathname === basePath || pathname === `${basePath}/`;
-    
+
+    if (!dashboardPath) return;
+
+    // Dashboard button - go to top of dashboard
     if (sectionId === "dashboard") {
-      if (isOnDashboard) {
+      if (pathname === dashboardPath) {
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
-        requestAnimationFrame(() => { window.location.href = basePath; });
+        router.push(dashboardPath);
+      }
+      return;
+    }
+
+    // Other sections
+    if (pathname === dashboardPath) {
+      // Already on dashboard - scroll to section
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     } else {
-      if (isOnDashboard) {
-        // On dashboard - scroll to section
+      // Not on dashboard - navigate to dashboard then scroll
+      router.push(dashboardPath);
+      // Scroll after navigation completes
+      setTimeout(() => {
         const el = document.getElementById(sectionId);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      } else {
-        // Not on dashboard - navigate to dashboard with hash
-        requestAnimationFrame(() => { window.location.href = `${basePath}#${sectionId}`; });
-      }
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 500);
     }
-  }
+  }, [dashboardPath, pathname, router]);
 
   if (loading) {
     return (
@@ -196,13 +202,13 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
             {sidebarItems.map((item) => (
               <SidebarBtn
                 key={item.id}
-                onClick={() => goToSection(item.id)}
+                onClick={() => navigateTo(item.id)}
                 label={item.label}
                 icon={item.icon}
               />
             ))}
             <div className="my-2 border-t border-slate-800" />
-            <SidebarBtn onClick={() => { playClick(); setSidebarOpen(false); window.location.href = "/dashboard/settings"; }} label="Settings" icon="gear" />
+            <SidebarBtn onClick={() => { playClick(); setSidebarOpen(false); router.push("/dashboard/settings"); }} label="Settings" icon="gear" />
           </nav>
         </aside>
 
