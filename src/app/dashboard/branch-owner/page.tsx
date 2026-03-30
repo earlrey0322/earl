@@ -7,7 +7,8 @@ import { apiFetch } from "@/lib/api-fetch";
 
 interface SubscriptionRequest { id: number; plan: string; status: string; created_at: string; reference_number: string; }
 interface MonthlyPayment { id: number; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
-interface Redemption { id: number; redemption_type: string; amount: number; status: string; contact_name: string | null; contact_number: string | null; delivery_address: string | null; created_at: string; }
+interface Redemption { id: number; redemption_type: string; redemption_label?: string; amount: number; status: string; contact_name: string | null; contact_number: string | null; delivery_address: string | null; created_at: string; }
+type RedemptionType = "free_station" | "station_parts" | "coin_slots" | "charging_cable" | null;
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; contactNumber: string | null; subscriptionExpiry: string | null; }
 
 const PLANS = [
@@ -38,7 +39,7 @@ export default function BranchOwnerDashboard() {
   const [requestingMonthly, setRequestingMonthly] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
-  const [redeemType, setRedeemType] = useState<"free_station" | "gcash" | null>(null);
+  const [redeemType, setRedeemType] = useState<RedemptionType>(null);
   const [redeemForm, setRedeemForm] = useState({ contactName: "", contactNumber: "", deliveryAddress: "" });
   const [requestingRedeem, setRequestingRedeem] = useState(false);
   const [newStation, setNewStation] = useState({
@@ -271,7 +272,7 @@ export default function BranchOwnerDashboard() {
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{myStations.length}</div><div className="text-xs text-slate-400">My Stations</div></div>
             <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{myStations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
             <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalViews}</div><div className="text-xs text-slate-400">Total Views</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">₱{totalViewRevenue.toFixed(2)}</div><div className="text-xs text-slate-400">View Revenue</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">{totalViewRevenue.toFixed(1)}</div><div className="text-xs text-slate-400">Points</div></div>
           </div>
         </div>
 
@@ -460,10 +461,10 @@ export default function BranchOwnerDashboard() {
           <StationMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
         </section>
 
-        {/* Revenue - View Based */}
+        {/* Revenue - Points Based */}
         <section id="revenue" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">View Revenue</h3>
-          <p className="text-sm text-slate-400">Earn ₱0.20 per view when someone views your station!</p>
+          <h3 className="text-lg font-bold text-white">Points System</h3>
+          <p className="text-sm text-slate-400">Earn 0.1 points per view when someone views your station!</p>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="glass-card rounded-xl p-4">
@@ -475,43 +476,49 @@ export default function BranchOwnerDashboard() {
               <div className="text-xs text-slate-400">Total Views</div>
             </div>
             <div className="glass-card rounded-xl p-4">
-              <div className="text-2xl font-bold text-blue-400">₱{totalViewRevenue.toFixed(2)}</div>
-              <div className="text-xs text-slate-400">Available Revenue</div>
+              <div className="text-2xl font-bold text-blue-400">{totalViewRevenue.toFixed(1)}</div>
+              <div className="text-xs text-slate-400">Total Points</div>
             </div>
           </div>
 
-          {/* Redemption Section */}
+          {/* Redemption Tiers */}
           <div className="glass-card rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h4 className="font-bold text-white">Redeem Earnings</h4>
-                <p className="text-sm text-slate-400">Minimum ₱100 required to redeem</p>
+            <h4 className="font-bold text-white mb-4">Redeem Points</h4>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 1000 ? "border-green-400 bg-green-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">Full Station</div>
+                <div className="text-lg font-bold text-white">1000 pts</div>
+                <div className="text-[10px] text-slate-500">Free Charging Station</div>
               </div>
-              {canRedeem && (
-                <button onClick={() => { playClick(); setShowRedeemModal(true); }}
-                  className="px-4 py-2 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg">
-                  Redeem ₱{Math.floor(totalViewRevenue)}
-                </button>
-              )}
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 500 ? "border-amber-400 bg-amber-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">All Parts</div>
+                <div className="text-lg font-bold text-white">500 pts</div>
+                <div className="text-[10px] text-slate-500">Station Parts (Soon)</div>
+              </div>
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 100 ? "border-blue-400 bg-blue-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">Coin Slots</div>
+                <div className="text-lg font-bold text-white">100 pts</div>
+                <div className="text-[10px] text-slate-500">3 Coin Slots</div>
+              </div>
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 50 ? "border-purple-400 bg-purple-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">Cable</div>
+                <div className="text-lg font-bold text-white">50 pts</div>
+                <div className="text-[10px] text-slate-500">Charging Cable</div>
+              </div>
             </div>
             
-            {!canRedeem && (
-              <div className="p-4 bg-slate-800/50 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-slate-400">Progress to ₱100</span>
-                  <span className="text-sm font-bold text-amber-400">{Math.floor(totalViewRevenue)} / 100</span>
-                </div>
-                <div className="w-full bg-slate-700 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full" style={{ width: `${Math.min(totalViewRevenue, 100)}%` }}></div>
-                </div>
-              </div>
+            {totalViewRevenue >= 50 && (
+              <button onClick={() => { playClick(); setShowRedeemModal(true); }}
+                className="w-full py-3 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg">
+                Redeem Points ({totalViewRevenue.toFixed(1)} pts)
+              </button>
             )}
           </div>
 
           {/* Per Station Views */}
           {myStations.length > 0 && (
             <div className="glass-card rounded-2xl p-6">
-              <h4 className="font-bold text-white mb-4">Views per Station</h4>
+              <h4 className="font-bold text-white mb-4">Points per Station</h4>
               <div className="space-y-3">
                 {myStations.map((s) => (
                   <div key={s.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
@@ -520,7 +527,7 @@ export default function BranchOwnerDashboard() {
                       <p className="text-xs text-slate-400">{s.views || 0} views</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-green-400">₱{(s.viewRevenue || 0).toFixed(2)}</p>
+                      <p className="text-lg font-bold text-blue-400">{(s.viewRevenue || 0).toFixed(1)} pts</p>
                       <p className="text-[10px] text-slate-500">{s.isActive ? "Active" : "Inactive"}</p>
                     </div>
                   </div>
@@ -541,7 +548,7 @@ export default function BranchOwnerDashboard() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-white">
-                          ₱{r.amount} - {r.redemption_type === "free_station" ? "Free Station" : "GCash Cashout"}
+                          {r.amount} pts - {r.redemption_label || r.redemption_type}
                         </p>
                         <p className="text-xs text-slate-400">{new Date(r.created_at).toLocaleDateString()}</p>
                       </div>
@@ -560,35 +567,41 @@ export default function BranchOwnerDashboard() {
         {showRedeemModal && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="glass-card rounded-2xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-bold text-white mb-4">Redeem Earnings</h3>
-              <p className="text-sm text-slate-400 mb-4">Available: ₱{Math.floor(totalViewRevenue)}</p>
+              <h3 className="text-lg font-bold text-white mb-2">Redeem Points</h3>
+              <p className="text-sm text-slate-400 mb-4">Available: {totalViewRevenue.toFixed(1)} points</p>
               
-              <div className="space-y-4">
-                <button onClick={() => setRedeemType("free_station")}
-                  className={`w-full p-4 rounded-xl border text-left transition-all ${redeemType === "free_station" ? "border-green-400 bg-green-400/10" : "border-slate-600 hover:border-slate-500"}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">🏪</span>
-                    <div>
-                      <p className="text-sm font-bold text-white">Free Charging Station</p>
-                      <p className="text-xs text-slate-400">Company will deliver to your address</p>
+              <div className="space-y-3">
+                {[
+                  { type: "free_station", label: "Free Charging Station", desc: "Full unit - Company delivers", points: 1000, icon: "🏪" },
+                  { type: "station_parts", label: "Charging Station Parts", desc: "All parts (Soon)", points: 500, icon: "🔧" },
+                  { type: "coin_slots", label: "3 Coin Slots", desc: "Coin slot mechanism", points: 100, icon: "🪙" },
+                  { type: "charging_cable", label: "Charging Cable", desc: "USB charging cable", points: 50, icon: "🔌" },
+                ].map((tier) => (
+                  <button key={tier.type}
+                    onClick={() => setRedeemType(tier.type as any)}
+                    disabled={totalViewRevenue < tier.points}
+                    className={`w-full p-4 rounded-xl border text-left transition-all ${
+                      redeemType === tier.type ? "border-green-400 bg-green-400/10" : 
+                      totalViewRevenue >= tier.points ? "border-slate-600 hover:border-slate-500" : "border-slate-700 opacity-50"
+                    }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{tier.icon}</span>
+                        <div>
+                          <p className="text-sm font-bold text-white">{tier.label}</p>
+                          <p className="text-xs text-slate-400">{tier.desc}</p>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-bold ${totalViewRevenue >= tier.points ? "text-green-400" : "text-slate-500"}`}>
+                        {tier.points} pts
+                      </span>
                     </div>
-                  </div>
-                </button>
-                
-                <button onClick={() => setRedeemType("gcash")}
-                  className={`w-full p-4 rounded-xl border text-left transition-all ${redeemType === "gcash" ? "border-green-400 bg-green-400/10" : "border-slate-600 hover:border-slate-500"}`}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">💰</span>
-                    <div>
-                      <p className="text-sm font-bold text-white">GCash Cashout</p>
-                      <p className="text-xs text-slate-400">Email earlrey0322@gmail.com to receive GCash</p>
-                    </div>
-                  </div>
-                </button>
+                  </button>
+                ))}
               </div>
 
-              {redeemType === "free_station" && (
-                <div className="space-y-4 mt-4 p-4 bg-slate-800/50 rounded-lg">
+              {(redeemType === "free_station" || redeemType === "station_parts") && (
+                <div className="space-y-3 mt-4 p-4 bg-slate-800/50 rounded-lg">
                   <div>
                     <label className="block text-sm text-slate-300 mb-1">Full Name</label>
                     <input type="text" value={redeemForm.contactName} onChange={(e) => setRedeemForm((p) => ({ ...p, contactName: e.target.value }))}
@@ -607,19 +620,22 @@ export default function BranchOwnerDashboard() {
                 </div>
               )}
 
-              {redeemType === "gcash" && (
+              {redeemType === "coin_slots" && (
                 <div className="mt-4 p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl">
-                  <p className="text-xs text-blue-400 mb-2">GCash Details</p>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between"><span className="text-slate-400">Number</span><span className="text-white font-bold">09469086926</span></div>
-                    <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
-                  </div>
-                  <p className="text-xs text-amber-400 mt-3">Email earlrey0322@gmail.com with your reference number after sending.</p>
+                  <p className="text-xs text-blue-400 mb-2">Claim Info</p>
+                  <p className="text-sm text-white">Contact earlrey0322@gmail.com to claim your 3 coin slots.</p>
+                </div>
+              )}
+
+              {redeemType === "charging_cable" && (
+                <div className="mt-4 p-4 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl">
+                  <p className="text-xs text-purple-400 mb-2">Claim Info</p>
+                  <p className="text-sm text-white">Contact earlrey0322@gmail.com to claim your charging cable.</p>
                 </div>
               )}
 
               <div className="flex gap-3 mt-6">
-                <button onClick={requestRedemption} disabled={!redeemType || requestingRedeem || (redeemType === "free_station" && (!redeemForm.contactName || !redeemForm.contactNumber || !redeemForm.deliveryAddress))}
+                <button onClick={requestRedemption} disabled={!redeemType || requestingRedeem}
                   className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg disabled:opacity-50">
                   {requestingRedeem ? "Submitting..." : "Submit Redemption"}
                 </button>

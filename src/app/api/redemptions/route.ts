@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
-const REDEMPTION_THRESHOLD = 100; // ₱100 minimum to redeem
+// Redemption tiers based on points
+const REDEMPTION_TIERS = {
+  free_station: { points: 1000, label: "Free Charging Station (Full Unit)" },
+  station_parts: { points: 500, label: "Charging Station All Parts" },
+  coin_slots: { points: 100, label: "3 Coin Slots" },
+  charging_cable: { points: 50, label: "Charging Cable" },
+};
 
 // GET - company owner gets all redemptions, users get their own
 export async function GET() {
@@ -22,7 +28,7 @@ export async function GET() {
 
     const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message });
-    return NextResponse.json({ redemptions: data || [] });
+    return NextResponse.json({ redemptions: data || [], tiers: REDEMPTION_TIERS });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
   }
@@ -37,17 +43,20 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { redemptionType, contactName, contactNumber, deliveryAddress } = body;
 
-    if (!redemptionType || !["free_station", "gcash"].includes(redemptionType)) {
-      return NextResponse.json({ error: "Invalid redemption type. Choose: free_station or gcash" });
+    const validTypes = Object.keys(REDEMPTION_TIERS);
+    if (!redemptionType || !validTypes.includes(redemptionType)) {
+      return NextResponse.json({ error: `Invalid type. Choose: ${validTypes.join(", ")}` });
     }
+
+    const tier = REDEMPTION_TIERS[redemptionType as keyof typeof REDEMPTION_TIERS];
 
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
-    // Get user info and total view revenue from their stations
+    // Get user info and total points from their stations
     const { data: user } = await supabase.from("users").select("full_name, email").eq("id", auth.id).single();
 
-    // Calculate total view revenue from all user's stations
+    // Calculate total points from all user's stations
     const { data: stations, error: stationsError } = await supabase
       .from("charging_stations")
       .select("view_revenue")
@@ -55,35 +64,33 @@ export async function POST(req: Request) {
 
     if (stationsError) {
       console.error("Error fetching stations:", stationsError);
-      return NextResponse.json({ error: "Error calculating revenue" });
+      return NextResponse.json({ error: "Error calculating points" });
     }
 
-    const totalViewRevenue = (stations || []).reduce((sum, s) => sum + (s.view_revenue || 0), 0);
+    const totalPoints = (stations || []).reduce((sum, s) => sum + (s.view_revenue || 0), 0);
 
-    if (totalViewRevenue < REDEMPTION_THRESHOLD) {
-      return NextResponse.json({ error: `Minimum ₱${REDEMPTION_THRESHOLD} required to redeem. Current: ₱${totalViewRevenue.toFixed(2)}` });
+    if (totalPoints < tier.points) {
+      return NextResponse.json({ error: `Need ${tier.points} points to redeem ${tier.label}. Current: ${totalPoints.toFixed(1)} points` });
     }
 
-    // For free station redemption, validate required fields
-    if (redemptionType === "free_station") {
+    // For station-related redemptions, validate required fields
+    if (redemptionType === "free_station" || redemptionType === "station_parts") {
       if (!contactName || !contactNumber || !deliveryAddress) {
-        return NextResponse.json({ error: "Name, contact number, and address required for station delivery" });
+        return NextResponse.json({ error: "Name, contact number, and address required for delivery" });
       }
     }
-
-    // Round down to nearest whole number (no decimals)
-    const redeemAmount = Math.floor(totalViewRevenue);
 
     const insertData: any = {
       user_id: auth.id,
       user_email: user?.email || auth.email,
       user_name: user?.full_name || "Unknown",
       redemption_type: redemptionType,
-      amount: redeemAmount,
+      redemption_label: tier.label,
+      amount: tier.points,
       status: "pending",
     };
 
-    if (redemptionType === "free_station") {
+    if (redemptionType === "free_station" || redemptionType === "station_parts") {
       insertData.contact_name = contactName;
       insertData.contact_number = contactNumber;
       insertData.delivery_address = deliveryAddress;
@@ -100,24 +107,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message });
     }
 
-    // Reset view revenue for all user's stations to 0
+    // Reset points for all user's stations to 0
     const { error: resetError } = await supabase
       .from("charging_stations")
       .update({ views: 0, view_revenue: 0 })
       .eq("owner_id", auth.id);
 
     if (resetError) {
-      console.error("Error resetting view revenue:", resetError);
+      console.error("Error resetting points:", resetError);
     }
 
     // Notify company owner
-    const message = redemptionType === "free_station"
-      ? `${user?.full_name || "Unknown"} requested FREE STATION redemption (₱${redeemAmount}).\nDeliver to: ${contactName}, ${contactNumber}, ${deliveryAddress}`
-      : `${user?.full_name || "Unknown"} requested GCash cashout of ₱${redeemAmount}.\nSend to GCash: 09469086926`;
+    let message = `${user?.full_name || "Unknown"} wants to redeem: ${tier.label} (${tier.points} points).\n`;
+    if (redemptionType === "free_station" || redemptionType === "station_parts") {
+      message += `Deliver to: ${contactName}, ${contactNumber}, ${deliveryAddress}`;
+    } else {
+      message += `Pick up at office or contact: earlrey0322@gmail.com`;
+    }
 
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
-      subject: `Revenue Redemption - ₱${redeemAmount} (${redemptionType === "free_station" ? "Free Station" : "GCash"})`,
+      subject: `Redemption Request - ${tier.label}`,
       message,
       type: "redemption_request",
     });
@@ -167,12 +177,15 @@ export async function PATCH(req: Request) {
 
     // Notify user
     if (approve) {
-      const subject = redemption.redemption_type === "free_station"
-        ? "Free Station Redemption Approved!"
-        : "GCash Cashout Approved!";
-      const message = redemption.redemption_type === "free_station"
-        ? `Your free charging station redemption (₱${redemption.amount}) has been approved! It will be delivered to ${redemption.contact_name} at ${redemption.delivery_address}.`
-        : `Your GCash cashout of ₱${redemption.amount} has been approved! Please check earlrey0322@gmail.com for GCash transfer.`;
+      const label = redemption.redemption_label || redemption.redemption_type;
+      let subject = `Redemption Approved - ${label}`;
+      let message = `Your ${label} redemption (${redemption.amount} points) has been approved!`;
+      
+      if (redemption.redemption_type === "free_station" || redemption.redemption_type === "station_parts") {
+        message += ` It will be delivered to ${redemption.contact_name} at ${redemption.delivery_address}.`;
+      } else if (redemption.redemption_type === "charging_cable" || redemption.redemption_type === "coin_slots") {
+        message += ` Please contact earlrey0322@gmail.com to claim your item.`;
+      }
 
       await supabase.from("notifications").insert({
         recipient_email: redemption.user_email,
@@ -184,7 +197,7 @@ export async function PATCH(req: Request) {
       await supabase.from("notifications").insert({
         recipient_email: redemption.user_email,
         subject: "Redemption Rejected",
-        message: `Your ${redemption.redemption_type === "free_station" ? "free station" : "GCash"} redemption request was rejected.`,
+        message: `Your redemption request was rejected.`,
         type: "redemption_rejected",
       });
     }

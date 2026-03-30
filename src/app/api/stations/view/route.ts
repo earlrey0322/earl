@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 
-const VIEW_REVENUE_RATE = 0.20; // ₱0.20 per view
+const VIEW_POINTS_RATE = 0.1; // 0.1 points per view
 
-// POST - track station view and add revenue
+// POST - track station view and add points
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -34,14 +34,14 @@ export async function POST(req: Request) {
     }
 
     const newViews = (station.views || 0) + 1;
-    const newViewRevenue = (station.view_revenue || 0) + VIEW_REVENUE_RATE;
+    const newPoints = (station.view_revenue || 0) + VIEW_POINTS_RATE;
 
-    // Update station with new view count and revenue
+    // Update station with new view count and points
     const { error: updateError } = await supabase
       .from("charging_stations")
       .update({
         views: newViews,
-        view_revenue: Math.round(newViewRevenue * 100) / 100, // Round to 2 decimal places
+        view_revenue: Math.round(newPoints * 10) / 10, // Round to 1 decimal place
       })
       .eq("id", stationId);
 
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       views: newViews,
-      viewRevenue: Math.round(newViewRevenue * 100) / 100,
+      points: Math.round(newPoints * 10) / 10,
     });
   } catch (e) {
     console.error("POST /api/stations/view error:", e);

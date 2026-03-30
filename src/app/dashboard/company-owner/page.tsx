@@ -302,7 +302,7 @@ export default function CompanyOwnerDashboard() {
             <h4 className="font-bold text-white mb-4">Branch Owners ({branchOwners.length})</h4>
             {branchOwners.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {branchOwners.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Lifetime" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>{u.isSubscribed ? "Remove Premium" : "Make Premium"}</button></td></tr>))}
+                {branchOwners.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Premium" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "bg-red-400/10 text-red-400 hover:bg-red-400/20" : "bg-green-400/10 text-green-400 hover:bg-green-400/20"}`}>{u.isSubscribed ? "Unset Premium" : "Set Premium"}</button></td></tr>))}
               </tbody></table></div>
             )}
           </div>
@@ -310,7 +310,7 @@ export default function CompanyOwnerDashboard() {
             <h4 className="font-bold text-white mb-4">Customers ({customers.length})</h4>
             {customers.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {customers.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Lifetime" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>{u.isSubscribed ? "Remove Premium" : "Make Premium"}</button></td></tr>))}
+                {customers.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Premium" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "bg-red-400/10 text-red-400 hover:bg-red-400/20" : "bg-green-400/10 text-green-400 hover:bg-green-400/20"}`}>{u.isSubscribed ? "Unset Premium" : "Set Premium"}</button></td></tr>))}
               </tbody></table></div>
             )}
           </div>
@@ -318,10 +318,45 @@ export default function CompanyOwnerDashboard() {
             <h4 className="font-bold text-white mb-4">Other Branches ({otherBranches.length}) - ₱250/month</h4>
             {otherBranches.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
               <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {otherBranches.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Active" : "No Payment"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "text-red-400 hover:bg-red-400/10" : "text-green-400 hover:bg-green-400/10"}`}>{u.isSubscribed ? "Remove Premium" : "Make Premium"}</button></td></tr>))}
+                {otherBranches.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Premium" : "No Payment"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "bg-red-400/10 text-red-400 hover:bg-red-400/20" : "bg-green-400/10 text-green-400 hover:bg-green-400/20"}`}>{u.isSubscribed ? "Unset Premium" : "Set Premium"}</button></td></tr>))}
               </tbody></table></div>
             )}
           </div>
+        </section>
+
+        {/* Unpaid Users Timeline */}
+        <section className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Unpaid Branch Owners & Other Branches</h3>
+          {(() => {
+            const unpaidUsers = [...branchOwners, ...otherBranches].filter((u) => !u.isSubscribed);
+            if (unpaidUsers.length === 0) {
+              return <div className="glass-card rounded-2xl p-6 text-center text-green-400">All users have paid!</div>;
+            }
+            return (
+              <div className="space-y-3">
+                {unpaidUsers.map((u) => (
+                  <div key={u.id} className="glass-card rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-red-400/10 flex items-center justify-center text-red-400 font-bold">
+                        {u.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">{u.fullName}</p>
+                        <p className="text-xs text-slate-400">{u.email} • {u.role === "other_branch" ? "Other Branch (₱250/mo)" : "Branch Owner (₱200/mo)"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-1 bg-red-400/10 text-red-400 rounded-full">Unpaid</span>
+                      <button onClick={() => togglePremium(u.id, true)}
+                        className="text-xs px-3 py-1 bg-green-400/10 text-green-400 rounded hover:bg-green-400/20">
+                        Set Premium
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </section>
 
         {/* Subscription Requests */}
