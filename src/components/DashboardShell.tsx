@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface User {
@@ -21,7 +21,6 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     apiFetch("/api/auth/me")
@@ -31,25 +30,34 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
       })
       .then((data) => {
         if (data.user) setUser(data.user);
-        else router.push("/login");
+        else window.location.href = "/login";
       })
       .catch(() => {
-        router.push("/login");
+        window.location.href = "/login";
       })
       .finally(() => setLoading(false));
-  }, [router]);
+  }, []);
 
   function handleLogout() {
     playClick();
     apiFetch("/api/auth/me", { method: "POST" }).catch(() => {});
     document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    router.push("/login");
+    window.location.href = "/login";
   }
 
-  function navigateTo(path: string) {
+  function scrollTo(sectionId: string) {
     playClick();
     setSidebarOpen(false);
-    router.push(path);
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function goHome() {
+    playClick();
+    setSidebarOpen(false);
+    window.location.assign(`/dashboard/${user?.role || "customer"}`);
   }
 
   if (loading) {
@@ -74,19 +82,41 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
     company_owner: "Company Owner",
   };
 
-  const basePath = `/dashboard/${user.role}`;
+  // Define sidebar items based on role - using section IDs for scroll
+  const getSidebarItems = () => {
+    const common = [
+      { id: "dashboard", label: "Dashboard", icon: "home", action: goHome },
+      { id: "stations", label: "Charging Stations", icon: "bolt", action: () => scrollTo("stations") },
+      { id: "sessions", label: "Charging Sessions", icon: "battery", action: () => scrollTo("sessions") },
+    ];
 
-  // Define sidebar items based on role
-  const sidebarItems = [
-    { path: basePath, label: "Dashboard", icon: "home", roles: ["customer", "branch_owner", "other_branch", "company_owner"] },
-    { path: `${basePath}/stations`, label: "Charging Stations", icon: "bolt", roles: ["customer", "branch_owner", "other_branch", "company_owner"] },
-    { path: `${basePath}/subscription`, label: "Subscription", icon: "star", roles: ["customer", "branch_owner", "other_branch"] },
-    { path: `${basePath}/orders`, label: "Order PSPCS", icon: "cart", roles: ["customer", "branch_owner", "other_branch"] },
-    { path: `${basePath}/users`, label: "Manage Users", icon: "users", roles: ["company_owner"] },
-    { path: `${basePath}/requests`, label: "Requests", icon: "inbox", roles: ["company_owner"] },
-  ];
+    if (user.role === "company_owner") {
+      return [
+        ...common,
+        { id: "requests", label: "Requests", icon: "inbox", action: () => scrollTo("requests") },
+        { id: "redemptions", label: "Redemptions", icon: "gift", action: () => scrollTo("redemptions") },
+        { id: "users", label: "All Users", icon: "users", action: () => scrollTo("users-timeline") },
+        { id: "revenue", label: "Revenue", icon: "money", action: () => scrollTo("revenue") },
+      ];
+    }
 
-  const filteredItems = sidebarItems.filter(item => item.roles.includes(user.role));
+    if (user.role === "branch_owner" || user.role === "other_branch") {
+      return [
+        ...common,
+        { id: "subscription", label: "Subscription", icon: "star", action: () => scrollTo("subscription") },
+        { id: "monthly-payment", label: "Monthly Fee", icon: "money", action: () => scrollTo("monthly-payment") },
+        { id: "revenue", label: "Points System", icon: "star", action: () => scrollTo("revenue") },
+      ];
+    }
+
+    // Customer
+    return [
+      ...common,
+      { id: "subscription", label: "Subscription", icon: "star", action: () => scrollTo("subscription") },
+    ];
+  };
+
+  const sidebarItems = getSidebarItems();
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
@@ -136,17 +166,16 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
         {/* Sidebar */}
         <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:sticky top-[57px] left-0 z-40 w-64 h-[calc(100vh-57px)] bg-[#0f172a] border-r border-slate-800 transition-transform overflow-y-auto`}>
           <nav className="p-4 space-y-1">
-            {filteredItems.map((item) => (
+            {sidebarItems.map((item) => (
               <SidebarBtn
-                key={item.path}
-                onClick={() => navigateTo(item.path)}
+                key={item.id}
+                onClick={item.action}
                 label={item.label}
                 icon={item.icon}
-                active={pathname === item.path}
               />
             ))}
             <div className="my-2 border-t border-slate-800" />
-            <SidebarBtn onClick={() => navigateTo(`${basePath}/settings`)} label="Settings" icon="gear" active={pathname === `${basePath}/settings`} />
+            <SidebarBtn onClick={() => { playClick(); setSidebarOpen(false); window.location.href = "/dashboard/settings"; }} label="Settings" icon="gear" />
           </nav>
         </aside>
 
@@ -160,20 +189,22 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   );
 }
 
-function SidebarBtn({ onClick, label, icon, active }: { onClick: () => void; label: string; icon: string; active?: boolean }) {
+function SidebarBtn({ onClick, label, icon }: { onClick: () => void; label: string; icon: string }) {
   const icons: Record<string, React.ReactNode> = {
     home: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
     bolt: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-    battery: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>,
+    battery: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
     star: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
     users: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
     cart: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>,
     gear: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
     inbox: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>,
+    money: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+    gift: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>,
   };
 
   return (
-    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${active ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
+    <button onClick={onClick} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left">
       {icons[icon]}
       {label}
     </button>
