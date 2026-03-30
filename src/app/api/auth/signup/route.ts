@@ -4,9 +4,9 @@ import { getSupabase } from "@/lib/supabase";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer } = body;
+    const { username, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer } = body;
 
-    if (!email || !password || !fullName || !role || !worklifeAnswer) {
+    if (!username || !password || !fullName || !role || !worklifeAnswer) {
       return NextResponse.json({ error: "All fields required" });
     }
 
@@ -27,10 +27,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Database not set up" });
     }
 
-    // Check if email exists
-    const { data: existing } = await supabase.from("users").select("id").eq("email", email.trim()).single();
+    // Check if username exists
+    const { data: existing } = await supabase.from("users").select("id").eq("email", username.trim().toLowerCase()).single();
     if (existing) {
-      return NextResponse.json({ error: "Email already registered" });
+      return NextResponse.json({ error: "Username already taken" });
     }
 
     // Company owners get lifetime premium automatically
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const userId = Date.now();
     const { error: insertError } = await supabase.from("users").insert({
       id: userId,
-      email: email.trim(),
+      email: username.trim().toLowerCase(),
       password: password,
       full_name: fullName.trim(),
       role,
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     await supabase.from("notifications").insert({
       recipient_email: "company_owner",
       subject: `New ${role.replace("_", " ")} - ${fullName}`,
-      message: `${fullName} (${email}) signed up as ${role}${isPremium ? " (LIFETIME PREMIUM)" : ""}`,
+      message: `${fullName} (${username}) signed up as ${role}${isPremium ? " (LIFETIME PREMIUM)" : ""}`,
       type: "signup",
     });
 
@@ -65,14 +65,14 @@ export async function POST(req: Request) {
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `New ${role} - ${fullName}`,
-      message: `${fullName} (${email}) signed up as ${role}${isPremium ? " (LIFETIME PREMIUM)" : ""}`,
+      message: `${fullName} (${username}) signed up as ${role}${isPremium ? " (LIFETIME PREMIUM)" : ""}`,
       type: "signup",
     });
 
-    const token = Buffer.from(JSON.stringify({ id: userId, email: email.trim(), role })).toString("base64");
+    const token = Buffer.from(JSON.stringify({ id: userId, username: username.trim().toLowerCase(), role })).toString("base64");
     const res = NextResponse.json({
       success: true,
-      user: { id: userId, email: email.trim(), fullName: fullName.trim(), role, isSubscribed: isPremium },
+      user: { id: userId, username: username.trim().toLowerCase(), fullName: fullName.trim(), role, isSubscribed: isPremium },
     });
     res.cookies.set("token", token, { httpOnly: false, secure: false, sameSite: "lax", maxAge: 604800, path: "/" });
     return res;

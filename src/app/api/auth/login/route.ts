@@ -4,22 +4,22 @@ import { getSupabase } from "@/lib/supabase";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const { username, password } = body;
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password required" });
+    if (!username || !password) {
+      return NextResponse.json({ error: "Username and password required" });
     }
 
     const supabase = getSupabase();
     if (!supabase) {
-      return NextResponse.json({ error: "Database not set up. Go to your deployment settings and add SUPABASE_URL and SUPABASE_ANON_KEY." });
+      return NextResponse.json({ error: "Database not set up" });
     }
 
-    // Find user
+    // Find user by username
     const { data: user, error } = await supabase
       .from("users")
       .select("*")
-      .eq("email", email.trim())
+      .eq("email", username.trim().toLowerCase())
       .single();
 
     if (error || !user) {
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     await supabase.from("notifications").insert({
       recipient_email: "company_owner",
       subject: `Login - ${user.full_name}`,
-      message: `${user.full_name} (${user.email}) logged in as ${user.role}`,
+      message: `${user.full_name} (@${user.email}) logged in as ${user.role}`,
       type: "login",
     });
 
@@ -42,16 +42,16 @@ export async function POST(req: Request) {
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `Login - ${user.full_name}`,
-      message: `${user.full_name} (${user.email}) logged in as ${user.role}`,
+      message: `${user.full_name} (@${user.email}) logged in as ${user.role}`,
       type: "login",
     });
 
-    const token = Buffer.from(JSON.stringify({ id: user.id, email: user.email, role: user.role })).toString("base64");
+    const token = Buffer.from(JSON.stringify({ id: user.id, username: user.email, role: user.role })).toString("base64");
     const res = NextResponse.json({
       success: true,
       user: {
         id: user.id,
-        email: user.email,
+        username: user.email,
         fullName: user.full_name,
         role: user.role,
         isSubscribed: user.is_subscribed || false,

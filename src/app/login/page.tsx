@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
       let data;
@@ -38,10 +38,10 @@ export default function LoginPage() {
 
       let url = "/dashboard/customer";
       if (data.user?.role === "company_owner") url = "/dashboard/company-owner";
-      else if (data.user?.role === "branch_owner") url = "/dashboard/branch-owner";
+      else if (data.user?.role === "branch_owner" || data.user?.role === "other_branch") url = "/dashboard/branch-owner";
 
       window.location.href = url;
-    } catch (err) {
+    } catch {
       setError("Network error");
       setLoading(false);
     }
@@ -67,9 +67,9 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required suppressHydrationWarning
-              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="your@email.com" />
+            <label className="block text-sm font-medium text-slate-300 mb-1">Username</label>
+            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required suppressHydrationWarning
+              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Enter your username" />
           </div>
 
           <div>

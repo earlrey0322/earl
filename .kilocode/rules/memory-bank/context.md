@@ -72,7 +72,7 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 | `src/app/dashboard/customer/page.tsx` | Customer dashboard |
 | `src/app/dashboard/branch-owner/page.tsx` | Branch Owner dashboard |
 | `src/app/dashboard/company-owner/page.tsx` | Company Owner dashboard |
-| `src/app/api/auth/` | Auth API routes (login, signup, me, verify/send, verify) |
+| `src/app/api/auth/` | Auth API routes (login, signup, me) |
 | `src/app/api/stations/route.ts` | Charging stations CRUD |
 | `src/app/api/stations/view/route.ts` | Track station views and add points (0.1 pts/view) |
 | `src/app/api/sessions/route.ts` | Charging sessions CRUD |
@@ -119,7 +119,7 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 
 The app is complete and ready for use. All features are implemented:
 1. Landing page with product info
-2. 3-role authentication with worklife verification + email verification (Nodemailer Gmail SMTP)
+2. 3-role authentication with worklife verification (simple username + password signup)
 3. Interactive station map with Google Maps
 4. Charging calculator
 5. GCash subscription system with GCash payment details
@@ -127,18 +127,11 @@ The app is complete and ready for use. All features are implemented:
 7. Subscription request system - users can request plans, company owner approves/rejects
 8. Premium access control - non-premium users see limited location data
 
-### Environment Variables Needed (Cloudflare Workers)
-```
-SUPABASE_URL=https://ocrddgvdjogploplbblw.supabase.co
-SUPABASE_ANON_KEY=sb_publishable_a0PiaTKOJoM0m8q8PckJjA_1eaoZGj3
-GMAIL_USER=your_gmail@gmail.com
-GMAIL_APP_PASSWORD=your_app_password
-```
-
-### Deployment Notes
-- Uses @cloudflare/next-on-pages for Cloudflare Workers deployment
-- wrangler.toml configured with build command and assets directory
-- Email verification requires Gmail App Password (create at https://myaccount.google.com/apppasswords)
+### Authentication
+- Simple signup: Full Name, Username, Contact Number, Worklife Answer, Password
+- Simple login: Username + Password
+- No email verification required
+- No Cloudflare/Resend dependencies
 
 ## Session History
 
@@ -195,3 +188,6 @@ GMAIL_APP_PASSWORD=your_app_password
 | 2026-03-30 | Replaced Resend with Nodemailer Gmail SMTP for email verification |
 | 2026-03-30 | Created /api/auth/verify route for server-side code verification |
 | 2026-03-30 | Updated signup page to verify codes via API instead of local comparison |
+| 2026-03-30 | Simplified signup/login - removed email verification, now username + password only |
+| 2026-03-30 | Removed Cloudflare (wrangler.toml), Resend, Nodemailer dependencies |
+| 2026-03-30 | Deleted /api/auth/verify and /api/auth/verify/send routes |
