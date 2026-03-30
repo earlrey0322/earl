@@ -49,7 +49,7 @@ export default function CompanyOwnerDashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [usersData, setUsersData] = useState<{ totalUsers: number; totalBranchOwners: number; totalCustomers: number; subscribedBranchOwners: number; subscribedCustomers: number; users: CompanyUser[] } | null>(null);
+  const [usersData, setUsersData] = useState<{ totalUsers: number; totalBranchOwners: number; totalOtherBranches: number; totalCustomers: number; subscribedBranchOwners: number; subscribedOtherBranches: number; subscribedCustomers: number; users: CompanyUser[] } | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
@@ -72,13 +72,28 @@ export default function CompanyOwnerDashboard() {
       if (meR.status === "fulfilled" && meR.value.user) setUserData(meR.value.user);
       if (stR.status === "fulfilled" && stR.value.stations) setStations(stR.value.stations);
       if (hiR.status === "fulfilled" && hiR.value.history) setHistory(hiR.value.history);
-      if (usR.status === "fulfilled" && usR.value.totalUsers !== undefined) setUsersData(usR.value);
+      if (usR.status === "fulfilled") {
+        console.log("Users API response:", usR.value);
+        if (usR.value.users) setUsersData(usR.value);
+      }
       if (noR.status === "fulfilled" && noR.value.notifications) setNotifications(noR.value.notifications);
       if (srR.status === "fulfilled" && srR.value.requests) setSubRequests(srR.value.requests);
       if (mpR.status === "fulfilled" && mpR.value.payments) setMonthlyPayments(mpR.value.payments);
       if (rdR.status === "fulfilled" && rdR.value.redemptions) setRedemptions(rdR.value.redemptions);
-    }).catch(() => {});
+    }).catch((err) => console.error("Dashboard fetch error:", err));
   }, []);
+
+  // Function to refresh users data
+  async function refreshUsers() {
+    try {
+      const res = await apiFetch("/api/users");
+      const data = await res.json();
+      console.log("Refreshed users:", data);
+      if (data.users) setUsersData(data);
+    } catch (err) {
+      console.error("Error refreshing users:", err);
+    }
+  }
 
   async function toggleStation(s: Station) {
     playClick();
@@ -120,18 +135,30 @@ export default function CompanyOwnerDashboard() {
   async function togglePremium(userId: number, makePremium: boolean) {
     playClick();
     try {
-      await apiFetch("/api/admin/users", { method: "PATCH", body: JSON.stringify({ userId, isPremium: makePremium }) });
-      if (usersData) setUsersData({ 
-        ...usersData, 
-        users: usersData.users.map((u) => u.id === userId ? { 
-          ...u, 
-          isSubscribed: makePremium, 
-          subscriptionPlan: makePremium ? "lifetime" : null,
-          subscriptionExpiry: makePremium ? u.subscriptionExpiry : null 
-        } : u) 
-      });
-      alert(makePremium ? "Premium activated!" : "Premium removed - user is now Regular");
-    } catch (err) { alert("Error: " + String(err)); }
+      const res = await apiFetch("/api/admin/users", { method: "PATCH", body: JSON.stringify({ userId, isPremium: makePremium }) });
+      const data = await res.json();
+      console.log("Toggle premium response:", data);
+      if (res.ok) {
+        // Update local state
+        if (usersData) setUsersData({ 
+          ...usersData, 
+          users: usersData.users.map((u) => u.id === userId ? { 
+            ...u, 
+            isSubscribed: makePremium, 
+            subscriptionPlan: makePremium ? "lifetime" : null,
+            subscriptionExpiry: makePremium ? u.subscriptionExpiry : null 
+          } : u) 
+        });
+        // Also refresh from server to ensure sync
+        await refreshUsers();
+        alert(makePremium ? "Premium activated!" : "Premium removed - user is now Regular");
+      } else {
+        alert("Error: " + (data.error || "Failed to update premium"));
+      }
+    } catch (err) { 
+      console.error("Toggle premium error:", err);
+      alert("Error: " + String(err)); 
+    }
   }
 
   async function handleSubscriptionRequest(requestId: number, approve: boolean) {
@@ -248,6 +275,9 @@ export default function CompanyOwnerDashboard() {
 
   // Get all non-company-owner users
   const allUsers = usersData?.users || [];
+  const branchOwnerCount = usersData?.totalBranchOwners || allUsers.filter((u) => u.role === "branch_owner").length;
+  const otherBranchCount = usersData?.totalOtherBranches || allUsers.filter((u) => u.role === "other_branch").length;
+  const customerCount = usersData?.totalCustomers || allUsers.filter((u) => u.role === "customer").length;
   
   // Get pending requests
   const pendingSubRequests = subRequests.filter((r) => r.status === "pending");
@@ -296,11 +326,12 @@ export default function CompanyOwnerDashboard() {
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 via-orange-500/5 to-red-500/5">
           <h2 className="text-2xl font-bold text-white">KLEOXM 111 Management</h2>
           <p className="text-slate-400 mt-1">Welcome, {userData?.fullName || "Company Owner"}</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
             <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-2xl font-bold text-amber-400">{stations.length}</div><div className="text-xs text-slate-400">Stations</div></div>
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
-            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{allUsers.length}</div><div className="text-xs text-slate-400">Total Users</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{allUsers.filter((u) => u.isSubscribed).length}</div><div className="text-xs text-slate-400">Premium</div></div>
+            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{branchOwnerCount}</div><div className="text-xs text-slate-400">Branch Owners</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranchCount}</div><div className="text-xs text-slate-400">Other Branch</div></div>
+            <div className="px-4 py-3 bg-emerald-400/10 rounded-lg"><div className="text-2xl font-bold text-emerald-400">{customerCount}</div><div className="text-xs text-slate-400">Customers</div></div>
           </div>
         </div>
 
