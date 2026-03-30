@@ -18,7 +18,7 @@ export default function SignupPage() {
 
   const [form, setForm] = useState({
     role: "" as Role | "", email: "", password: "", confirmPassword: "",
-    fullName: "", contactNumber: "", address: "", phoneBrand: "",
+    fullName: "", contactNumber: "", address: "", phoneBrand: "", worklifeAnswer: "",
   });
 
   function update(field: string, value: string) {
@@ -90,7 +90,7 @@ export default function SignupPage() {
         body: JSON.stringify({
           email: form.email.trim(), password: form.password, fullName: form.fullName.trim(),
           role: form.role, phoneBrand: form.phoneBrand, contactNumber: form.contactNumber,
-          address: form.address,
+          address: form.address, worklifeAnswer: form.worklifeAnswer,
         }),
       });
 
@@ -250,6 +250,12 @@ export default function SignupPage() {
                 </div>
               )}
               <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Worklife Answer</label>
+                <input type="text" value={form.worklifeAnswer} onChange={(e) => update("worklifeAnswer", e.target.value)} required
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 uppercase focus:outline-none focus:border-amber-400"
+                  placeholder="Enter worklife answer" />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
                 <input type="password" value={form.password} onChange={(e) => update("password", e.target.value)} required minLength={6}
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Min. 6 characters" />
@@ -261,7 +267,7 @@ export default function SignupPage() {
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(2)} className="flex-1 py-3 font-medium text-slate-300 border border-slate-600 rounded-lg">Back</button>
-                <button type="submit" disabled={loading || !form.password || !form.confirmPassword || !isEmailVerified}
+                <button type="submit" disabled={loading || !form.password || !form.confirmPassword || !isEmailVerified || !form.worklifeAnswer}
                   className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg disabled:opacity-50">
                   {loading ? "Creating..." : "Create Account"}
                 </button>

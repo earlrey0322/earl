@@ -4,10 +4,22 @@ import { getSupabase } from "@/lib/supabase";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, fullName, role, phoneBrand, contactNumber, address } = body;
+    const { email, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer } = body;
 
-    if (!email || !password || !fullName || !role) {
+    if (!email || !password || !fullName || !role || !worklifeAnswer) {
       return NextResponse.json({ error: "All fields required" });
+    }
+
+    // Validate worklife answer (without showing hints)
+    const validAnswers: Record<string, string[]> = {
+      "company_owner": ["SUSTAINABILITY"],
+      "branch_owner": ["ENVIRONMENT"],
+      "other_branch": ["DEVELOPMENT"],
+    };
+
+    const allowedAnswers = validAnswers[role] || [];
+    if (allowedAnswers.length > 0 && !allowedAnswers.includes(worklifeAnswer.toUpperCase().trim())) {
+      return NextResponse.json({ error: "Invalid worklife answer" });
     }
 
     const supabase = getSupabase();
