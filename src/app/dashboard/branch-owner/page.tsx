@@ -493,7 +493,7 @@ export default function BranchOwnerDashboard() {
               <div className={`p-3 rounded-xl border ${totalViewRevenue >= 500 ? "border-amber-400 bg-amber-400/10" : "border-slate-600"}`}>
                 <div className="text-xs text-slate-400">All Parts</div>
                 <div className="text-lg font-bold text-white">500 pts</div>
-                <div className="text-[10px] text-slate-500">Station Parts (Soon)</div>
+                <div className="text-[10px] text-slate-500">Station Parts</div>
               </div>
               <div className={`p-3 rounded-xl border ${totalViewRevenue >= 100 ? "border-blue-400 bg-blue-400/10" : "border-slate-600"}`}>
                 <div className="text-xs text-slate-400">Coin Slots</div>
@@ -573,7 +573,7 @@ export default function BranchOwnerDashboard() {
               <div className="space-y-3">
                 {[
                   { type: "free_station", label: "Free Charging Station", desc: "Full unit - Company delivers", points: 1000, icon: "🏪" },
-                  { type: "station_parts", label: "Charging Station Parts", desc: "All parts (Soon)", points: 500, icon: "🔧" },
+                  { type: "station_parts", label: "Charging Station Parts", desc: "All parts", points: 500, icon: "🔧" },
                   { type: "coin_slots", label: "3 Coin Slots", desc: "Coin slot mechanism", points: 100, icon: "🪙" },
                   { type: "charging_cable", label: "Charging Cable", desc: "USB charging cable", points: 50, icon: "🔌" },
                 ].map((tier) => (
