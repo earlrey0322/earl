@@ -70,7 +70,9 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 | `src/app/login/page.tsx` | Login page |
 | `src/app/signup/page.tsx` | 3-step signup with role selection |
 | `src/app/dashboard/customer/page.tsx` | Customer dashboard |
-| `src/app/dashboard/branch-owner/page.tsx` | Branch Owner dashboard |
+| `src/app/dashboard/branch-owner/page.tsx` | Branch Owner dashboard overview (welcome, stats, navigation) |
+| `src/app/dashboard/branch-owner/stations/page.tsx` | Stations management (add, edit, remove, toggle, map) |
+| `src/app/dashboard/branch-owner/subscription/page.tsx` | Subscription, payments, points, redemptions |
 | `src/app/dashboard/company-owner/page.tsx` | Company Owner dashboard |
 | `src/app/api/auth/` | Auth API routes (login, signup, me) |
 | `src/app/api/stations/route.ts` | Charging stations CRUD |
@@ -191,3 +193,4 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-30 | Simplified signup/login - removed email verification, now username + password only |
 | 2026-03-30 | Removed Cloudflare (wrangler.toml), Resend, Nodemailer dependencies |
 | 2026-03-30 | Deleted /api/auth/verify and /api/auth/verify/send routes |
+| 2026-03-30 | Split branch owner dashboard into 3 pages: overview, stations, subscription to reduce lag |

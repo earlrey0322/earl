@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface User {
@@ -19,12 +20,10 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   const [user, setUser] = useState<User | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const fetchedRef = useRef(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
     apiFetch("/api/auth/me")
       .then((r) => {
         if (!r.ok) throw new Error("Not authenticated");
@@ -32,32 +31,25 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
       })
       .then((data) => {
         if (data.user) setUser(data.user);
-        else window.location.href = "/login";
+        else router.push("/login");
       })
       .catch(() => {
-        window.location.href = "/login";
+        router.push("/login");
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [router]);
 
   function handleLogout() {
     playClick();
     apiFetch("/api/auth/me", { method: "POST" }).catch(() => {});
     document.cookie = "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    window.location.href = "/login";
+    router.push("/login");
   }
 
-  function scrollTo(id: string) {
+  function navigateTo(path: string) {
     playClick();
     setSidebarOpen(false);
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function goHome() {
-    playClick();
-    setSidebarOpen(false);
-    window.location.href = `/dashboard/${user?.role || "customer"}`;
+    router.push(path);
   }
 
   if (loading) {
@@ -78,8 +70,23 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   const roleLabels: Record<string, string> = {
     customer: "Customer",
     branch_owner: "Branch Owner",
+    other_branch: "Other Branch",
     company_owner: "Company Owner",
   };
+
+  const basePath = `/dashboard/${user.role}`;
+
+  // Define sidebar items based on role
+  const sidebarItems = [
+    { path: basePath, label: "Dashboard", icon: "home", roles: ["customer", "branch_owner", "other_branch", "company_owner"] },
+    { path: `${basePath}/stations`, label: "Charging Stations", icon: "bolt", roles: ["customer", "branch_owner", "other_branch", "company_owner"] },
+    { path: `${basePath}/subscription`, label: "Subscription", icon: "star", roles: ["customer", "branch_owner", "other_branch"] },
+    { path: `${basePath}/orders`, label: "Order PSPCS", icon: "cart", roles: ["customer", "branch_owner", "other_branch"] },
+    { path: `${basePath}/users`, label: "Manage Users", icon: "users", roles: ["company_owner"] },
+    { path: `${basePath}/requests`, label: "Requests", icon: "inbox", roles: ["company_owner"] },
+  ];
+
+  const filteredItems = sidebarItems.filter(item => item.roles.includes(user.role));
 
   return (
     <div className="min-h-screen bg-[#0f172a]">
@@ -129,16 +136,17 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
         {/* Sidebar */}
         <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:sticky top-[57px] left-0 z-40 w-64 h-[calc(100vh-57px)] bg-[#0f172a] border-r border-slate-800 transition-transform overflow-y-auto`}>
           <nav className="p-4 space-y-1">
-            <SidebarBtn onClick={goHome} label="Dashboard" icon="home" />
-            <SidebarBtn onClick={() => scrollTo("stations")} label="Charging Stations" icon="bolt" />
-            <SidebarBtn onClick={() => scrollTo("sessions")} label="Charging Sessions" icon="battery" />
-            <SidebarBtn onClick={() => scrollTo("subscription")} label="Subscription" icon="star" />
-            <SidebarBtn onClick={() => { playClick(); setSidebarOpen(false); window.location.href = "/dashboard/order"; }} label="Order PSPCS" icon="cart" />
-            {user.role === "company_owner" && (
-              <SidebarBtn onClick={() => scrollTo("users")} label="Manage Users" icon="users" />
-            )}
+            {filteredItems.map((item) => (
+              <SidebarBtn
+                key={item.path}
+                onClick={() => navigateTo(item.path)}
+                label={item.label}
+                icon={item.icon}
+                active={pathname === item.path}
+              />
+            ))}
             <div className="my-2 border-t border-slate-800" />
-            <SidebarBtn onClick={() => { playClick(); setSidebarOpen(false); window.location.href = "/dashboard/settings"; }} label="Settings" icon="gear" />
+            <SidebarBtn onClick={() => navigateTo(`${basePath}/settings`)} label="Settings" icon="gear" active={pathname === `${basePath}/settings`} />
           </nav>
         </aside>
 
@@ -152,7 +160,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   );
 }
 
-function SidebarBtn({ onClick, label, icon }: { onClick: () => void; label: string; icon: string }) {
+function SidebarBtn({ onClick, label, icon, active }: { onClick: () => void; label: string; icon: string; active?: boolean }) {
   const icons: Record<string, React.ReactNode> = {
     home: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>,
     bolt: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
@@ -160,11 +168,12 @@ function SidebarBtn({ onClick, label, icon }: { onClick: () => void; label: stri
     star: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
     users: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
     cart: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z" /></svg>,
-    gear: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+    gear: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+    inbox: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>,
   };
 
   return (
-    <button onClick={onClick} className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-slate-400 rounded-lg hover:bg-slate-800 hover:text-white transition-all text-left">
+    <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${active ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
       {icons[icon]}
       {label}
     </button>
