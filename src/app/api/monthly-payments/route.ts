@@ -3,8 +3,8 @@ import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
 const MONTHLY_FEES: Record<string, number> = {
-  "branch_owner": 200,
-  "other_branch": 250,
+  "branch_owner": 75,
+  "other_branch": 100,
 };
 
 // GET - company owner gets all requests, users get their own
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     console.log("POST /api/monthly-payments: User data:", user);
 
     // Get monthly fee based on role
-    const amount = MONTHLY_FEES[auth.role] || 200;
+    const amount = MONTHLY_FEES[auth.role] || 75;
 
     // Check if already has pending request for this month
     const { data: existing, error: existingError } = await supabase

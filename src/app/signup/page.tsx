@@ -99,8 +99,8 @@ export default function SignupPage() {
               <h2 className="text-lg font-bold text-white">Select Your Role</h2>
               {([
                 { value: "customer" as Role, title: "Customer", desc: "I want to charge my phone", icon: "🔋" },
-                { value: "branch_owner" as Role, title: "Station Owner", desc: "I own a PSPCS station (₱200/month)", icon: "⚡" },
-                { value: "other_branch" as Role, title: "Other Branch", desc: "I operate another branch (₱250/month)", icon: "🏪" },
+                { value: "branch_owner" as Role, title: "Station Owner", desc: "I own a PSPCS station (₱75/month)", icon: "⚡" },
+                { value: "other_branch" as Role, title: "Other Branch", desc: "I operate another branch (₱100/month)", icon: "🏪" },
                 { value: "company_owner" as Role, title: "Company Owner", desc: "KLEOXM 111 management", icon: "🏢" },
               ]).map((r) => (
                 <button key={r.value} type="button" onClick={() => update("role", r.value)}

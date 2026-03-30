@@ -188,7 +188,7 @@ export default function BranchOwnerDashboard() {
   const totalViewRevenue = myStations.reduce((sum, s) => sum + (s.viewRevenue || 0), 0);
   const canRedeem = totalViewRevenue >= 100;
   const canAddStation = userData?.isSubscribed === true;
-  const monthlyFee = userData?.role === "other_branch" ? 250 : 200;
+  const monthlyFee = userData?.role === "other_branch" ? 100 : 75;
 
   return (
     <DashboardShell title="Branch Owner Dashboard">
@@ -582,11 +582,11 @@ export default function BranchOwnerDashboard() {
               <div>
                 <h4 className="font-bold text-white">Monthly Payment</h4>
                 <p className="text-sm text-slate-400">
-                  {userData?.role === "other_branch" ? "₱250/month" : "₱200/month"} - Non-refundable
+                  {userData?.role === "other_branch" ? "₱100/month" : "₱75/month"} - Non-refundable
                 </p>
               </div>
               <span className="text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full">
-                ₱{userData?.role === "other_branch" ? "250" : "200"}/month
+                ₱{userData?.role === "other_branch" ? "100" : "75"}/month
               </span>
             </div>
 
@@ -595,7 +595,7 @@ export default function BranchOwnerDashboard() {
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between"><span className="text-slate-400">Number</span><span className="text-white font-bold">09469086926</span></div>
                 <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-amber-400 font-bold">₱{userData?.role === "other_branch" ? "250" : "200"}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-amber-400 font-bold">₱{userData?.role === "other_branch" ? "100" : "75"}</span></div>
               </div>
             </div>
 

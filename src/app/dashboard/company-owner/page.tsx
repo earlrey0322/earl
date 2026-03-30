@@ -719,8 +719,8 @@ export default function CompanyOwnerDashboard() {
             </div>
             <h5 className="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Monthly Fees</h5>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-slate-400">Branch Owner</span><span className="text-amber-400 font-bold">₱200/month</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Other Branch</span><span className="text-amber-400 font-bold">₱250/month</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Branch Owner</span><span className="text-amber-400 font-bold">₱75/month</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Other Branch</span><span className="text-amber-400 font-bold">₱100/month</span></div>
             </div>
           </div>
         </section>
