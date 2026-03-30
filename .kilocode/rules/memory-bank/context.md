@@ -175,3 +175,5 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-30 | Updated StationMap with filter buttons: All, Active, Inactive, KLEOXM 111, Other Station |
 | 2026-03-30 | Color-coded company badges: KLEOXM 111 = yellow, Other = blue |
 | 2026-03-30 | StationMap now handles locked station display internally with "Subscribe Now" link |
+| 2026-03-30 | Fixed stations API - ALL users now see ALL stations (was filtering out non-KLEOXM stations) |
+| 2026-03-30 | Location data (lat/lng) only hidden for non-premium users viewing non-KLEOXM stations |

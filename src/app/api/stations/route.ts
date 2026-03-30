@@ -4,8 +4,8 @@ import { getAuthUser } from "@/lib/api-auth";
 
 function toStation(s: any, isPremium: boolean, isOwner: boolean) {
   const isKleoXM = s.company_name === "KLEOXM 111" || !s.company_name || s.company_name === "";
-  const canSeeStation = isKleoXM || isPremium || isOwner;
-  const canSeeLocation = canSeeStation && (isPremium || isOwner || isKleoXM);
+  // Location visibility: KLEOXM 111 visible to all, other companies only for premium/owner
+  const canSeeLocation = isKleoXM || isPremium || isOwner;
   
   return {
     id: s.id,
@@ -44,17 +44,9 @@ export async function GET() {
       isPremium = !!user?.is_subscribed;
     }
 
-    let query = supabase.from("charging_stations").select("*").order("id");
+    // ALL users see ALL stations - visibility is controlled by toStation (location data hidden for non-premium)
+    const { data, error } = await supabase.from("charging_stations").select("*").order("id");
     
-    if (auth && auth.role === "company_owner") {
-      // See all
-    } else if (auth) {
-      query = query.or(`company_name.eq.KLEOXM 111,company_name.eq.,owner_id.eq.${auth.id}`);
-    } else {
-      query = query.or("company_name.eq.KLEOXM 111,company_name.eq.");
-    }
-
-    const { data, error } = await query;
     if (error) return NextResponse.json({ error: error.message });
     return NextResponse.json({
       stations: (data || []).map((s: any) => toStation(s, isPremium, auth?.id === s.owner_id))
