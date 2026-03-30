@@ -39,12 +39,19 @@ export async function PATCH(req: Request) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
+    const updateData: any = {
+      is_subscribed: isPremium,
+      subscription_plan: isPremium ? "lifetime" : null,
+    };
+    
+    // Clear expiry when removing premium
+    if (!isPremium) {
+      updateData.subscription_expiry = null;
+    }
+
     const { error } = await supabase
       .from("users")
-      .update({
-        is_subscribed: isPremium,
-        subscription_plan: isPremium ? "lifetime" : null,
-      })
+      .update(updateData)
       .eq("id", userId);
 
     if (error) return NextResponse.json({ error: error.message });

@@ -121,7 +121,16 @@ export default function CompanyOwnerDashboard() {
     playClick();
     try {
       await apiFetch("/api/admin/users", { method: "PATCH", body: JSON.stringify({ userId, isPremium: makePremium }) });
-      if (usersData) setUsersData({ ...usersData, users: usersData.users.map((u) => u.id === userId ? { ...u, isSubscribed: makePremium, subscriptionPlan: makePremium ? "lifetime" : null } : u) });
+      if (usersData) setUsersData({ 
+        ...usersData, 
+        users: usersData.users.map((u) => u.id === userId ? { 
+          ...u, 
+          isSubscribed: makePremium, 
+          subscriptionPlan: makePremium ? "lifetime" : null,
+          subscriptionExpiry: makePremium ? u.subscriptionExpiry : null 
+        } : u) 
+      });
+      alert(makePremium ? "Premium activated!" : "Premium removed - user is now Regular");
     } catch (err) { alert("Error: " + String(err)); }
   }
 
@@ -467,6 +476,70 @@ export default function CompanyOwnerDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </section>
+
+        {/* All Users Timeline */}
+        <section id="users-timeline" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">All Users</h3>
+          <p className="text-sm text-slate-400">Click Set/Unset Premium to toggle user status. Premium = All stations visible, Regular = Only KLEOXM 111.</p>
+          {allUsers.filter((u) => u.role !== "company_owner").length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No users yet.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-700">
+                    <th className="text-left py-2 text-slate-400">Name</th>
+                    <th className="text-left py-2 text-slate-400">Email</th>
+                    <th className="text-left py-2 text-slate-400">Role</th>
+                    <th className="text-left py-2 text-slate-400">Status</th>
+                    <th className="text-left py-2 text-slate-400">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allUsers.filter((u) => u.role !== "company_owner").map((u) => (
+                    <tr key={u.id} className="border-b border-slate-800">
+                      <td className="py-3 text-white font-medium">{u.fullName}</td>
+                      <td className="py-3 text-slate-400">{u.email}</td>
+                      <td className="py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          u.role === "branch_owner" ? "bg-blue-400/10 text-blue-400" :
+                          u.role === "other_branch" ? "bg-purple-400/10 text-purple-400" :
+                          "bg-green-400/10 text-green-400"
+                        }`}>
+                          {u.role === "branch_owner" ? "Branch Owner" :
+                           u.role === "other_branch" ? "Other Branch" : "Customer"}
+                        </span>
+                      </td>
+                      <td className="py-3">
+                        {u.isSubscribed ? (
+                          <span className="text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full font-bold">
+                            ★ Premium
+                          </span>
+                        ) : (
+                          <span className="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-full">
+                            Regular
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        <button
+                          onClick={() => togglePremium(u.id, !u.isSubscribed)}
+                          className={`text-xs px-3 py-1 rounded font-bold ${
+                            u.isSubscribed 
+                              ? "bg-red-400/10 text-red-400 hover:bg-red-400/20 border border-red-400/30" 
+                              : "bg-green-400/10 text-green-400 hover:bg-green-400/20 border border-green-400/30"
+                          }`}
+                        >
+                          {u.isSubscribed ? "Unset Premium" : "Set Premium"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </section>
