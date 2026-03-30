@@ -45,6 +45,10 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Added views and view_revenue columns to charging_stations table in Supabase
 - [x] Added redemptions table to Supabase schema
 - [x] Company owner can approve/deliver free station or GCash redemption requests
+- [x] Added DELETE endpoint to subscription-requests API for company owner
+- [x] Added DELETE endpoint to monthly-payments API for company owner
+- [x] Company owner dashboard: added delete buttons for processed requests
+- [x] Company owner can manually toggle premium status for any user (Make Premium/Remove Premium)
 
 ## Current Structure
 
@@ -143,4 +147,7 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Improved error handling in customer, branch owner, and company owner dashboards |
 | 2026-03-29 | View-based revenue: ₱0.20 per station view, redemption at ₱100 (free station or GCash) |
 | 2026-03-29 | Removed charging session revenue from branch owner, added views/viewRevenue to stations |
+| 2026-03-29 | Added redemptions table and API for handling revenue redemption requests |
+| 2026-03-30 | Added DELETE endpoints for subscription requests and monthly payments |
+| 2026-03-30 | Company owner can delete processed requests and manually toggle user premium status |
 | 2026-03-29 | Added redemptions table and API for handling revenue redemption requests |
