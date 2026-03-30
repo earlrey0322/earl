@@ -5,20 +5,10 @@ import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap, Station } from "@/components/StationMap";
 import { apiFetch } from "@/lib/api-fetch";
 
-interface SubscriptionRequest { id: number; plan: string; status: string; created_at: string; reference_number: string; }
 interface MonthlyPayment { id: number; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
 interface Redemption { id: number; redemption_type: string; redemption_label?: string; amount: number; status: string; contact_name: string | null; contact_number: string | null; delivery_address: string | null; created_at: string; }
 type RedemptionType = "free_station" | "station_parts" | "coin_slots" | "charging_cable" | null;
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; contactNumber: string | null; subscriptionExpiry: string | null; }
-
-const PLANS = [
-  { id: "1_day", label: "1 Day", days: 1, price: 20 },
-  { id: "1_week", label: "1 Week", days: 7, price: 60 },
-  { id: "1_month", label: "1 Month", days: 30, price: 100 },
-  { id: "3_months", label: "3 Months", days: 90, price: 170 },
-  { id: "6_months", label: "6 Months", days: 180, price: 220 },
-  { id: "1_year", label: "1 Year", days: 365, price: 300 },
-];
 
 function playClick() {
   try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 800; o.type = "sine"; g.gain.setValueAtTime(0.1, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15); o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.15); } catch {}
@@ -29,15 +19,10 @@ export default function BranchOwnerDashboard() {
   const [stations, setStations] = useState<Station[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [referenceNumber, setReferenceNumber] = useState("");
   const [monthlyReferenceNumber, setMonthlyReferenceNumber] = useState("");
-  const [requesting, setRequesting] = useState(false);
   const [requestingMonthly, setRequestingMonthly] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [redeemType, setRedeemType] = useState<RedemptionType>(null);
   const [redeemForm, setRedeemForm] = useState({ contactName: "", contactNumber: "", deliveryAddress: "" });
@@ -51,72 +36,15 @@ export default function BranchOwnerDashboard() {
     Promise.allSettled([
       apiFetch("/api/auth/me").then((r) => r.json()),
       apiFetch("/api/stations").then((r) => r.json()),
-      apiFetch("/api/subscription-requests").then((r) => r.json()),
       apiFetch("/api/monthly-payments").then((r) => r.json()),
       apiFetch("/api/redemptions").then((r) => r.json()),
-    ]).then(([meRes, stRes, srRes, mpRes, rdRes]) => {
+    ]).then(([meRes, stRes, mpRes, rdRes]) => {
       if (meRes.status === "fulfilled" && meRes.value.user) setUserData(meRes.value.user);
       if (stRes.status === "fulfilled" && stRes.value.stations) setStations(stRes.value.stations);
-      if (srRes.status === "fulfilled" && srRes.value.requests) setSubRequests(srRes.value.requests);
       if (mpRes.status === "fulfilled" && mpRes.value.payments) setMonthlyPayments(mpRes.value.payments);
       if (rdRes.status === "fulfilled" && rdRes.value.redemptions) setRedemptions(rdRes.value.redemptions);
     }).catch(() => {});
   }, []);
-
-  // Subscription timer
-  useEffect(() => {
-    if (!userData?.isSubscribed || !userData?.subscriptionExpiry) {
-      return;
-    }
-    const updateTimer = () => {
-      const expiry = new Date(userData.subscriptionExpiry!).getTime();
-      const now = Date.now();
-      const diff = expiry - now;
-      if (diff <= 0) {
-        setTimeLeft("Expired");
-        return;
-      }
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      if (days > 0) setTimeLeft(`${days}d ${hours}h ${minutes}m`);
-      else if (hours > 0) setTimeLeft(`${hours}h ${minutes}m`);
-      else setTimeLeft(`${minutes}m`);
-    };
-    updateTimer();
-    const interval = setInterval(updateTimer, 60000);
-    return () => clearInterval(interval);
-  }, [userData?.isSubscribed, userData?.subscriptionExpiry]);
-
-  async function requestSubscription() {
-    if (!selectedPlan || !referenceNumber.trim()) {
-      alert("Please select a plan and enter your GCash reference number");
-      return;
-    }
-    setRequesting(true);
-    try {
-      const res = await apiFetch("/api/subscription-requests", { method: "POST", body: JSON.stringify({ plan: selectedPlan, referenceNumber: referenceNumber.trim() }) });
-      const data = await res.json();
-      if (res.ok) {
-        alert("Subscription request sent! Waiting for company owner approval.");
-        setSelectedPlan(null);
-        setReferenceNumber("");
-        try {
-          const refreshRes = await apiFetch("/api/subscription-requests");
-          const refreshData = await refreshRes.json();
-          if (refreshData.requests) setSubRequests(refreshData.requests);
-        } catch (refreshErr) {
-          console.error("Error refreshing requests:", refreshErr);
-        }
-      } else {
-        alert("Error: " + (data.error || "Failed to send request"));
-      }
-    } catch (err) { 
-      console.error("Error sending subscription request:", err);
-      alert("Error sending request: " + String(err)); 
-    }
-    setRequesting(false);
-  }
 
   async function requestMonthlyPayment() {
     if (!monthlyReferenceNumber.trim()) {
@@ -645,94 +573,6 @@ export default function BranchOwnerDashboard() {
             </div>
           </div>
         )}
-
-        <section id="subscription">
-          <h3 className="text-lg font-bold text-white mb-4">Subscription</h3>
-          <div className="space-y-6">
-            {userData?.isSubscribed && timeLeft ? (
-              <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/20 to-orange-500/20">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-bold text-white">Premium Active</h4>
-                    <p className="text-sm text-slate-400">Full access to all features</p>
-                  </div>
-                  <div className="px-3 py-1 bg-amber-400 text-[#0f172a] text-xs font-bold rounded-full">★ PREMIUM</div>
-                </div>
-                <div className="p-4 bg-slate-900/50 rounded-xl">
-                  <p className="text-xs text-slate-400 mb-1">Time Remaining</p>
-                  <p className="text-2xl font-bold text-amber-400">{timeLeft}</p>
-                  <p className="text-xs text-slate-500 mt-1">Expires: {userData?.subscriptionExpiry ? new Date(userData.subscriptionExpiry).toLocaleDateString() : "N/A"}</p>
-                </div>
-              </div>
-            ) : !userData?.isSubscribed ? (
-              <div className="glass-card rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-bold text-white">Request Premium Access</h4>
-                    <p className="text-sm text-slate-400">Select a plan and send request</p>
-                  </div>
-                  <span className="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-full">Free Plan</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  {PLANS.map((plan) => (
-                    <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
-                      className={`p-3 rounded-xl border text-center transition-all ${selectedPlan === plan.id ? "border-amber-400 bg-amber-400/10" : "border-slate-600 hover:border-slate-500"}`}>
-                      <div className="text-sm font-bold text-white">{plan.label}</div>
-                      <div className="text-lg font-bold text-amber-400">₱{plan.price}</div>
-                    </button>
-                  ))}
-                </div>
-
-                {selectedPlan && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl">
-                      <p className="text-xs text-blue-400 mb-2">GCash Payment</p>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between"><span className="text-slate-400">Number</span><span className="text-white font-bold">09469086926</span></div>
-                        <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
-                        <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-amber-400 font-bold">₱{PLANS.find((p) => p.id === selectedPlan)?.price}</span></div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm text-slate-300 mb-2">GCash Reference Number</label>
-                      <input type="text" value={referenceNumber} onChange={(e) => setReferenceNumber(e.target.value)}
-                        placeholder="Enter reference number from GCash"
-                        className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                    </div>
-
-                    <button onClick={requestSubscription} disabled={requesting || !referenceNumber.trim()}
-                      className="w-full py-3 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg disabled:opacity-50">
-                      {requesting ? "Sending..." : "Request Premium"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : null}
-
-            {subRequests.length > 0 && (
-              <div className="glass-card rounded-2xl p-6">
-                <h4 className="font-bold text-white mb-4">Your Requests</h4>
-                <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {subRequests.map((req) => (
-                    <div key={req.id} className="p-3 bg-slate-800/50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-white">{req.plan.replace(/_/g, " ")}</p>
-                          <p className="text-xs text-slate-400">Ref: {req.reference_number || "N/A"}</p>
-                          <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleDateString()}</p>
-                        </div>
-                        <span className={`text-xs px-2 py-1 rounded-full ${req.status === "approved" ? "bg-green-400/10 text-green-400" : req.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
-                          {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
 
         {/* Monthly Payment Section */}
         <section id="monthly-payment" className="space-y-6">

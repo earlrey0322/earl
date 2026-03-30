@@ -3,9 +3,8 @@ import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
 function toStation(s: any, isPremium: boolean, isOwner: boolean) {
-  const isKleoXM = s.company_name === "KLEOXM 111" || !s.company_name || s.company_name === "";
-  // Location visibility: KLEOXM 111 visible to all, other companies only for premium/owner
-  const canSeeLocation = isKleoXM || isPremium || isOwner;
+  // Location visibility: Only premium users and station owners can see exact lat/lng
+  const canSeeLocation = isPremium || isOwner;
   
   return {
     id: s.id,
