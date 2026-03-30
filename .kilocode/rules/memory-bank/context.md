@@ -72,7 +72,7 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 | `src/app/dashboard/customer/page.tsx` | Customer dashboard |
 | `src/app/dashboard/branch-owner/page.tsx` | Branch Owner dashboard |
 | `src/app/dashboard/company-owner/page.tsx` | Company Owner dashboard |
-| `src/app/api/auth/` | Auth API routes (login, signup, me) |
+| `src/app/api/auth/` | Auth API routes (login, signup, me, verify/send, verify) |
 | `src/app/api/stations/route.ts` | Charging stations CRUD |
 | `src/app/api/stations/view/route.ts` | Track station views and add points (0.1 pts/view) |
 | `src/app/api/sessions/route.ts` | Charging sessions CRUD |
@@ -119,13 +119,26 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 
 The app is complete and ready for use. All features are implemented:
 1. Landing page with product info
-2. 3-role authentication with worklife verification
+2. 3-role authentication with worklife verification + email verification (Nodemailer Gmail SMTP)
 3. Interactive station map with Google Maps
 4. Charging calculator
 5. GCash subscription system with GCash payment details
 6. Company owner management dashboard with user/subscription management
 7. Subscription request system - users can request plans, company owner approves/rejects
 8. Premium access control - non-premium users see limited location data
+
+### Environment Variables Needed (Cloudflare Workers)
+```
+SUPABASE_URL=https://ocrddgvdjogploplbblw.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_a0PiaTKOJoM0m8q8PckJjA_1eaoZGj3
+GMAIL_USER=your_gmail@gmail.com
+GMAIL_APP_PASSWORD=your_app_password
+```
+
+### Deployment Notes
+- Uses @cloudflare/next-on-pages for Cloudflare Workers deployment
+- wrangler.toml configured with build command and assets directory
+- Email verification requires Gmail App Password (create at https://myaccount.google.com/apppasswords)
 
 ## Session History
 
@@ -177,3 +190,8 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-30 | StationMap now handles locked station display internally with "Subscribe Now" link |
 | 2026-03-30 | Fixed stations API - ALL users now see ALL stations (was filtering out non-KLEOXM stations) |
 | 2026-03-30 | Location data (lat/lng) only hidden for non-premium users viewing non-KLEOXM stations |
+| 2026-03-30 | Fixed Cloudflare deployment - added @cloudflare/next-on-pages, updated wrangler.toml |
+| 2026-03-30 | Removed unused dependencies (better-sqlite3, drizzle-orm, @kilocode/app-builder-db) |
+| 2026-03-30 | Replaced Resend with Nodemailer Gmail SMTP for email verification |
+| 2026-03-30 | Created /api/auth/verify route for server-side code verification |
+| 2026-03-30 | Updated signup page to verify codes via API instead of local comparison |

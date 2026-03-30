@@ -12,9 +12,9 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
-  const [sentCode, setSentCode] = useState("");
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
 
   const [form, setForm] = useState({
     role: "" as Role | "", email: "", password: "", confirmPassword: "",
@@ -43,7 +43,7 @@ export default function SignupPage() {
       const data = await res.json();
       if (res.ok) {
         setCodeSent(true);
-        setSentCode(data.code);
+        setError("");
       } else {
         setError(data.error || "Failed to send verification code");
       }
@@ -53,13 +53,30 @@ export default function SignupPage() {
     setSendingCode(false);
   }
 
-  function verifyCode() {
-    if (verificationCode === sentCode && sentCode !== "") {
-      setIsEmailVerified(true);
-      setError("");
-    } else {
-      setError("Invalid verification code. Please check your email and try again.");
+  async function verifyCode() {
+    if (verificationCode.length !== 6) {
+      setError("Please enter a 6-digit code");
+      return;
     }
+    setVerifyingCode(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email.trim(), code: verificationCode }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsEmailVerified(true);
+        setError("");
+      } else {
+        setError(data.error || "Invalid verification code");
+      }
+    } catch {
+      setError("Failed to verify code. Please try again.");
+    }
+    setVerifyingCode(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -173,7 +190,7 @@ export default function SignupPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-                <input type="email" value={form.email} onChange={(e) => { update("email", e.target.value); setIsEmailVerified(false); setCodeSent(false); setSentCode(""); setVerificationCode(""); }} required
+                <input type="email" value={form.email} onChange={(e) => { update("email", e.target.value); setIsEmailVerified(false); setCodeSent(false); setVerificationCode(""); }} required
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="your@gmail.com" />
               </div>
               <div>
@@ -220,9 +237,9 @@ export default function SignupPage() {
                         className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:border-amber-400"
                         placeholder="000000" maxLength={6} />
                     </div>
-                    <button type="button" onClick={verifyCode} disabled={verificationCode.length !== 6}
+                    <button type="button" onClick={verifyCode} disabled={verificationCode.length !== 6 || verifyingCode}
                       className="w-full py-2 text-sm font-bold text-green-400 border border-green-400/30 rounded-lg hover:bg-green-400/10 disabled:opacity-50">
-                      Verify Code
+                      {verifyingCode ? "Verifying..." : "Verify Code"}
                     </button>
                     <button type="button" onClick={sendVerificationCode}
                       className="w-full py-2 text-xs text-slate-400 hover:text-slate-300">
