@@ -11,8 +11,10 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
-  const [generatedCode, setGeneratedCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [sentCode, setSentCode] = useState("");
   const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [sendingCode, setSendingCode] = useState(false);
 
   const [form, setForm] = useState({
     role: "" as Role | "", email: "", password: "", confirmPassword: "",
@@ -23,25 +25,40 @@ export default function SignupPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  // Check if email is valid (contains @ and .)
   const isValidEmail = form.email.includes("@") && form.email.includes(".");
 
-  function generateVerificationCode() {
+  async function sendVerificationCode() {
     if (!isValidEmail) {
       setError("Please enter a valid email address");
       return;
     }
-    // Generate 6-digit code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code);
+    setSendingCode(true);
     setError("");
+    try {
+      const res = await fetch("/api/auth/verify/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCodeSent(true);
+        setSentCode(data.code);
+      } else {
+        setError(data.error || "Failed to send verification code");
+      }
+    } catch (err) {
+      setError("Failed to send verification code");
+    }
+    setSendingCode(false);
   }
 
   function verifyCode() {
-    if (verificationCode === generatedCode && generatedCode !== "") {
+    if (verificationCode === sentCode && sentCode !== "") {
       setIsEmailVerified(true);
+      setError("");
     } else {
-      setError("Invalid verification code. Please try again.");
+      setError("Invalid verification code. Please check your email and try again.");
     }
   }
 
@@ -156,7 +173,7 @@ export default function SignupPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-                <input type="email" value={form.email} onChange={(e) => { update("email", e.target.value); setIsEmailVerified(false); setGeneratedCode(""); setVerificationCode(""); }} required
+                <input type="email" value={form.email} onChange={(e) => { update("email", e.target.value); setIsEmailVerified(false); setCodeSent(false); setSentCode(""); setVerificationCode(""); }} required
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="your@gmail.com" />
               </div>
               <div>
@@ -176,34 +193,40 @@ export default function SignupPage() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-white">Email Verification & Password</h2>
               
-              {/* Email Verification */}
               <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
-                <label className="block text-sm font-medium text-slate-300 mb-2">Email Verification</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">Verify Your Email</label>
                 <p className="text-xs text-slate-400 mb-3">
                   {isValidEmail 
-                    ? `Click below to get verification code for ${form.email}`
-                    : "Enter a valid email (e.g., your@gmail.com) in Step 2"}
+                    ? `We'll send a verification code to ${form.email}`
+                    : "Enter a valid email in Step 2 first"}
                 </p>
                 
-                {!generatedCode && !isEmailVerified && (
-                  <button type="button" onClick={generateVerificationCode} disabled={!isValidEmail}
-                    className="w-full py-2 text-sm font-bold text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10 disabled:opacity-50 disabled:text-slate-500">
-                    Get Verification Code
+                {!codeSent && !isEmailVerified && (
+                  <button type="button" onClick={sendVerificationCode} disabled={!isValidEmail || sendingCode}
+                    className="w-full py-3 text-sm font-bold text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10 disabled:opacity-50">
+                    {sendingCode ? "Sending..." : "Click to Verify Email"}
                   </button>
                 )}
 
-                {generatedCode && !isEmailVerified && (
+                {codeSent && !isEmailVerified && (
                   <div className="space-y-3">
-                    <div className="p-3 bg-amber-400/10 border border-amber-400/30 rounded-lg text-center">
-                      <p className="text-xs text-slate-400 mb-1">Your verification code is:</p>
-                      <p className="text-3xl font-bold text-amber-400 tracking-widest">{generatedCode}</p>
+                    <div className="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-center">
+                      <p className="text-sm text-green-400 font-medium">✓ Code sent to your email!</p>
+                      <p className="text-xs text-slate-400 mt-1">Check your inbox: {form.email}</p>
                     </div>
-                    <input type="text" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)}
-                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:border-amber-400"
-                      placeholder="Enter code" maxLength={6} />
+                    <div>
+                      <label className="block text-sm text-slate-300 mb-2">Enter 6-digit code</label>
+                      <input type="text" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+                        className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:border-amber-400"
+                        placeholder="000000" maxLength={6} />
+                    </div>
                     <button type="button" onClick={verifyCode} disabled={verificationCode.length !== 6}
                       className="w-full py-2 text-sm font-bold text-green-400 border border-green-400/30 rounded-lg hover:bg-green-400/10 disabled:opacity-50">
-                      Verify Email
+                      Verify Code
+                    </button>
+                    <button type="button" onClick={sendVerificationCode}
+                      className="w-full py-2 text-xs text-slate-400 hover:text-slate-300">
+                      Didn&apos;t receive code? Resend
                     </button>
                   </div>
                 )}
