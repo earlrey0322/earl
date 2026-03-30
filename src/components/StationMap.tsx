@@ -122,7 +122,7 @@ export function StationMap({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left: Station Cards */}
         <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
-          {validStations.map((s) => {
+          {filtered.map((s) => {
             const companyBadge = getCompanyBadge(s.companyName);
             const isLocked = !showAllBrands && s.companyName && s.companyName !== "KLEOXM 111";
             
