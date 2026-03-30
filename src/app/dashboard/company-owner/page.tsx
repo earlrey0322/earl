@@ -500,8 +500,16 @@ export default function CompanyOwnerDashboard() {
 
         {/* All Users Timeline */}
         <section id="users-timeline" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">All Users</h3>
-          <p className="text-sm text-slate-400">Click Set/Unset Premium to toggle user status. Premium = All stations visible, Regular = Only KLEOXM 111.</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-bold text-white">All Users ({allUsers.length})</h3>
+              <p className="text-sm text-slate-400">Click Set/Unset Premium to toggle user status. Premium = All stations, Regular = KLEOXM 111 only.</p>
+            </div>
+            <button onClick={() => { refreshUsers(); }}
+              className="px-4 py-2 text-xs font-medium text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10">
+              Refresh Users
+            </button>
+          </div>
           {allUsers.length === 0 ? (
             <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No users yet. Users will appear here when they sign up.</div>
           ) : (
