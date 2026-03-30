@@ -54,6 +54,10 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] New redemption tiers: 1000pts (full station), 500pts (station parts), 100pts (3 coin slots), 50pts (charging cable)
 - [x] StationMap now calls view tracking API when station is clicked
 - [x] Company owner dashboard now shows redemptions for approve/reject
+- [x] Simplified company owner dashboard - only Unpaid and Requests sections
+- [x] Locked station feature - regular users see "Buy premium to unlock" for non-KLEOXM stations
+- [x] Account Status section (Premium/Regular) added to branch owner and customer dashboards
+- [x] Subscription requests show "User X wants Y subscription" format
 
 ## Current Structure
 
@@ -161,3 +165,7 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-30 | Premium toggle changed to Set Premium / Unset Premium single button |
 | 2026-03-30 | Added view tracking call to StationMap when station is clicked |
 | 2026-03-30 | Added redemptions section to company owner dashboard for processing |
+| 2026-03-30 | Simplified company owner dashboard - removed separate user tables, kept only Unpaid and Requests sections |
+| 2026-03-30 | Added locked station feature - regular users see "Buy premium to unlock" when clicking non-KLEOXM stations |
+| 2026-03-30 | Added Account Status section to branch owner and customer dashboards showing Premium/Regular |
+| 2026-03-30 | Subscription requests now show "User X wants Y subscription" format for company owner |

@@ -17,6 +17,15 @@ const PLAN_PRICES: Record<string, number> = {
   "1_year": 300,
 };
 
+const PLAN_DAYS: Record<string, number> = {
+  "1_day": 1,
+  "1_week": 7,
+  "1_month": 30,
+  "3_months": 90,
+  "6_months": 180,
+  "1_year": 365,
+};
+
 interface HistoryItem {
   id: number; phoneBrand: string; startBattery: number; targetBattery: number;
   costPesos: number; durationMinutes: number; stationName: string; userEmail: string; createdAt: string;
@@ -24,11 +33,11 @@ interface HistoryItem {
 
 interface Notification { id: number; subject: string; message: string; type: string; isRead: boolean; }
 
-interface SubscriptionRequest { id: number; user_id: number; user_email: string; user_name: string; user_role: string; plan: string; status: string; reference_number: string; created_at: string; }
+interface SubscriptionRequest { id: number; user_id: number; user_email: string; user_name: string; user_role: string; plan: string; status: string; reference_number: string; created_at: string; subscription_expiry: string | null; }
 
 interface MonthlyPayment { id: number; user_id: number; user_email: string; user_name: string; user_role: string; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
 
-interface CompanyUser { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionPlan: string | null; }
+interface CompanyUser { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionPlan: string | null; subscriptionExpiry: string | null; }
 
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; }
 
@@ -45,9 +54,6 @@ export default function CompanyOwnerDashboard() {
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
-  const [showApproveDialog, setShowApproveDialog] = useState(false);
-  const [approvingRequest, setApprovingRequest] = useState<SubscriptionRequest | null>(null);
-  const [approveDays, setApproveDays] = useState(1);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
@@ -119,142 +125,105 @@ export default function CompanyOwnerDashboard() {
     } catch (err) { alert("Error: " + String(err)); }
   }
 
-  async function handleSubscriptionRequest(requestId: number, approve: boolean, days?: number) {
+  async function handleSubscriptionRequest(requestId: number, approve: boolean) {
     playClick();
     try {
-      console.log("Handling subscription request:", { requestId, approve, days: days || approveDays });
-      const res = await apiFetch("/api/subscription-requests", { method: "PATCH", body: JSON.stringify({ requestId, approve, days: days || approveDays }) });
+      const res = await apiFetch("/api/subscription-requests", { method: "PATCH", body: JSON.stringify({ requestId, approve }) });
       const data = await res.json();
       if (res.ok) {
         setSubRequests((prev) => prev.map((r) => r.id === requestId ? { ...r, status: approve ? "approved" : "rejected" } : r));
         alert(`Request ${approve ? "approved" : "rejected"}!`);
-        setShowApproveDialog(false);
-        setApprovingRequest(null);
-        // Refresh subscription requests
+        // Refresh data
         try {
-          const refreshRes = await apiFetch("/api/subscription-requests");
-          const refreshData = await refreshRes.json();
-          if (refreshData.requests) setSubRequests(refreshData.requests);
+          const [srRes, usRes] = await Promise.all([
+            apiFetch("/api/subscription-requests"),
+            apiFetch("/api/users"),
+          ]);
+          const srData = await srRes.json();
+          const usData = await usRes.json();
+          if (srData.requests) setSubRequests(srData.requests);
+          if (usData.totalUsers !== undefined) setUsersData(usData);
         } catch (refreshErr) {
-          console.error("Error refreshing requests:", refreshErr);
+          console.error("Error refreshing:", refreshErr);
         }
       } else {
-        console.error("Failed to update request:", data);
-        alert("Failed to update request: " + (data.error || "Unknown error"));
+        alert("Failed: " + (data.error || "Unknown error"));
       }
     } catch (err) { 
-      console.error("Error updating request:", err);
-      alert("Error updating request: " + String(err)); 
+      alert("Error: " + String(err)); 
     }
-  }
-
-  function openApproveDialog(req: SubscriptionRequest) {
-    playClick();
-    setApprovingRequest(req);
-    // Set default days based on plan
-    const defaultDays: Record<string, number> = { "1_day": 1, "1_week": 7, "1_month": 30, "3_months": 90, "6_months": 180, "1_year": 365 };
-    setApproveDays(defaultDays[req.plan] || 1);
-    setShowApproveDialog(true);
   }
 
   async function handleMonthlyPayment(paymentId: number, approve: boolean) {
     playClick();
     try {
-      console.log("Handling monthly payment:", { paymentId, approve });
       const res = await apiFetch("/api/monthly-payments", { method: "PATCH", body: JSON.stringify({ paymentId, approve }) });
       const data = await res.json();
       if (res.ok) {
         setMonthlyPayments((prev) => prev.map((p) => p.id === paymentId ? { ...p, status: approve ? "approved" : "rejected" } : p));
         alert(`Monthly payment ${approve ? "approved" : "rejected"}!`);
-        if (approve) {
-          // Refresh users data to update subscription status
-          try {
-            const usersRes = await apiFetch("/api/users");
-            const usersDataRefresh = await usersRes.json();
-            if (usersDataRefresh.totalUsers !== undefined) setUsersData(usersDataRefresh);
-          } catch (refreshErr) {
-            console.error("Error refreshing users:", refreshErr);
-          }
-        }
-        // Refresh monthly payments
+        // Refresh data
         try {
-          const refreshRes = await apiFetch("/api/monthly-payments");
-          const refreshData = await refreshRes.json();
-          if (refreshData.payments) setMonthlyPayments(refreshData.payments);
+          const [mpRes, usRes] = await Promise.all([
+            apiFetch("/api/monthly-payments"),
+            apiFetch("/api/users"),
+          ]);
+          const mpData = await mpRes.json();
+          const usData = await usRes.json();
+          if (mpData.payments) setMonthlyPayments(mpData.payments);
+          if (usData.totalUsers !== undefined) setUsersData(usData);
         } catch (refreshErr) {
-          console.error("Error refreshing payments:", refreshErr);
+          console.error("Error refreshing:", refreshErr);
         }
       } else {
-        console.error("Failed to update payment:", data);
-        alert("Failed to update payment: " + (data.error || "Unknown error"));
+        alert("Failed: " + (data.error || "Unknown error"));
       }
     } catch (err) { 
-      console.error("Error updating payment:", err);
-      alert("Error updating payment: " + String(err)); 
+      alert("Error: " + String(err)); 
     }
   }
 
   async function deleteSubscriptionRequest(requestId: number) {
     playClick();
-    if (!confirm("Delete this subscription request?")) return;
+    if (!confirm("Delete this request?")) return;
     try {
       const res = await apiFetch("/api/subscription-requests", { method: "DELETE", body: JSON.stringify({ requestId }) });
-      const data = await res.json();
       if (res.ok) {
         setSubRequests((prev) => prev.filter((r) => r.id !== requestId));
-        alert("Request deleted!");
-      } else {
-        alert("Failed to delete: " + (data.error || "Unknown error"));
+        alert("Deleted!");
       }
-    } catch (err) {
-      console.error("Error deleting request:", err);
-      alert("Error: " + String(err));
-    }
+    } catch (err) { alert("Error: " + String(err)); }
   }
 
   async function deleteMonthlyPayment(paymentId: number) {
     playClick();
-    if (!confirm("Delete this monthly payment request?")) return;
+    if (!confirm("Delete this payment request?")) return;
     try {
       const res = await apiFetch("/api/monthly-payments", { method: "DELETE", body: JSON.stringify({ paymentId }) });
-      const data = await res.json();
       if (res.ok) {
         setMonthlyPayments((prev) => prev.filter((p) => p.id !== paymentId));
-        alert("Payment request deleted!");
-      } else {
-        alert("Failed to delete: " + (data.error || "Unknown error"));
+        alert("Deleted!");
       }
-    } catch (err) {
-      console.error("Error deleting payment:", err);
-      alert("Error: " + String(err));
-    }
+    } catch (err) { alert("Error: " + String(err)); }
   }
 
   async function handleRedemption(redemptionId: number, approve: boolean) {
     playClick();
     try {
       const res = await apiFetch("/api/redemptions", { method: "PATCH", body: JSON.stringify({ redemptionId, approve }) });
-      const data = await res.json();
       if (res.ok) {
         setRedemptions((prev) => prev.map((r) => r.id === redemptionId ? { ...r, status: approve ? "approved" : "rejected" } : r));
         alert(`Redemption ${approve ? "approved" : "rejected"}!`);
-      } else {
-        alert("Failed: " + (data.error || "Unknown error"));
       }
-    } catch (err) {
-      console.error("Error handling redemption:", err);
-      alert("Error: " + String(err));
-    }
+    } catch (err) { alert("Error: " + String(err)); }
   }
 
   function useLocation() {
     if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
     navigator.geolocation.getCurrentPosition(
       (p) => {
-        const lat = p.coords.latitude;
-        const lng = p.coords.longitude;
-        setAddForm((f) => ({ ...f, latitude: lat, longitude: lng }));
-        alert(`Location set: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        setAddForm((f) => ({ ...f, latitude: p.coords.latitude, longitude: p.coords.longitude }));
+        alert(`Location set: ${p.coords.latitude.toFixed(4)}, ${p.coords.longitude.toFixed(4)}`);
       },
       (err) => { alert("Location error: " + err.message); },
       { enableHighAccuracy: false, timeout: 10000 }
@@ -263,28 +232,25 @@ export default function CompanyOwnerDashboard() {
 
   async function removeStation(id: number, name: string) {
     playClick();
-    if (!confirm(`Remove station "${name}"?`)) return;
+    if (!confirm(`Remove "${name}"?`)) return;
     await apiFetch("/api/stations", { method: "DELETE", body: JSON.stringify({ id }) });
     setStations((prev) => prev.filter((s) => s.id !== id));
   }
 
-  function handleRefresh() {
-    apiFetch("/api/auth/me").then((r) => r.json()).then((d) => { if (d.user) setUserData(d.user); }).catch(() => {});
-  }
-
-  const branchOwners = usersData?.users?.filter((u) => u.role === "branch_owner") || [];
-  const otherBranches = usersData?.users?.filter((u) => u.role === "other_branch") || [];
-  const customers = usersData?.users?.filter((u) => u.role === "customer") || [];
-  const totalRevenue = history.reduce((s, h) => s + h.costPesos, 0);
-  const totalVisits = stations.reduce((s, st) => s + (st.totalVisits || 0), 0);
-  // Calculate subscription revenue from approved requests
-  const subscriptionRevenue = subRequests
-    .filter((r) => r.status === "approved")
-    .reduce((s, r) => s + (PLAN_PRICES[r.plan] || 0), 0);
-  // Calculate monthly payment revenue
-  const monthlyPaymentRevenue = monthlyPayments
-    .filter((p) => p.status === "approved")
-    .reduce((s, p) => s + (p.amount || 0), 0);
+  // Get unpaid users (all users who are not subscribed, except company owner)
+  const allUsers = usersData?.users || [];
+  const unpaidUsers = allUsers.filter((u) => !u.isSubscribed && u.role !== "company_owner");
+  
+  // Get pending requests
+  const pendingSubRequests = subRequests.filter((r) => r.status === "pending");
+  const pendingMonthlyPayments = monthlyPayments.filter((p) => p.status === "pending");
+  
+  // Get approved requests with expiry info
+  const approvedSubRequests = subRequests.filter((r) => r.status === "approved");
+  const approvedMonthlyPayments = monthlyPayments.filter((p) => p.status === "approved");
+  
+  const subscriptionRevenue = approvedSubRequests.reduce((s, r) => s + (PLAN_PRICES[r.plan] || 0), 0);
+  const monthlyPaymentRevenue = approvedMonthlyPayments.reduce((s, p) => s + (p.amount || 0), 0);
 
   return (
     <DashboardShell title="Company Owner Dashboard">
@@ -293,12 +259,11 @@ export default function CompanyOwnerDashboard() {
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 via-orange-500/5 to-red-500/5">
           <h2 className="text-2xl font-bold text-white">KLEOXM 111 Management</h2>
           <p className="text-slate-400 mt-1">Welcome, {userData?.fullName || "Company Owner"}</p>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-2xl font-bold text-amber-400">{stations.length}</div><div className="text-xs text-slate-400">Stations</div></div>
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
-            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{usersData?.totalBranchOwners || 0}</div><div className="text-xs text-slate-400">Branch Owners</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranches.length}</div><div className="text-xs text-slate-400">Other Branches</div></div>
-            <div className="px-4 py-3 bg-cyan-400/10 rounded-lg"><div className="text-2xl font-bold text-cyan-400">{usersData?.totalCustomers || 0}</div><div className="text-xs text-slate-400">Customers</div></div>
+            <div className="px-4 py-3 bg-red-400/10 rounded-lg"><div className="text-2xl font-bold text-red-400">{unpaidUsers.length}</div><div className="text-xs text-slate-400">Unpaid Users</div></div>
+            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{pendingSubRequests.length + pendingMonthlyPayments.length}</div><div className="text-xs text-slate-400">Pending Requests</div></div>
           </div>
         </div>
 
@@ -317,110 +282,40 @@ export default function CompanyOwnerDashboard() {
           )}
         </div>
 
-        {/* Users */}
-        <section id="users" className="space-y-6">
-          <h3 className="text-lg font-bold text-white">Branch Owners & Customers</h3>
-          <div className="glass-card rounded-2xl p-6">
-            <h4 className="font-bold text-white mb-4">Branch Owners ({branchOwners.length})</h4>
-            {branchOwners.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
-              <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {branchOwners.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Premium" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "bg-red-400/10 text-red-400 hover:bg-red-400/20" : "bg-green-400/10 text-green-400 hover:bg-green-400/20"}`}>{u.isSubscribed ? "Unset Premium" : "Set Premium"}</button></td></tr>))}
-              </tbody></table></div>
-            )}
-          </div>
-          <div className="glass-card rounded-2xl p-6">
-            <h4 className="font-bold text-white mb-4">Customers ({customers.length})</h4>
-            {customers.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
-              <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {customers.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Premium" : "Free"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "bg-red-400/10 text-red-400 hover:bg-red-400/20" : "bg-green-400/10 text-green-400 hover:bg-green-400/20"}`}>{u.isSubscribed ? "Unset Premium" : "Set Premium"}</button></td></tr>))}
-              </tbody></table></div>
-            )}
-          </div>
-          <div className="glass-card rounded-2xl p-6">
-            <h4 className="font-bold text-white mb-4">Other Branches ({otherBranches.length}) - ₱250/month</h4>
-            {otherBranches.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">None yet.</p> : (
-              <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-slate-700"><th className="text-left py-2 text-slate-400">Name</th><th className="text-left py-2 text-slate-400">Email</th><th className="text-left py-2 text-slate-400">Plan</th><th className="text-left py-2 text-slate-400">Action</th></tr></thead><tbody>
-                {otherBranches.map((u) => (<tr key={u.id} className="border-b border-slate-800"><td className="py-3 text-white">{u.fullName}</td><td className="py-3 text-slate-400">{u.email}</td><td className="py-3"><span className={`text-xs px-2 py-0.5 rounded-full ${u.isSubscribed ? "bg-amber-400/10 text-amber-400" : "bg-slate-700 text-slate-400"}`}>{u.isSubscribed ? "Premium" : "No Payment"}</span></td><td className="py-3"><button onClick={() => togglePremium(u.id, !u.isSubscribed)} className={`text-xs px-2 py-1 rounded ${u.isSubscribed ? "bg-red-400/10 text-red-400 hover:bg-red-400/20" : "bg-green-400/10 text-green-400 hover:bg-green-400/20"}`}>{u.isSubscribed ? "Unset Premium" : "Set Premium"}</button></td></tr>))}
-              </tbody></table></div>
-            )}
-          </div>
-        </section>
-
-        {/* Unpaid Users Timeline */}
-        <section className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Unpaid Branch Owners & Other Branches</h3>
-          {(() => {
-            const unpaidUsers = [...branchOwners, ...otherBranches].filter((u) => !u.isSubscribed);
-            if (unpaidUsers.length === 0) {
-              return <div className="glass-card rounded-2xl p-6 text-center text-green-400">All users have paid!</div>;
-            }
-            return (
-              <div className="space-y-3">
-                {unpaidUsers.map((u) => (
-                  <div key={u.id} className="glass-card rounded-xl p-4 flex items-center justify-between">
+        {/* Unpaid Users Section */}
+        <section id="unpaid" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Unpaid Users</h3>
+          <p className="text-sm text-slate-400">New users who haven&apos;t paid yet. Approve their payment to give them premium access.</p>
+          {unpaidUsers.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-green-400">All users have paid!</div>
+          ) : (
+            <div className="space-y-3">
+              {unpaidUsers.map((u) => (
+                <div key={u.id} className="glass-card rounded-xl p-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-red-400/10 flex items-center justify-center text-red-400 font-bold">
                         {u.fullName.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-white">{u.fullName}</p>
-                        <p className="text-xs text-slate-400">{u.email} • {u.role === "other_branch" ? "Other Branch (₱250/mo)" : "Branch Owner (₱200/mo)"}</p>
+                        <p className="text-xs text-slate-400">{u.email}</p>
+                        <p className="text-xs text-amber-400">
+                          {u.role === "branch_owner" && "Branch Owner (₱200/mo)"}
+                          {u.role === "other_branch" && "Other Branch (₱250/mo)"}
+                          {u.role === "customer" && "Customer (Subscription)"}
+                          {u.role === "company_owner" && "Company Owner"}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs px-2 py-1 bg-red-400/10 text-red-400 rounded-full">Unpaid</span>
-                      <button onClick={() => togglePremium(u.id, true)}
-                        className="text-xs px-3 py-1 bg-green-400/10 text-green-400 rounded hover:bg-green-400/20">
-                        Set Premium
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
-        </section>
-
-        {/* Subscription Requests */}
-        <section id="subscription-requests" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Subscription Requests</h3>
-          {subRequests.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No subscription requests yet.</div>
-          ) : (
-            <div className="space-y-3">
-              {subRequests.map((req) => (
-                <div key={req.id} className="glass-card rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-white">{req.user_name}</p>
-                      <p className="text-xs text-slate-400">{req.user_email} ({req.user_role})</p>
-                      <p className="text-xs text-amber-400 mt-1">Plan: {req.plan.replace(/_/g, " ")}</p>
-                      <p className="text-xs text-slate-500">Ref: {req.reference_number || "N/A"}</p>
-                      <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${req.status === "approved" ? "bg-green-400/10 text-green-400" : req.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
-                        {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                      </span>
-                      <div className="flex gap-2 mt-1">
-                        {req.status === "pending" ? (
-                          <>
-                            <button onClick={() => openApproveDialog(req)}
-                              className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
-                              Approve
-                            </button>
-                            <button onClick={() => handleSubscriptionRequest(req.id, false)}
-                              className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
-                              Reject
-                            </button>
-                          </>
-                        ) : (
-                          <button onClick={() => deleteSubscriptionRequest(req.id)}
-                            className="px-3 py-1 text-xs font-bold text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
-                            Delete
-                          </button>
-                        )}
-                      </div>
+                      {(u.role === "branch_owner" || u.role === "other_branch") && (
+                        <button onClick={() => togglePremium(u.id, true)}
+                          className="text-xs px-3 py-1 bg-green-400/10 text-green-400 rounded hover:bg-green-400/20">
+                          Set Premium
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -429,49 +324,152 @@ export default function CompanyOwnerDashboard() {
           )}
         </section>
 
-        {/* Approve Dialog */}
-        {showApproveDialog && approvingRequest && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="glass-card rounded-2xl p-6 w-full max-w-md">
-              <h3 className="text-lg font-bold text-white mb-4">Approve Subscription</h3>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-slate-400">User</p>
-                  <p className="text-white font-medium">{approvingRequest.user_name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Plan Requested</p>
-                  <p className="text-amber-400 font-medium">{approvingRequest.plan.replace(/_/g, " ")}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Reference Number</p>
-                  <p className="text-white font-medium">{approvingRequest.reference_number || "N/A"}</p>
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-300 mb-2">Set Duration (days)</label>
-                  <input type="number" min={1} value={approveDays} onChange={(e) => setApproveDays(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                  <div className="flex gap-2 mt-2">
-                    <button onClick={() => setApproveDays(1)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Day</button>
-                    <button onClick={() => setApproveDays(7)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Week</button>
-                    <button onClick={() => setApproveDays(30)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Month</button>
-                    <button onClick={() => setApproveDays(90)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">3 Months</button>
-                    <button onClick={() => setApproveDays(180)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">6 Months</button>
-                    <button onClick={() => setApproveDays(365)} className="px-2 py-1 text-xs bg-slate-700 text-slate-300 rounded hover:bg-slate-600">1 Year</button>
+        {/* Requests Section - Combined */}
+        <section id="requests" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Requests</h3>
+          
+          {/* Pending Requests */}
+          {pendingSubRequests.length === 0 && pendingMonthlyPayments.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No pending requests.</div>
+          ) : (
+            <div className="space-y-3">
+              {/* Subscription Requests */}
+              {pendingSubRequests.map((req) => (
+                <div key={`sub-${req.id}`} className="glass-card rounded-xl p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{req.user_name} wants to have a {req.plan.replace(/_/g, " ")}</p>
+                      <p className="text-xs text-slate-400">{req.user_email} ({req.user_role})</p>
+                      <p className="text-xs text-slate-500">Ref: {req.reference_number || "N/A"}</p>
+                      <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleSubscriptionRequest(req.id, true)}
+                        className="px-4 py-2 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                        Accept
+                      </button>
+                      <button onClick={() => handleSubscriptionRequest(req.id, false)}
+                        className="px-4 py-2 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                        Reject
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex gap-3 mt-6">
-                <button onClick={() => handleSubscriptionRequest(approvingRequest.id, true, approveDays)}
-                  className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg">
-                  Approve ({approveDays} days)
-                </button>
-                <button onClick={() => { setShowApproveDialog(false); setApprovingRequest(null); }}
-                  className="px-6 py-3 text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
-              </div>
+              ))}
+              
+              {/* Monthly Payment Requests */}
+              {pendingMonthlyPayments.map((payment) => (
+                <div key={`mp-${payment.id}`} className="glass-card rounded-xl p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{payment.user_name} wants to pay monthly fee</p>
+                      <p className="text-xs text-slate-400">{payment.user_email} ({payment.user_role})</p>
+                      <p className="text-xs text-amber-400">₱{payment.amount} for {payment.paid_for_month}</p>
+                      <p className="text-xs text-slate-500">Ref: {payment.reference_number || "N/A"}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleMonthlyPayment(payment.id, true)}
+                        className="px-4 py-2 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                        Approve
+                      </button>
+                      <button onClick={() => handleMonthlyPayment(payment.id, false)}
+                        className="px-4 py-2 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        )}
+          )}
+          
+          {/* Approved Requests (collapsible) */}
+          {(approvedSubRequests.length > 0 || approvedMonthlyPayments.length > 0) && (
+            <details className="mt-4">
+              <summary className="text-sm text-slate-400 cursor-pointer hover:text-slate-300">
+                View Approved History ({approvedSubRequests.length + approvedMonthlyPayments.length})
+              </summary>
+              <div className="mt-3 space-y-3">
+                {approvedSubRequests.map((req) => (
+                  <div key={`approved-sub-${req.id}`} className="glass-card rounded-xl p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-white">{req.user_name} - {req.plan.replace(/_/g, " ")}</p>
+                        <p className="text-xs text-green-400">Approved</p>
+                        {req.subscription_expiry && (
+                          <p className="text-xs text-slate-500">Expires: {new Date(req.subscription_expiry).toLocaleString()}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => togglePremium(req.user_id, false)}
+                          className="px-3 py-1 text-xs text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                          Remove Premium
+                        </button>
+                        <button onClick={() => deleteSubscriptionRequest(req.id)}
+                          className="px-3 py-1 text-xs text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {approvedMonthlyPayments.map((payment) => (
+                  <div key={`approved-mp-${payment.id}`} className="glass-card rounded-xl p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-bold text-white">{payment.user_name} - ₱{payment.amount}</p>
+                        <p className="text-xs text-green-400">Approved for {payment.paid_for_month}</p>
+                      </div>
+                      <button onClick={() => deleteMonthlyPayment(payment.id)}
+                        className="px-3 py-1 text-xs text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+        </section>
+
+        {/* Redemption Requests */}
+        <section id="redemptions" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Redemption Requests</h3>
+          <p className="text-sm text-slate-400">1000 pts = Full Station | 500 pts = Parts | 100 pts = 3 Coin Slots | 50 pts = Cable</p>
+          {redemptions.filter((r) => r.status === "pending").length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No pending redemptions.</div>
+          ) : (
+            <div className="space-y-3">
+              {redemptions.filter((r) => r.status === "pending").map((r) => (
+                <div key={r.id} className="glass-card rounded-xl p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{r.user_name}</p>
+                      <p className="text-xs text-slate-400">{r.user_email}</p>
+                      <p className="text-xs text-amber-400 mt-1">{r.redemption_label || r.redemption_type} - {r.amount} pts</p>
+                      {(r.contact_name || r.delivery_address) && (
+                        <div className="mt-2 p-2 bg-slate-800/50 rounded-lg">
+                          <p className="text-xs text-white">{r.contact_name} - {r.contact_number}</p>
+                          <p className="text-xs text-slate-400">{r.delivery_address}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleRedemption(r.id, true)}
+                        className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                        Approve
+                      </button>
+                      <button onClick={() => handleRedemption(r.id, false)}
+                        className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Stations */}
         <section id="stations" className="space-y-6">
@@ -519,11 +517,7 @@ export default function CompanyOwnerDashboard() {
                     {s.companyName === "KLEOXM 111" && (
                       <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded">Regular</span>
                     )}
-                    {!s.companyName && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">Needs Setup</span>
-                    )}
                   </div>
-                  {(s as any).location && <p className="text-xs text-green-400 mt-1">📍 {(s as any).location}</p>}
                   <p className="text-xs text-slate-400 mt-1">{s.address}</p>
                   <div className="flex gap-1.5 mt-2">
                     {s.cableTypeC > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded">TC:{s.cableTypeC}</span>}
@@ -537,12 +531,8 @@ export default function CompanyOwnerDashboard() {
                       <button onClick={() => toggleStation(s)} className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
                         {s.isActive ? "Active" : "Inactive"}
                       </button>
-                      <button onClick={() => startEdit(s)} className="px-3 py-1 text-[10px] font-bold rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500/20">
-                        Edit
-                      </button>
-                      <button onClick={() => removeStation(s.id, s.name)} className="px-3 py-1 text-[10px] font-bold rounded-full bg-red-600/10 text-red-400 hover:bg-red-600/20">
-                        Remove
-                      </button>
+                      <button onClick={() => startEdit(s)} className="px-3 py-1 text-[10px] font-bold rounded-full bg-blue-500/10 text-blue-400 hover:bg-blue-500/20">Edit</button>
+                      <button onClick={() => removeStation(s.id, s.name)} className="px-3 py-1 text-[10px] font-bold rounded-full bg-red-600/10 text-red-400 hover:bg-red-600/20">Remove</button>
                     </div>
                   </div>
                 </div>
@@ -557,56 +547,24 @@ export default function CompanyOwnerDashboard() {
             <div className="glass-card rounded-2xl p-6 w-full max-w-md">
               <h3 className="text-lg font-bold text-white mb-4">Edit Station</h3>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-slate-300 mb-1">Name</label>
-                  <input type="text" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                </div>
-                <div>
-                  <label className="block text-sm text-slate-300 mb-1">Location</label>
-                  <input type="text" value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="e.g. Lucena City, Quezon" />
-                </div>
+                <div><label className="block text-sm text-slate-300 mb-1">Name</label><input type="text" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-slate-300 mb-1">Location</label><input type="text" value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div>
                   <label className="block text-sm text-slate-300 mb-1">Company Name</label>
-                  <input type="text" value={editForm.company} onChange={(e) => setEditForm((p) => ({ ...p, company: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="KLEOXM 111 or other company" />
+                  <input type="text" value={editForm.company} onChange={(e) => setEditForm((p) => ({ ...p, company: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                   <p className="text-xs text-slate-500 mt-1">KLEOXM 111 = Regular (visible to all), Other = Premium only</p>
                 </div>
-                <div>
-                  <label className="block text-sm text-slate-300 mb-1">Address</label>
-                  <input type="text" value={editForm.address} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                <div><label className="block text-sm text-slate-300 mb-1">Address</label><input type="text" value={editForm.address} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div className="flex gap-4">
+                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">Type-C</label><input type="number" min={0} value={editForm.cableTypeC} onChange={(e) => setEditForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">iPhone</label><input type="number" min={0} value={editForm.cableIPhone} onChange={(e) => setEditForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 </div>
                 <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-sm text-slate-300 mb-1">Type-C</label>
-                    <input type="number" min={0} value={editForm.cableTypeC} onChange={(e) => setEditForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm text-slate-300 mb-1">iPhone</label>
-                    <input type="number" min={0} value={editForm.cableIPhone} onChange={(e) => setEditForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="flex-1">
-                    <label className="block text-sm text-slate-300 mb-1">USB</label>
-                    <input type="number" min={0} value={editForm.cableUniversal} onChange={(e) => setEditForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-sm text-slate-300 mb-1">Outlets</label>
-                    <input type="number" min={0} value={editForm.outlets} onChange={(e) => setEditForm((p) => ({ ...p, outlets: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                  </div>
+                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">USB</label><input type="number" min={0} value={editForm.cableUniversal} onChange={(e) => setEditForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">Outlets</label><input type="number" min={0} value={editForm.outlets} onChange={(e) => setEditForm((p) => ({ ...p, outlets: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button onClick={() => setEditForm((p) => ({ ...p, active: !p.active }))}
-                    className={`px-4 py-2 text-sm font-bold rounded-lg ${editForm.active ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
-                    {editForm.active ? "Active" : "Inactive"}
-                  </button>
+                  <button onClick={() => setEditForm((p) => ({ ...p, active: !p.active }))} className={`px-4 py-2 text-sm font-bold rounded-lg ${editForm.active ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>{editForm.active ? "Active" : "Inactive"}</button>
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
@@ -617,266 +575,44 @@ export default function CompanyOwnerDashboard() {
           </div>
         )}
 
-        {/* Sessions & Calculator */}
-        <section id="sessions">
-          <h3 className="text-lg font-bold text-white mb-4">Charging Sessions & History</h3>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ChargingCalculator stationId={selectedStation?.id} stationName={selectedStation?.name}
-              onSessionStart={async (data) => { const res = await apiFetch("/api/sessions", { method: "POST", body: JSON.stringify(data) }); if (res.ok) { const r = await res.json(); setHistory((p) => [r.history, ...p]); }}}
-              history={history} showAllHistory={true} />
-            <div className="space-y-6">
-              {/* Revenue */}
-              <div className="glass-card rounded-2xl p-6">
-                <h3 className="font-bold text-white mb-4">Revenue</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-blue-400">₱{subscriptionRevenue}</div><div className="text-xs text-slate-400">Subscription Revenue</div></div>
-                  <div className="bg-purple-400/10 rounded-lg p-4"><div className="text-2xl font-bold text-purple-400">₱{monthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Monthly Payments</div></div>
-                </div>
-                <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-bold text-green-400">Total Revenue</p>
-                      <p className="text-xs text-slate-400">Subscriptions + Monthly Payments</p>
-                    </div>
-                    <p className="text-2xl font-bold text-green-400">₱{subscriptionRevenue + monthlyPaymentRevenue}</p>
-                  </div>
-                </div>
-              </div>
+        {/* Revenue */}
+        <section id="revenue" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Revenue</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-blue-400">₱{subscriptionRevenue}</div><div className="text-xs text-slate-400">Subscriptions</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-purple-400">₱{monthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Monthly Payments</div></div>
+          </div>
+          <div className="glass-card rounded-xl p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30">
+            <div className="flex justify-between items-center">
+              <p className="text-sm font-bold text-green-400">Total Revenue</p>
+              <p className="text-2xl font-bold text-green-400">₱{subscriptionRevenue + monthlyPaymentRevenue}</p>
             </div>
           </div>
         </section>
 
-        {/* Subscription */}
-        <section id="subscription" className="space-y-6">
-          <h3 className="text-lg font-bold text-white">Subscriptions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="glass-card rounded-2xl p-6">
-              <h4 className="font-bold text-white mb-4">Premium Users</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm"><span className="text-slate-400">Subscribed Branch Owners</span><span className="text-amber-400 font-bold">{usersData?.subscribedBranchOwners || 0} / {usersData?.totalBranchOwners || 0}</span></div>
-                <div className="flex justify-between text-sm"><span className="text-slate-400">Subscribed Customers</span><span className="text-amber-400 font-bold">{usersData?.subscribedCustomers || 0} / {usersData?.totalCustomers || 0}</span></div>
-              </div>
-              <div className="mt-4 p-3 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm font-bold text-green-400">Company Owner</p>
-                    <p className="text-xs text-slate-400">Lifetime Premium (Auto)</p>
-                  </div>
-                  <div className="px-3 py-1 bg-amber-400 text-[#0f172a] text-xs font-bold rounded-full">★ PREMIUM</div>
-                </div>
-              </div>
+        {/* Pricing Info */}
+        <section className="glass-card rounded-2xl p-6">
+          <h4 className="font-bold text-white mb-4">GCash Payment Details</h4>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between"><span className="text-slate-400">GCash</span><span className="text-white font-bold">09469086926</span></div>
+            <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-700/50">
+            <h5 className="text-xs font-bold text-slate-500 uppercase mb-2">Subscription Plans</h5>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-slate-400">1 Day</span><span className="text-amber-400 font-bold">₱20</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">1 Week</span><span className="text-amber-400 font-bold">₱60</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">1 Month</span><span className="text-amber-400 font-bold">₱100</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">3 Months</span><span className="text-amber-400 font-bold">₱170</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">6 Months</span><span className="text-amber-400 font-bold">₱220</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">1 Year</span><span className="text-amber-400 font-bold">₱300</span></div>
             </div>
-            <div className="glass-card rounded-2xl p-6">
-              <h4 className="font-bold text-white mb-4">GCash Payment Details</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-slate-400">GCash</span><span className="text-white font-bold">09469086926</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-slate-700/50">
-                <h5 className="text-xs font-bold text-slate-500 uppercase mb-2">Pricing</h5>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between"><span className="text-slate-400">1 Day</span><span className="text-amber-400 font-bold">₱20</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">1 Week</span><span className="text-amber-400 font-bold">₱60</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">1 Month</span><span className="text-amber-400 font-bold">₱100</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">3 Months</span><span className="text-amber-400 font-bold">₱170</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">6 Months</span><span className="text-amber-400 font-bold">₱220</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">1 Year</span><span className="text-amber-400 font-bold">₱300</span></div>
-                </div>
-              </div>
+            <h5 className="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Monthly Fees</h5>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-slate-400">Branch Owner</span><span className="text-amber-400 font-bold">₱200/month</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Other Branch</span><span className="text-amber-400 font-bold">₱250/month</span></div>
             </div>
           </div>
-        </section>
-
-        {/* Subscription Requests */}
-        <section id="subscription-requests" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Subscription Requests</h3>
-          {subRequests.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No subscription requests yet.</div>
-          ) : (
-            <div className="space-y-3">
-              {subRequests.map((req) => (
-                <div key={req.id} className="glass-card rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-white">{req.user_name}</p>
-                      <p className="text-xs text-slate-400">{req.user_email} ({req.user_role})</p>
-                      <p className="text-xs text-amber-400 mt-1">Plan: {req.plan.replace(/_/g, " ")}</p>
-                      <p className="text-xs text-slate-500">Ref: {req.reference_number || "N/A"}</p>
-                      <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${req.status === "approved" ? "bg-green-400/10 text-green-400" : req.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
-                        {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
-                      </span>
-                      {req.status === "pending" && (
-                        <div className="flex gap-2 mt-1">
-                          <button onClick={() => handleSubscriptionRequest(req.id, true)}
-                            className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
-                            Approve
-                          </button>
-                          <button onClick={() => handleSubscriptionRequest(req.id, false)}
-                            className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
-                            Reject
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Monthly Payment Requests */}
-        <section id="monthly-payments" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Monthly Payment Requests</h3>
-          <p className="text-sm text-slate-400">Branch Owners: ₱200/month | Other Branch: ₱250/month</p>
-          {monthlyPayments.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No monthly payment requests yet.</div>
-          ) : (
-            <div className="space-y-3">
-              {monthlyPayments.map((payment) => (
-                <div key={payment.id} className="glass-card rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-white">{payment.user_name}</p>
-                      <p className="text-xs text-slate-400">{payment.user_email} ({payment.user_role})</p>
-                      <p className="text-xs text-amber-400 mt-1">₱{payment.amount} for {payment.paid_for_month}</p>
-                      <p className="text-xs text-slate-500">Ref: {payment.reference_number || "N/A"}</p>
-                      <p className="text-xs text-slate-500">{new Date(payment.created_at).toLocaleString()}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${payment.status === "approved" ? "bg-green-400/10 text-green-400" : payment.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
-                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                      </span>
-                      <div className="flex gap-2 mt-1">
-                        {payment.status === "pending" ? (
-                          <>
-                            <button onClick={() => handleMonthlyPayment(payment.id, true)}
-                              className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
-                              Set Premium
-                            </button>
-                            <button onClick={() => handleMonthlyPayment(payment.id, false)}
-                              className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
-                              Reject
-                            </button>
-                          </>
-                        ) : (
-                          <button onClick={() => deleteMonthlyPayment(payment.id)}
-                            className="px-3 py-1 text-xs font-bold text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Redemption Requests */}
-        <section id="redemptions" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Redemption Requests</h3>
-          <p className="text-sm text-slate-400">1000 pts = Full Station | 500 pts = Parts | 100 pts = 3 Coin Slots | 50 pts = Cable</p>
-          {redemptions.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No redemption requests yet.</div>
-          ) : (
-            <div className="space-y-3">
-              {redemptions.map((r) => (
-                <div key={r.id} className="glass-card rounded-xl p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-bold text-white">{r.user_name}</p>
-                      <p className="text-xs text-slate-400">{r.user_email}</p>
-                      <p className="text-xs text-amber-400 mt-1">{r.redemption_label || r.redemption_type} - {r.amount} pts</p>
-                      {(r.contact_name || r.delivery_address) && (
-                        <div className="mt-2 p-2 bg-slate-800/50 rounded-lg">
-                          <p className="text-xs text-slate-400">Deliver to:</p>
-                          <p className="text-xs text-white">{r.contact_name} - {r.contact_number}</p>
-                          <p className="text-xs text-slate-400">{r.delivery_address}</p>
-                        </div>
-                      )}
-                      <p className="text-xs text-slate-500 mt-1">{new Date(r.created_at).toLocaleString()}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`text-xs px-2 py-1 rounded-full ${r.status === "approved" ? "bg-green-400/10 text-green-400" : r.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
-                        {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
-                      </span>
-                      {r.status === "pending" && (
-                        <div className="flex gap-2 mt-1">
-                          <button onClick={() => handleRedemption(r.id, true)}
-                            className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
-                            Approve
-                          </button>
-                          <button onClick={() => handleRedemption(r.id, false)}
-                            className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
-                            Reject
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Active Subscription Timers */}
-        <section id="subscription-timers" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Active Subscription Timers</h3>
-          {(() => {
-            const activeSubscribers = [...branchOwners, ...otherBranches, ...customers].filter((u) => u.isSubscribed);
-            if (activeSubscribers.length === 0) {
-              return <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No active subscriptions.</div>;
-            }
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {activeSubscribers.map((u) => {
-                  // Calculate time remaining
-                  const getExpiryTime = () => {
-                    if (!(u as any).subscriptionExpiry) return "Lifetime";
-                    const expiry = new Date((u as any).subscriptionExpiry).getTime();
-                    const now = Date.now();
-                    const diff = expiry - now;
-                    if (diff <= 0) return "Expired";
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-                    if (hours > 0) return `${hours}h ${minutes}m`;
-                    return `${minutes}m`;
-                  };
-                  const getRoleLabel = () => {
-                    if (u.role === "branch_owner") return "BO";
-                    if (u.role === "other_branch") return "OB";
-                    return "C";
-                  };
-                  return (
-                    <div key={u.id} className="glass-card rounded-xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div>
-                          <p className="text-sm font-bold text-white">{u.fullName}</p>
-                          <p className="text-xs text-slate-400">{u.email}</p>
-                        </div>
-                        <span className="text-[10px] px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full">{getRoleLabel()}</span>
-                      </div>
-                      <div className="p-3 bg-slate-900/50 rounded-lg">
-                        <p className="text-xs text-slate-400 mb-1">Time Remaining</p>
-                        <p className="text-xl font-bold text-amber-400">{getExpiryTime()}</p>
-                        {(u as any).subscriptionExpiry && (
-                          <p className="text-[10px] text-slate-500 mt-1">Expires: {new Date((u as any).subscriptionExpiry).toLocaleDateString()}</p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })()}
         </section>
       </div>
     </DashboardShell>

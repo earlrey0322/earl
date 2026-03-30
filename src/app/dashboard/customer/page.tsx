@@ -28,6 +28,7 @@ export default function CustomerDashboard() {
   const [stations, setStations] = useState<Station[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
+  const [lockedStation, setLockedStation] = useState<Station | null>(null);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -119,6 +120,17 @@ export default function CustomerDashboard() {
     apiFetch("/api/auth/me").then((r) => r.json()).then((d) => { if (d.user) setUserData(d.user); }).catch(() => {});
   }
 
+  function handleStationSelect(s: Station) {
+    // Regular users can only see KLEOXM 111 stations
+    if (!userData?.isSubscribed && s.companyName && s.companyName !== "KLEOXM 111") {
+      setLockedStation(s);
+      setSelectedStation(null);
+    } else {
+      setSelectedStation(s);
+      setLockedStation(null);
+    }
+  }
+
   return (
     <DashboardShell title="Customer Dashboard">
       <div className="space-y-8">
@@ -134,7 +146,20 @@ export default function CustomerDashboard() {
 
         <section id="stations">
           <h3 className="text-lg font-bold text-white mb-4">Charging Stations</h3>
-          <StationMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+          <StationMap stations={stations} onSelect={handleStationSelect} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+          
+          {/* Locked Station Message */}
+          {lockedStation && (
+            <div className="glass-card rounded-2xl p-6 mt-4 border-2 border-amber-400/30">
+              <div className="text-center">
+                <div className="text-4xl mb-3">🔒</div>
+                <h4 className="text-lg font-bold text-white mb-2">Buy Premium to Unlock</h4>
+                <p className="text-sm text-slate-400 mb-2">This station belongs to <span className="text-amber-400 font-bold">{lockedStation.companyName}</span></p>
+                <p className="text-sm text-slate-400 mb-4">Premium members can view all company stations. Subscribe now to unlock!</p>
+                <button onClick={() => setLockedStation(null)} className="text-xs text-slate-500 hover:text-slate-400">Dismiss</button>
+              </div>
+            </div>
+          )}
         </section>
 
         <section id="sessions">
@@ -239,6 +264,35 @@ export default function CustomerDashboard() {
               </div>
             )}
           </div>
+        </section>
+
+        {/* Account Status */}
+        <section className="glass-card rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-bold text-white">Account Status</h4>
+              <p className="text-sm text-slate-400">
+                {userData?.isSubscribed ? "You can view all company stations" : "Only KLEOXM 111 stations visible"}
+              </p>
+            </div>
+            {userData?.isSubscribed ? (
+              <div className="px-4 py-2 bg-amber-400/10 rounded-lg">
+                <span className="text-amber-400 font-bold">★ PREMIUM</span>
+                {userData?.subscriptionExpiry && (
+                  <p className="text-[10px] text-slate-400 mt-1">Expires: {new Date(userData.subscriptionExpiry).toLocaleDateString()}</p>
+                )}
+              </div>
+            ) : (
+              <div className="px-4 py-2 bg-slate-700 rounded-lg">
+                <span className="text-slate-400 font-bold">Regular</span>
+              </div>
+            )}
+          </div>
+          {!userData?.isSubscribed && (
+            <div className="mt-4 p-3 bg-amber-400/10 border border-amber-400/30 rounded-lg">
+              <p className="text-xs text-amber-400">🔒 Premium members can view all company stations. Subscribe to unlock!</p>
+            </div>
+          )}
         </section>
       </div>
     </DashboardShell>
