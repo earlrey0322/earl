@@ -37,7 +37,7 @@ interface SubscriptionRequest { id: number; user_id: number; user_email: string;
 
 interface MonthlyPayment { id: number; user_id: number; user_email: string; user_name: string; user_role: string; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
 
-interface CompanyUser { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionPlan: string | null; subscriptionExpiry: string | null; }
+interface CompanyUser { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionPlan: string | null; subscriptionExpiry: string | null; contactNumber?: string | null; }
 
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; }
 
@@ -503,7 +503,7 @@ export default function CompanyOwnerDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-white">All Users ({allUsers.length})</h3>
-              <p className="text-sm text-slate-400">Click Set/Unset Premium to toggle user status. Premium = All stations, Regular = KLEOXM 111 only.</p>
+              <p className="text-sm text-slate-400">All registered users with email, phone, and status.</p>
             </div>
             <button onClick={() => { refreshUsers(); }}
               className="px-4 py-2 text-xs font-medium text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10">
@@ -518,6 +518,7 @@ export default function CompanyOwnerDashboard() {
                 <thead>
                   <tr className="border-b border-slate-700">
                     <th className="text-left py-2 text-slate-400">Email</th>
+                    <th className="text-left py-2 text-slate-400">Phone</th>
                     <th className="text-left py-2 text-slate-400">Role</th>
                     <th className="text-left py-2 text-slate-400">Status</th>
                     <th className="text-left py-2 text-slate-400">Time Remaining</th>
@@ -528,6 +529,7 @@ export default function CompanyOwnerDashboard() {
                   {allUsers.map((u) => (
                     <tr key={u.id} className="border-b border-slate-800">
                       <td className="py-3 text-white font-medium">{u.email}</td>
+                      <td className="py-3 text-slate-300">{(u as any).contactNumber || "N/A"}</td>
                       <td className="py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           u.role === "branch_owner" ? "bg-blue-400/10 text-blue-400" :
