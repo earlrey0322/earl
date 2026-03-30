@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface User {
@@ -20,8 +19,6 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   const [user, setUser] = useState<User | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     apiFetch("/api/auth/me")
@@ -59,39 +56,21 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
 
   const dashboardPath = user ? `/dashboard/${user.role}` : null;
 
-  const navigateTo = useCallback((sectionId: string) => {
+  function navigateTo(sectionId: string) {
     playClick();
     setSidebarOpen(false);
 
     if (!dashboardPath) return;
 
-    // Dashboard button - go to top of dashboard
+    // Dashboard button - go to top
     if (sectionId === "dashboard") {
-      if (pathname === dashboardPath) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        router.push(dashboardPath);
-      }
+      requestAnimationFrame(() => { window.location.href = dashboardPath; });
       return;
     }
 
-    // Other sections
-    if (pathname === dashboardPath) {
-      // Already on dashboard - scroll to section
-      const el = document.getElementById(sectionId);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    } else {
-      // Not on dashboard - navigate to dashboard then scroll
-      router.push(dashboardPath);
-      // Scroll after navigation completes
-      setTimeout(() => {
-        const el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 500);
-    }
-  }, [dashboardPath, pathname, router]);
+    // For other sections, navigate with hash
+    requestAnimationFrame(() => { window.location.href = `${dashboardPath}#${sectionId}`; });
+  }
 
   if (loading) {
     return (
@@ -208,7 +187,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
               />
             ))}
             <div className="my-2 border-t border-slate-800" />
-            <SidebarBtn onClick={() => { playClick(); setSidebarOpen(false); router.push("/dashboard/settings"); }} label="Settings" icon="gear" />
+            <SidebarBtn onClick={() => { playClick(); setSidebarOpen(false); requestAnimationFrame(() => { window.location.href = "/dashboard/settings"; }); }} label="Settings" icon="gear" />
           </nav>
         </aside>
 
