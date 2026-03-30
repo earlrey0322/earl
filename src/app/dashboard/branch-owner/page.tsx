@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap, Station } from "@/components/StationMap";
+import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface MonthlyPayment { id: number; amount: number; reference_number: string; status: string; paid_for_month: string; created_at: string; }
@@ -408,6 +409,23 @@ export default function BranchOwnerDashboard() {
         <section id="stations">
           <h3 className="text-lg font-bold text-white mb-4">All PSPCS Stations</h3>
           <StationMap stations={stations} onSelect={setSelectedStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+        </section>
+
+        {/* Charging Calculator */}
+        <section id="sessions" className="space-y-4">
+          <h3 className="text-lg font-bold text-white mb-4">Charging Calculator</h3>
+          {selectedStation && <p className="text-sm text-amber-400 mb-2">Selected Station: {selectedStation.name}</p>}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <ChargingCalculator stationId={selectedStation?.id} stationName={selectedStation?.name} />
+            <div className="glass-card rounded-2xl p-6">
+              <h3 className="font-bold text-white mb-4">PSPCS Specs</h3>
+              <div className="space-y-2 text-sm">
+                {[{ l: "Rate", v: "1 Peso = 5 Min" }, { l: "Output", v: "3.6VDC" }, { l: "Cables", v: "All Types" }, { l: "Power", v: "Solar" }, { l: "AC", v: "220VAC" }, { l: "Brand", v: "KLEOXM 111" }].map((s) => (
+                  <div key={s.l} className="flex justify-between py-2 border-b border-slate-700/50"><span className="text-slate-400">{s.l}</span><span className="text-amber-400 font-medium">{s.v}</span></div>
+                ))}
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Revenue - Points Based */}
