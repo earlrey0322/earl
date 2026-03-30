@@ -39,12 +39,29 @@ export default function BranchOwnerDashboard() {
       apiFetch("/api/monthly-payments").then((r) => r.json()),
       apiFetch("/api/redemptions").then((r) => r.json()),
     ]).then(([meRes, stRes, mpRes, rdRes]) => {
-      if (meRes.status === "fulfilled" && meRes.value.user) setUserData(meRes.value.user);
+      if (meRes.status === "fulfilled" && meRes.value.user) {
+        console.log("Branch Owner - User data:", meRes.value.user);
+        setUserData(meRes.value.user);
+      }
       if (stRes.status === "fulfilled" && stRes.value.stations) setStations(stRes.value.stations);
       if (mpRes.status === "fulfilled" && mpRes.value.payments) setMonthlyPayments(mpRes.value.payments);
       if (rdRes.status === "fulfilled" && rdRes.value.redemptions) setRedemptions(rdRes.value.redemptions);
     }).catch(() => {});
   }, []);
+
+  // Refresh user data
+  async function refreshUserData() {
+    try {
+      const res = await apiFetch("/api/auth/me");
+      const data = await res.json();
+      if (data.user) {
+        console.log("Refreshed user data:", data.user);
+        setUserData(data.user);
+      }
+    } catch (err) {
+      console.error("Error refreshing user data:", err);
+    }
+  }
 
   async function requestMonthlyPayment() {
     if (!monthlyReferenceNumber.trim()) {
@@ -646,23 +663,30 @@ export default function BranchOwnerDashboard() {
               <p className="text-sm text-slate-400">
                 {userData?.isSubscribed ? "You can view all company stations" : "Only KLEOXM 111 stations visible"}
               </p>
+              <p className="text-xs text-slate-500 mt-1">isSubscribed: {String(userData?.isSubscribed)}</p>
             </div>
-            {userData?.isSubscribed ? (
-              <div className="px-4 py-2 bg-amber-400/10 rounded-lg">
-                <span className="text-amber-400 font-bold">★ PREMIUM</span>
-                {userData?.subscriptionExpiry && (
-                  <p className="text-[10px] text-slate-400 mt-1">Expires: {new Date(userData.subscriptionExpiry).toLocaleDateString()}</p>
-                )}
-              </div>
-            ) : (
-              <div className="px-4 py-2 bg-slate-700 rounded-lg">
-                <span className="text-slate-400 font-bold">Regular</span>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              {userData?.isSubscribed ? (
+                <div className="px-4 py-2 bg-amber-400/10 rounded-lg">
+                  <span className="text-amber-400 font-bold">★ PREMIUM</span>
+                  {userData?.subscriptionExpiry && (
+                    <p className="text-[10px] text-slate-400 mt-1">Expires: {new Date(userData.subscriptionExpiry).toLocaleDateString()}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="px-4 py-2 bg-slate-700 rounded-lg">
+                  <span className="text-slate-400 font-bold">Regular</span>
+                </div>
+              )}
+              <button onClick={refreshUserData}
+                className="px-3 py-2 text-xs font-medium text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10">
+                Refresh
+              </button>
+            </div>
           </div>
           {!userData?.isSubscribed && (
             <div className="mt-4 p-3 bg-amber-400/10 border border-amber-400/30 rounded-lg">
-              <p className="text-xs text-amber-400">🔒 Premium members can view all company stations. Subscribe to unlock!</p>
+              <p className="text-xs text-amber-400">🔒 Pay monthly fee to become premium and unlock all features.</p>
             </div>
           )}
         </section>
