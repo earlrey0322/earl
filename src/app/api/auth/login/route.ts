@@ -30,11 +30,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Wrong password" });
     }
 
-    // Notify
+    // Notify company owner
+    await supabase.from("notifications").insert({
+      recipient_email: "company_owner",
+      subject: `Login - ${user.full_name}`,
+      message: `${user.full_name} (${user.email}) logged in as ${user.role}`,
+      type: "login",
+    });
+
+    // Notify earlrey0322@gmail.com
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `Login - ${user.full_name}`,
-      message: `${user.full_name} (${user.email}) logged in`,
+      message: `${user.full_name} (${user.email}) logged in as ${user.role}`,
       type: "login",
     });
 

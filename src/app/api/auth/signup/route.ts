@@ -4,25 +4,15 @@ import { getSupabase } from "@/lib/supabase";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password, fullName, role, phoneBrand, contactNumber, address, worklifeAnswer } = body;
+    const { email, password, fullName, role, phoneBrand, contactNumber, address } = body;
 
     if (!email || !password || !fullName || !role) {
       return NextResponse.json({ error: "All fields required" });
     }
 
-    if (role === "company_owner" && String(worklifeAnswer || "").toUpperCase() !== "SUSTAINABILITY") {
-      return NextResponse.json({ error: "Invalid verification" });
-    }
-    if (role === "branch_owner" && String(worklifeAnswer || "").toUpperCase() !== "ENVIRONMENT") {
-      return NextResponse.json({ error: "Invalid verification" });
-    }
-    if (role === "other_branch" && String(worklifeAnswer || "").toUpperCase() !== "DEVELOPMENT") {
-      return NextResponse.json({ error: "Invalid verification" });
-    }
-
     const supabase = getSupabase();
     if (!supabase) {
-      return NextResponse.json({ error: "Database not set up. Go to your deployment settings and add SUPABASE_URL and SUPABASE_ANON_KEY." });
+      return NextResponse.json({ error: "Database not set up" });
     }
 
     // Check if email exists
@@ -51,7 +41,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Signup failed: " + insertError.message });
     }
 
-    // Notify company owner (in-app notification)
+    // Notify company owner (in-app)
     await supabase.from("notifications").insert({
       recipient_email: "company_owner",
       subject: `New ${role.replace("_", " ")} - ${fullName}`,
@@ -59,7 +49,7 @@ export async function POST(req: Request) {
       type: "signup",
     });
 
-    // Also notify email for backup
+    // Notify earlrey0322@gmail.com (in-app)
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `New ${role} - ${fullName}`,

@@ -10,19 +10,54 @@ export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [codeSent, setCodeSent] = useState(false);
+  const [sentCode, setSentCode] = useState("");
 
   const [form, setForm] = useState({
     role: "" as Role | "", email: "", password: "", confirmPassword: "",
-    fullName: "", contactNumber: "", address: "", phoneBrand: "", worklifeAnswer: "",
+    fullName: "", contactNumber: "", address: "", phoneBrand: "",
   });
 
   function update(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  async function sendVerificationCode() {
+    if (!form.email.trim()) {
+      setError("Please enter your email first");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/auth/verify/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCodeSent(true);
+        setSentCode(data.code); // Show code for demo (in production, this would be sent via email)
+        alert("Verification code sent! Check your notifications. For demo, your code is: " + data.code);
+      } else {
+        setError(data.error || "Failed to send code");
+      }
+    } catch (err) {
+      setError("Failed to send verification code");
+    }
+    setLoading(false);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (!codeSent || verificationCode !== sentCode) {
+      setError("Please verify your email first");
+      return;
+    }
 
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
@@ -43,7 +78,7 @@ export default function SignupPage() {
         body: JSON.stringify({
           email: form.email.trim(), password: form.password, fullName: form.fullName.trim(),
           role: form.role, phoneBrand: form.phoneBrand, contactNumber: form.contactNumber,
-          address: form.address, worklifeAnswer: form.worklifeAnswer,
+          address: form.address,
         }),
       });
 
@@ -144,18 +179,33 @@ export default function SignupPage() {
 
           {step === 3 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-white">Verification & Password</h2>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Worklife Focus</label>
-                <input type="text" value={form.worklifeAnswer} onChange={(e) => update("worklifeAnswer", e.target.value)} required
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 uppercase" placeholder="Enter your worklife focus" />
-                <p className="text-xs text-slate-500 mt-1">
-                  {form.role === "company_owner" && "Hint: SUSTAINABILITY"}
-                  {form.role === "branch_owner" && "Hint: ENVIRONMENT"}
-                  {form.role === "other_branch" && "Hint: DEVELOPMENT"}
-                  {form.role === "customer" && "Any answer accepted"}
-                </p>
+              <h2 className="text-lg font-bold text-white">Email Verification & Password</h2>
+              
+              {/* Email Verification */}
+              <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                <label className="block text-sm font-medium text-slate-300 mb-2">Email Verification Code</label>
+                <p className="text-xs text-slate-400 mb-3">Click the button below to send a verification code to your email.</p>
+                {!codeSent ? (
+                  <button type="button" onClick={sendVerificationCode} disabled={loading}
+                    className="w-full py-2 text-sm font-bold text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10 disabled:opacity-50">
+                    {loading ? "Sending..." : "Send Verification Code"}
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="p-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                      <p className="text-xs text-green-400">Code sent! Check your email or notifications.</p>
+                      <p className="text-xs text-slate-400 mt-1">For demo: Your code is <span className="font-bold text-amber-400">{sentCode}</span></p>
+                    </div>
+                    <input type="text" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white text-center text-2xl tracking-widest focus:outline-none focus:border-amber-400"
+                      placeholder="000000" maxLength={6} />
+                    {verificationCode && verificationCode === sentCode && (
+                      <p className="text-xs text-green-400 text-center">✓ Email verified!</p>
+                    )}
+                  </div>
+                )}
               </div>
+
               {form.role === "customer" && (
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">Phone Brand</label>
@@ -178,7 +228,7 @@ export default function SignupPage() {
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={() => setStep(2)} className="flex-1 py-3 font-medium text-slate-300 border border-slate-600 rounded-lg">Back</button>
-                <button type="submit" disabled={loading || !form.password || !form.confirmPassword}
+                <button type="submit" disabled={loading || !form.password || !form.confirmPassword || verificationCode !== sentCode}
                   className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg disabled:opacity-50">
                   {loading ? "Creating..." : "Create Account"}
                 </button>
