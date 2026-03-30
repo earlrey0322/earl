@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { apiFetch } from "@/lib/api-fetch";
 
 interface User {
@@ -21,6 +21,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     apiFetch("/api/auth/me")
@@ -38,6 +39,17 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
       .finally(() => setLoading(false));
   }, []);
 
+  // Handle hash navigation after page load
+  useEffect(() => {
+    if (!loading && typeof window !== "undefined" && window.location.hash) {
+      const sectionId = window.location.hash.replace("#", "");
+      setTimeout(() => {
+        const el = document.getElementById(sectionId);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [loading]);
+
   function handleLogout() {
     playClick();
     apiFetch("/api/auth/me", { method: "POST" }).catch(() => {});
@@ -45,19 +57,34 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
     window.location.href = "/login";
   }
 
-  function scrollTo(sectionId: string) {
-    playClick();
-    setSidebarOpen(false);
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }
+  const basePath = user ? `/dashboard/${user.role}` : "/dashboard";
 
-  function goHome() {
+  // Navigate to dashboard with section hash
+  function goToSection(sectionId: string) {
     playClick();
     setSidebarOpen(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    
+    // Check if we're on the dashboard page (not settings or other pages)
+    const isOnDashboard = pathname === basePath || pathname === `${basePath}/`;
+    
+    if (sectionId === "dashboard") {
+      if (isOnDashboard) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        requestAnimationFrame(() => { window.location.href = basePath; });
+      }
+    } else {
+      if (isOnDashboard) {
+        // On dashboard - scroll to section
+        const el = document.getElementById(sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      } else {
+        // Not on dashboard - navigate to dashboard with hash
+        requestAnimationFrame(() => { window.location.href = `${basePath}#${sectionId}`; });
+      }
+    }
   }
 
   if (loading) {
@@ -82,37 +109,37 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
     company_owner: "Company Owner",
   };
 
-  // Define sidebar items based on role - using section IDs for scroll
+  // Define sidebar items based on role
   const getSidebarItems = () => {
     const common = [
-      { id: "dashboard", label: "Dashboard", icon: "home", action: goHome },
-      { id: "stations", label: "Charging Stations", icon: "bolt", action: () => scrollTo("stations") },
-      { id: "sessions", label: "Charging Sessions", icon: "battery", action: () => scrollTo("sessions") },
+      { id: "dashboard", label: "Dashboard", icon: "home" },
+      { id: "stations", label: "Charging Stations", icon: "bolt" },
+      { id: "sessions", label: "Charging Sessions", icon: "battery" },
     ];
 
     if (user.role === "company_owner") {
       return [
         ...common,
-        { id: "requests", label: "Requests", icon: "inbox", action: () => scrollTo("requests") },
-        { id: "redemptions", label: "Redemptions", icon: "gift", action: () => scrollTo("redemptions") },
-        { id: "users", label: "All Users", icon: "users", action: () => scrollTo("users-timeline") },
-        { id: "revenue", label: "Revenue", icon: "money", action: () => scrollTo("revenue") },
+        { id: "requests", label: "Requests", icon: "inbox" },
+        { id: "redemptions", label: "Redemptions", icon: "gift" },
+        { id: "users", label: "All Users", icon: "users" },
+        { id: "revenue", label: "Revenue", icon: "money" },
       ];
     }
 
     if (user.role === "branch_owner" || user.role === "other_branch") {
       return [
         ...common,
-        { id: "subscription", label: "Subscription", icon: "star", action: () => scrollTo("subscription") },
-        { id: "monthly-payment", label: "Monthly Fee", icon: "money", action: () => scrollTo("monthly-payment") },
-        { id: "revenue", label: "Points System", icon: "star", action: () => scrollTo("revenue") },
+        { id: "subscription", label: "Subscription", icon: "star" },
+        { id: "monthly-payment", label: "Monthly Fee", icon: "money" },
+        { id: "revenue", label: "Points System", icon: "star" },
       ];
     }
 
     // Customer
     return [
       ...common,
-      { id: "subscription", label: "Subscription", icon: "star", action: () => scrollTo("subscription") },
+      { id: "subscription", label: "Subscription", icon: "star" },
     ];
   };
 
@@ -169,7 +196,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
             {sidebarItems.map((item) => (
               <SidebarBtn
                 key={item.id}
-                onClick={item.action}
+                onClick={() => goToSection(item.id)}
                 label={item.label}
                 icon={item.icon}
               />
