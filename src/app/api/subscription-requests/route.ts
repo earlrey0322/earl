@@ -149,6 +149,22 @@ export async function PATCH(req: Request) {
         })
         .eq("id", request.user_id);
 
+      // Track revenue in company_revenue table (non-refundable)
+      const planPrices: Record<string, number> = {
+        "1_day": 20, "1_week": 60, "1_month": 100, "3_months": 170, "6_months": 220, "1_year": 300
+      };
+      const amount = planPrices[request.plan] || 0;
+      if (amount > 0) {
+        await supabase.from("company_revenue").insert({
+          amount,
+          source: "subscription",
+          source_id: request.id,
+          user_email: request.user_email,
+          user_name: request.user_name,
+          created_at: new Date().toISOString(),
+        });
+      }
+
       // Notify user
       await supabase.from("notifications").insert({
         recipient_email: request.user_email,

@@ -150,7 +150,6 @@ export async function PATCH(req: Request) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
-    // Get the payment
     const { data: payment, error: fetchError } = await supabase
       .from("monthly_payments")
       .select("*")
@@ -159,32 +158,36 @@ export async function PATCH(req: Request) {
 
     if (fetchError || !payment) return NextResponse.json({ error: "Payment not found" });
 
-    // Update payment status
     await supabase
       .from("monthly_payments")
       .update({ status: approve ? "approved" : "rejected", reviewed_at: new Date().toISOString() })
       .eq("id", paymentId);
 
     if (approve) {
-      // Calculate expiry - 1 month from now
+      // Set user as subscribed for 1 month
       const expiry = new Date();
       expiry.setMonth(expiry.getMonth() + 1);
 
-      // Update user subscription
       await supabase
         .from("users")
-        .update({
-          is_subscribed: true,
-          subscription_plan: "monthly",
-          subscription_expiry: expiry.toISOString(),
-        })
+        .update({ is_subscribed: true, subscription_plan: "monthly", subscription_expiry: expiry.toISOString() })
         .eq("id", payment.user_id);
+
+      // Track revenue in company_revenue table (non-refundable)
+      await supabase.from("company_revenue").insert({
+        amount: payment.amount,
+        source: "monthly_payment",
+        source_id: payment.id,
+        user_email: payment.user_email,
+        user_name: payment.user_name,
+        created_at: new Date().toISOString(),
+      });
 
       // Notify user
       await supabase.from("notifications").insert({
         recipient_email: payment.user_email,
         subject: "Monthly Payment Approved!",
-        message: `Your monthly payment of ₱${payment.amount} has been approved. Your subscription is active until ${expiry.toLocaleDateString()}.`,
+        message: `Your monthly payment of ₱${payment.amount} has been approved. Premium active until ${expiry.toLocaleDateString()}.`,
         type: "payment_approved",
       });
     } else {

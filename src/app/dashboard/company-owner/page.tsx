@@ -49,11 +49,12 @@ export default function CompanyOwnerDashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [usersData, setUsersData] = useState<{ totalUsers: number; totalBranchOwners: number; totalOtherBranches: number; totalCustomers: number; subscribedBranchOwners: number; subscribedOtherBranches: number; subscribedCustomers: number; users: CompanyUser[] } | null>(null);
+  const [usersData, setUsersData] = useState<{ totalUsers: number; totalBranchOwners: number; totalOtherBranches: number; totalCustomers: number; totalCompanyOwners: number; subscribedBranchOwners: number; subscribedOtherBranches: number; subscribedCustomers: number; users: CompanyUser[] } | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
@@ -68,18 +69,19 @@ export default function CompanyOwnerDashboard() {
       apiFetch("/api/subscription-requests").then((r) => r.json()),
       apiFetch("/api/monthly-payments").then((r) => r.json()),
       apiFetch("/api/redemptions").then((r) => r.json()),
-    ]).then(([meR, stR, hiR, usR, noR, srR, mpR, rdR]) => {
+      apiFetch("/api/revenue").then((r) => r.json()),
+    ]).then(([meR, stR, hiR, usR, noR, srR, mpR, rdR, rvR]) => {
       if (meR.status === "fulfilled" && meR.value.user) setUserData(meR.value.user);
       if (stR.status === "fulfilled" && stR.value.stations) setStations(stR.value.stations);
       if (hiR.status === "fulfilled" && hiR.value.history) setHistory(hiR.value.history);
       if (usR.status === "fulfilled") {
-        console.log("Users API response:", usR.value);
         if (usR.value.users) setUsersData(usR.value);
       }
       if (noR.status === "fulfilled" && noR.value.notifications) setNotifications(noR.value.notifications);
       if (srR.status === "fulfilled" && srR.value.requests) setSubRequests(srR.value.requests);
       if (mpR.status === "fulfilled" && mpR.value.payments) setMonthlyPayments(mpR.value.payments);
       if (rdR.status === "fulfilled" && rdR.value.redemptions) setRedemptions(rdR.value.redemptions);
+      if (rvR.status === "fulfilled" && rvR.value.totalRevenue !== undefined) setTotalRevenue(rvR.value.totalRevenue);
     }).catch((err) => console.error("Dashboard fetch error:", err));
   }, []);
 
@@ -278,6 +280,7 @@ export default function CompanyOwnerDashboard() {
   const branchOwnerCount = usersData?.totalBranchOwners || allUsers.filter((u) => u.role === "branch_owner").length;
   const otherBranchCount = usersData?.totalOtherBranches || allUsers.filter((u) => u.role === "other_branch").length;
   const customerCount = usersData?.totalCustomers || allUsers.filter((u) => u.role === "customer").length;
+  const companyOwnerCount = usersData?.totalCompanyOwners || 0;
   
   // Get pending requests
   const pendingSubRequests = subRequests.filter((r) => r.status === "pending");
@@ -332,7 +335,7 @@ export default function CompanyOwnerDashboard() {
             <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{branchOwnerCount}</div><div className="text-xs text-slate-400">Branch Owner</div></div>
             <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranchCount}</div><div className="text-xs text-slate-400">Other Station</div></div>
             <div className="px-4 py-3 bg-emerald-400/10 rounded-lg"><div className="text-2xl font-bold text-emerald-400">{customerCount}</div><div className="text-xs text-slate-400">Customer</div></div>
-            <div className="px-4 py-3 bg-cyan-400/10 rounded-lg"><div className="text-2xl font-bold text-cyan-400">₱{subscriptionRevenue + monthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Revenue</div></div>
+            <div className="px-4 py-3 bg-cyan-400/10 rounded-lg"><div className="text-2xl font-bold text-cyan-400">₱{totalRevenue}</div><div className="text-xs text-slate-400">Revenue</div></div>
           </div>
         </div>
 

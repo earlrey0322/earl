@@ -5,66 +5,58 @@ import { getSupabase } from "@/lib/supabase";
 export async function GET() {
   try {
     const auth = await getAuthUser();
-    console.log("Users API - Auth user:", auth);
     
     if (!auth || auth.role !== "company_owner") {
-      console.log("Users API - Unauthorized, auth:", auth);
-      return NextResponse.json({ error: "Unauthorized", auth: auth }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized", users: [], totalUsers: 0, totalBranchOwners: 0, totalOtherBranches: 0, totalCustomers: 0, totalCompanyOwners: 0 }, { status: 401 });
     }
 
     const supabase = getSupabase();
     if (!supabase) {
-      console.log("Users API - No Supabase connection");
-      return NextResponse.json({ error: "Database not set up" });
+      return NextResponse.json({ error: "Database not set up", users: [], totalUsers: 0, totalBranchOwners: 0, totalOtherBranches: 0, totalCustomers: 0, totalCompanyOwners: 0 });
     }
 
-    console.log("Users API - Querying users table...");
+    // Get ALL users from Supabase
     const { data, error } = await supabase
       .from("users")
-      .select("id, email, full_name, role, contact_number, is_subscribed, subscription_plan, subscription_expiry, created_at")
+      .select("*")
       .order("created_at", { ascending: false });
 
-    console.log("Users API - Query result:", { data, error, count: data?.length });
-
     if (error) {
-      console.log("Users API - Query error:", error.message);
-      return NextResponse.json({ error: error.message });
+      return NextResponse.json({ error: error.message, users: [], totalUsers: 0, totalBranchOwners: 0, totalOtherBranches: 0, totalCustomers: 0, totalCompanyOwners: 0 });
     }
 
-    // Filter out company_owner from the results (not from the query)
-    const filteredData = (data || []).filter((u: any) => u.role !== "company_owner");
-    console.log("Users API - Filtered users count:", filteredData.length);
-
-    const users = filteredData.map((u: any) => ({
+    // Map all users
+    const allUsers = (data || []).map((u: any) => ({
       id: u.id,
       email: u.email,
-      fullName: u.full_name,
+      fullName: u.full_name || "",
       role: u.role,
-      contactNumber: u.contact_number,
-      isSubscribed: u.is_subscribed,
-      subscriptionPlan: u.subscription_plan,
-      subscriptionExpiry: u.subscription_expiry,
+      contactNumber: u.contact_number || "",
+      isSubscribed: !!u.is_subscribed,
+      subscriptionPlan: u.subscription_plan || null,
+      subscriptionExpiry: u.subscription_expiry || null,
     }));
 
-    const bo = users.filter((u) => u.role === "branch_owner");
-    const ob = users.filter((u) => u.role === "other_branch");
-    const cu = users.filter((u) => u.role === "customer");
+    // Filter out company_owner from displayed users (but count them)
+    const users = allUsers.filter((u: any) => u.role !== "company_owner");
+    
+    const bo = users.filter((u: any) => u.role === "branch_owner");
+    const ob = users.filter((u: any) => u.role === "other_branch");
+    const cu = users.filter((u: any) => u.role === "customer");
+    const co = allUsers.filter((u: any) => u.role === "company_owner");
 
-    const response = {
+    return NextResponse.json({
       totalUsers: users.length,
       totalBranchOwners: bo.length,
       totalOtherBranches: ob.length,
       totalCustomers: cu.length,
-      subscribedBranchOwners: bo.filter((u) => u.isSubscribed).length,
-      subscribedOtherBranches: ob.filter((u) => u.isSubscribed).length,
-      subscribedCustomers: cu.filter((u) => u.isSubscribed).length,
+      totalCompanyOwners: co.length,
+      subscribedBranchOwners: bo.filter((u: any) => u.isSubscribed).length,
+      subscribedOtherBranches: ob.filter((u: any) => u.isSubscribed).length,
+      subscribedCustomers: cu.filter((u: any) => u.isSubscribed).length,
       users,
-    };
-    
-    console.log("Users API - Response:", response);
-    return NextResponse.json(response);
-  } catch (e) { 
-    console.log("Users API - Server error:", e);
-    return NextResponse.json({ error: "Server error: " + String(e) }, { status: 500 }); 
+    });
+  } catch (e) {
+    return NextResponse.json({ error: "Server error: " + String(e), users: [], totalUsers: 0, totalBranchOwners: 0, totalOtherBranches: 0, totalCustomers: 0, totalCompanyOwners: 0 });
   }
 }
