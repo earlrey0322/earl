@@ -246,9 +246,8 @@ export default function CompanyOwnerDashboard() {
     setStations((prev) => prev.filter((s) => s.id !== id));
   }
 
-  // Get unpaid users (all users who are not subscribed, except company owner)
+  // Get all non-company-owner users
   const allUsers = usersData?.users || [];
-  const unpaidUsers = allUsers.filter((u) => !u.isSubscribed && u.role !== "company_owner");
   
   // Get pending requests
   const pendingSubRequests = subRequests.filter((r) => r.status === "pending");
@@ -261,6 +260,35 @@ export default function CompanyOwnerDashboard() {
   const subscriptionRevenue = approvedSubRequests.reduce((s, r) => s + (PLAN_PRICES[r.plan] || 0), 0);
   const monthlyPaymentRevenue = approvedMonthlyPayments.reduce((s, p) => s + (p.amount || 0), 0);
 
+  // Calculate time remaining for a user
+  function getTimeRemaining(expiry: string | null): string {
+    if (!expiry) return "No expiry";
+    const exp = new Date(expiry).getTime();
+    const now = new Date().getTime();
+    const diff = exp - now;
+    if (diff <= 0) return "Expired";
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    if (days > 0) return `${days}d ${hours}h`;
+    return `${hours}h`;
+  }
+
+  // Get role display name
+  function getRoleName(role: string): string {
+    switch (role) {
+      case "branch_owner": return "Branch Owner";
+      case "other_branch": return "Other Branch";
+      case "customer": return "Customer";
+      default: return role;
+    }
+  }
+
+  // Get plan display name
+  function getPlanName(plan: string | null): string {
+    if (!plan) return "";
+    return plan.replace(/_/g, " ");
+  }
+
   return (
     <DashboardShell title="Company Owner Dashboard">
       <div className="space-y-8">
@@ -271,8 +299,8 @@ export default function CompanyOwnerDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-2xl font-bold text-amber-400">{stations.length}</div><div className="text-xs text-slate-400">Stations</div></div>
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
-            <div className="px-4 py-3 bg-red-400/10 rounded-lg"><div className="text-2xl font-bold text-red-400">{unpaidUsers.length}</div><div className="text-xs text-slate-400">Unpaid Users</div></div>
-            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{pendingSubRequests.length + pendingMonthlyPayments.length}</div><div className="text-xs text-slate-400">Pending Requests</div></div>
+            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{allUsers.length}</div><div className="text-xs text-slate-400">Total Users</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{allUsers.filter((u) => u.isSubscribed).length}</div><div className="text-xs text-slate-400">Premium</div></div>
           </div>
         </div>
 
@@ -290,48 +318,6 @@ export default function CompanyOwnerDashboard() {
             </div>
           )}
         </div>
-
-        {/* Unpaid Users Section */}
-        <section id="unpaid" className="space-y-4">
-          <h3 className="text-lg font-bold text-white">Unpaid Users</h3>
-          <p className="text-sm text-slate-400">New users who haven&apos;t paid yet. Approve their payment to give them premium access.</p>
-          {unpaidUsers.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-green-400">All users have paid!</div>
-          ) : (
-            <div className="space-y-3">
-              {unpaidUsers.map((u) => (
-                <div key={u.id} className="glass-card rounded-xl p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-red-400/10 flex items-center justify-center text-red-400 font-bold">
-                        {u.fullName.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-white">{u.fullName}</p>
-                        <p className="text-xs text-slate-400">{u.email}</p>
-                        <p className="text-xs text-amber-400">
-                          {u.role === "branch_owner" && "Branch Owner (₱200/mo)"}
-                          {u.role === "other_branch" && "Other Branch (₱250/mo)"}
-                          {u.role === "customer" && "Customer (Subscription)"}
-                          {u.role === "company_owner" && "Company Owner"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs px-2 py-1 bg-red-400/10 text-red-400 rounded-full">Unpaid</span>
-                      {(u.role === "branch_owner" || u.role === "other_branch") && (
-                        <button onClick={() => togglePremium(u.id, true)}
-                          className="text-xs px-3 py-1 bg-green-400/10 text-green-400 rounded hover:bg-green-400/20">
-                          Set Premium
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
 
         {/* Requests Section - Combined */}
         <section id="requests" className="space-y-4">
@@ -484,25 +470,24 @@ export default function CompanyOwnerDashboard() {
         <section id="users-timeline" className="space-y-4">
           <h3 className="text-lg font-bold text-white">All Users</h3>
           <p className="text-sm text-slate-400">Click Set/Unset Premium to toggle user status. Premium = All stations visible, Regular = Only KLEOXM 111.</p>
-          {allUsers.filter((u) => u.role !== "company_owner").length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No users yet.</div>
+          {allUsers.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No users yet. Users will appear here when they sign up.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-slate-700">
-                    <th className="text-left py-2 text-slate-400">Name</th>
                     <th className="text-left py-2 text-slate-400">Email</th>
                     <th className="text-left py-2 text-slate-400">Role</th>
                     <th className="text-left py-2 text-slate-400">Status</th>
+                    <th className="text-left py-2 text-slate-400">Time Remaining</th>
                     <th className="text-left py-2 text-slate-400">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {allUsers.filter((u) => u.role !== "company_owner").map((u) => (
+                  {allUsers.map((u) => (
                     <tr key={u.id} className="border-b border-slate-800">
-                      <td className="py-3 text-white font-medium">{u.fullName}</td>
-                      <td className="py-3 text-slate-400">{u.email}</td>
+                      <td className="py-3 text-white font-medium">{u.email}</td>
                       <td className="py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           u.role === "branch_owner" ? "bg-blue-400/10 text-blue-400" :
@@ -522,6 +507,18 @@ export default function CompanyOwnerDashboard() {
                           <span className="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-full">
                             Regular
                           </span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        {u.isSubscribed && u.subscriptionExpiry ? (
+                          <span className={`text-xs ${getTimeRemaining(u.subscriptionExpiry) === "Expired" ? "text-red-400" : "text-amber-400"}`}>
+                            {u.subscriptionPlan && <span className="font-bold">{getPlanName(u.subscriptionPlan)} - </span>}
+                            {getTimeRemaining(u.subscriptionExpiry)}
+                          </span>
+                        ) : u.isSubscribed ? (
+                          <span className="text-xs text-amber-400 font-bold">Lifetime</span>
+                        ) : (
+                          <span className="text-xs text-slate-500">-</span>
                         )}
                       </td>
                       <td className="py-3">
