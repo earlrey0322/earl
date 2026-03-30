@@ -40,10 +40,13 @@ export default function BranchOwnerDashboard() {
       apiFetch("/api/redemptions").then((r) => r.json()),
     ]).then(([meRes, stRes, mpRes, rdRes]) => {
       if (meRes.status === "fulfilled" && meRes.value.user) {
-        console.log("Branch Owner - User data:", meRes.value.user);
+        console.log("Branch Owner - User data:", meRes.value.user, "ID type:", typeof meRes.value.user.id);
         setUserData(meRes.value.user);
       }
-      if (stRes.status === "fulfilled" && stRes.value.stations) setStations(stRes.value.stations);
+      if (stRes.status === "fulfilled" && stRes.value.stations) {
+        console.log("Stations loaded:", stRes.value.stations.map((s: any) => ({ id: s.id, name: s.name, ownerId: s.ownerId, ownerName: s.ownerName })));
+        setStations(stRes.value.stations);
+      }
       if (mpRes.status === "fulfilled" && mpRes.value.payments) setMonthlyPayments(mpRes.value.payments);
       if (rdRes.status === "fulfilled" && rdRes.value.redemptions) setRedemptions(rdRes.value.redemptions);
     }).catch(() => {});
@@ -200,7 +203,8 @@ export default function BranchOwnerDashboard() {
     );
   }
 
-  const myStations = stations.filter((s) => s.ownerId === userData?.id);
+  const myStations = stations.filter((s) => Number(s.ownerId) === Number(userData?.id));
+  const activeStations = myStations.filter((s) => s.isActive);
   const totalViews = myStations.reduce((sum, s) => sum + (s.views || 0), 0);
   const totalViewRevenue = myStations.reduce((sum, s) => sum + (s.viewRevenue || 0), 0);
   const canRedeem = totalViewRevenue >= 100;
@@ -215,7 +219,7 @@ export default function BranchOwnerDashboard() {
           <p className="text-slate-400 mt-1">Manage your PSPCS stations.</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{myStations.length}</div><div className="text-xs text-slate-400">My Stations</div></div>
-            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{myStations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
+            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{activeStations.length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
             <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalViews}</div><div className="text-xs text-slate-400">Total Views</div></div>
             <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">{totalViewRevenue.toFixed(1)}</div><div className="text-xs text-slate-400">Points</div></div>
           </div>
