@@ -329,9 +329,10 @@ export default function CompanyOwnerDashboard() {
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 via-orange-500/5 to-red-500/5">
           <h2 className="text-2xl font-bold text-white">KLEOXM 111 Management</h2>
           <p className="text-slate-400 mt-1">Welcome, {userData?.fullName || "Company Owner"}</p>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mt-4">
             <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-2xl font-bold text-amber-400">{stations.length}</div><div className="text-xs text-slate-400">Stations</div></div>
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
+            <div className="px-4 py-3 bg-orange-400/10 rounded-lg"><div className="text-2xl font-bold text-orange-400">{companyOwnerCount}</div><div className="text-xs text-slate-400">Company Owner</div></div>
             <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{branchOwnerCount}</div><div className="text-xs text-slate-400">Branch Owner</div></div>
             <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranchCount}</div><div className="text-xs text-slate-400">Other Station</div></div>
             <div className="px-4 py-3 bg-emerald-400/10 rounded-lg"><div className="text-2xl font-bold text-emerald-400">{customerCount}</div><div className="text-xs text-slate-400">Customer</div></div>

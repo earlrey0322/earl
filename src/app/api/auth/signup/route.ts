@@ -51,7 +51,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Signup failed: " + insertError.message });
     }
 
-    // Notify
+    // Notify company owner (in-app notification)
+    await supabase.from("notifications").insert({
+      recipient_email: "company_owner",
+      subject: `New ${role.replace("_", " ")} - ${fullName}`,
+      message: `${fullName} (${email}) signed up as ${role}${isPremium ? " (LIFETIME PREMIUM)" : ""}`,
+      type: "signup",
+    });
+
+    // Also notify email for backup
     await supabase.from("notifications").insert({
       recipient_email: "earlrey0322@gmail.com",
       subject: `New ${role} - ${fullName}`,

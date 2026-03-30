@@ -12,8 +12,11 @@ export async function GET() {
 
     let query = supabase.from("notifications").select("*").order("created_at", { ascending: false });
 
-    // Company owner sees all, others see their own
-    if (auth.role !== "company_owner") {
+    // Company owner sees all notifications (including "company_owner" recipient)
+    // Others see only their own email
+    if (auth.role === "company_owner") {
+      // Company owner sees all
+    } else {
       query = query.eq("recipient_email", auth.email);
     }
 
