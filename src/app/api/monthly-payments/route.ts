@@ -202,3 +202,31 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: String(e) });
   }
 }
+
+// DELETE - remove a monthly payment request (company owner only)
+export async function DELETE(req: Request) {
+  try {
+    const auth = await getAuthUser();
+    if (!auth) return NextResponse.json({ error: "Unauthorized" });
+    if (auth.role !== "company_owner") return NextResponse.json({ error: "Only company owner can delete" });
+
+    const body = await req.json();
+    const { paymentId } = body;
+
+    if (!paymentId) return NextResponse.json({ error: "paymentId required" });
+
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "Database not set up" });
+
+    const { error } = await supabase
+      .from("monthly_payments")
+      .delete()
+      .eq("id", paymentId);
+
+    if (error) return NextResponse.json({ error: error.message });
+
+    return NextResponse.json({ success: true, message: "Payment request deleted" });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) });
+  }
+}

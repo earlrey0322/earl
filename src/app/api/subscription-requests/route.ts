@@ -171,3 +171,31 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: String(e) });
   }
 }
+
+// DELETE - remove a subscription request (company owner only)
+export async function DELETE(req: Request) {
+  try {
+    const auth = await getAuthUser();
+    if (!auth) return NextResponse.json({ error: "Unauthorized" });
+    if (auth.role !== "company_owner") return NextResponse.json({ error: "Only company owner can delete" });
+
+    const body = await req.json();
+    const { requestId } = body;
+
+    if (!requestId) return NextResponse.json({ error: "requestId required" });
+
+    const supabase = getSupabase();
+    if (!supabase) return NextResponse.json({ error: "Database not set up" });
+
+    const { error } = await supabase
+      .from("subscription_requests")
+      .delete()
+      .eq("id", requestId);
+
+    if (error) return NextResponse.json({ error: error.message });
+
+    return NextResponse.json({ success: true, message: "Request deleted" });
+  } catch (e) {
+    return NextResponse.json({ error: String(e) });
+  }
+}

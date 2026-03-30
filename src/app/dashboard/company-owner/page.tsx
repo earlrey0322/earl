@@ -189,6 +189,42 @@ export default function CompanyOwnerDashboard() {
     }
   }
 
+  async function deleteSubscriptionRequest(requestId: number) {
+    playClick();
+    if (!confirm("Delete this subscription request?")) return;
+    try {
+      const res = await apiFetch("/api/subscription-requests", { method: "DELETE", body: JSON.stringify({ requestId }) });
+      const data = await res.json();
+      if (res.ok) {
+        setSubRequests((prev) => prev.filter((r) => r.id !== requestId));
+        alert("Request deleted!");
+      } else {
+        alert("Failed to delete: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Error deleting request:", err);
+      alert("Error: " + String(err));
+    }
+  }
+
+  async function deleteMonthlyPayment(paymentId: number) {
+    playClick();
+    if (!confirm("Delete this monthly payment request?")) return;
+    try {
+      const res = await apiFetch("/api/monthly-payments", { method: "DELETE", body: JSON.stringify({ paymentId }) });
+      const data = await res.json();
+      if (res.ok) {
+        setMonthlyPayments((prev) => prev.filter((p) => p.id !== paymentId));
+        alert("Payment request deleted!");
+      } else {
+        alert("Failed to delete: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Error deleting payment:", err);
+      alert("Error: " + String(err));
+    }
+  }
+
   function useLocation() {
     if (!navigator.geolocation) { alert("Geolocation not supported"); return; }
     navigator.geolocation.getCurrentPosition(
@@ -309,18 +345,25 @@ export default function CompanyOwnerDashboard() {
                       <span className={`text-xs px-2 py-1 rounded-full ${req.status === "approved" ? "bg-green-400/10 text-green-400" : req.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
                         {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
                       </span>
-                      {req.status === "pending" && (
-                        <div className="flex gap-2 mt-1">
-                          <button onClick={() => openApproveDialog(req)}
-                            className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
-                            Approve
+                      <div className="flex gap-2 mt-1">
+                        {req.status === "pending" ? (
+                          <>
+                            <button onClick={() => openApproveDialog(req)}
+                              className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                              Approve
+                            </button>
+                            <button onClick={() => handleSubscriptionRequest(req.id, false)}
+                              className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <button onClick={() => deleteSubscriptionRequest(req.id)}
+                            className="px-3 py-1 text-xs font-bold text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
+                            Delete
                           </button>
-                          <button onClick={() => handleSubscriptionRequest(req.id, false)}
-                            className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
-                            Reject
-                          </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -650,18 +693,25 @@ export default function CompanyOwnerDashboard() {
                       <span className={`text-xs px-2 py-1 rounded-full ${payment.status === "approved" ? "bg-green-400/10 text-green-400" : payment.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
                         {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                       </span>
-                      {payment.status === "pending" && (
-                        <div className="flex gap-2 mt-1">
-                          <button onClick={() => handleMonthlyPayment(payment.id, true)}
-                            className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
-                            Set Premium
+                      <div className="flex gap-2 mt-1">
+                        {payment.status === "pending" ? (
+                          <>
+                            <button onClick={() => handleMonthlyPayment(payment.id, true)}
+                              className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                              Set Premium
+                            </button>
+                            <button onClick={() => handleMonthlyPayment(payment.id, false)}
+                              className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                              Reject
+                            </button>
+                          </>
+                        ) : (
+                          <button onClick={() => deleteMonthlyPayment(payment.id)}
+                            className="px-3 py-1 text-xs font-bold text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
+                            Delete
                           </button>
-                          <button onClick={() => handleMonthlyPayment(payment.id, false)}
-                            className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
-                            Reject
-                          </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
