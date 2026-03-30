@@ -38,8 +38,8 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Station add blocked until monthly payment approved
 - [x] Added better error logging and handling for subscription/monthly payment requests
 - [x] View-based revenue system: ₱0.20 per view when someone views/clicks a station
-- [x] Station tracking API (/api/stations/view) to record views and add revenue
-- [x] Redemption system (/api/redemptions) - redeem ₱100+ for free charging station or GCash cashout
+- [x] Station tracking API (/api/stations/view) to record views and add points (0.1 pts/view)
+- [x] Redemption system (/api/redemptions) - redeem points for free charging station, parts, coin slots, or cable
 - [x] Branch owner dashboard: removed charging session revenue, added view-based revenue
 - [x] Redemption UI with progress bar, modal for free station/GCash options
 - [x] Added views and view_revenue columns to charging_stations table in Supabase
@@ -48,7 +48,12 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Added DELETE endpoint to subscription-requests API for company owner
 - [x] Added DELETE endpoint to monthly-payments API for company owner
 - [x] Company owner dashboard: added delete buttons for processed requests
-- [x] Company owner can manually toggle premium status for any user (Make Premium/Remove Premium)
+- [x] Company owner can manually toggle premium status for any user (Set Premium/Unset Premium)
+- [x] Added unpaid users timeline for company owner dashboard
+- [x] Changed from ₱0.20 revenue to 0.1 points per view
+- [x] New redemption tiers: 1000pts (full station), 500pts (station parts), 100pts (3 coin slots), 50pts (charging cable)
+- [x] StationMap now calls view tracking API when station is clicked
+- [x] Company owner dashboard now shows redemptions for approve/reject
 
 ## Current Structure
 
@@ -62,12 +67,12 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 | `src/app/dashboard/company-owner/page.tsx` | Company Owner dashboard |
 | `src/app/api/auth/` | Auth API routes (login, signup, me) |
 | `src/app/api/stations/route.ts` | Charging stations CRUD |
-| `src/app/api/stations/view/route.ts` | Track station views and add revenue (₱0.20/view) |
+| `src/app/api/stations/view/route.ts` | Track station views and add points (0.1 pts/view) |
 | `src/app/api/sessions/route.ts` | Charging sessions CRUD |
 | `src/app/api/subscription/route.ts` | GCash subscription |
 | `src/app/api/subscription-requests/route.ts` | Subscription request system |
 | `src/app/api/monthly-payments/route.ts` | Monthly payment requests for branch owners |
-| `src/app/api/redemptions/route.ts` | Revenue redemption requests (free station or GCash) |
+| `src/app/api/redemptions/route.ts` | Points redemption (1000pts=station, 500pts=parts, 100pts=coin slots, 50pts=cable) |
 | `src/app/api/notifications/route.ts` | Notification management |
 | `src/app/api/users/route.ts` | User management (company owner) |
 | `src/app/api/admin/users/route.ts` | Admin premium toggle API |
@@ -150,4 +155,9 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-29 | Added redemptions table and API for handling revenue redemption requests |
 | 2026-03-30 | Added DELETE endpoints for subscription requests and monthly payments |
 | 2026-03-30 | Company owner can delete processed requests and manually toggle user premium status |
-| 2026-03-29 | Added redemptions table and API for handling revenue redemption requests |
+| 2026-03-30 | Added unpaid users timeline showing branch owners/other branches who haven't paid |
+| 2026-03-30 | Changed view system from ₱0.20 revenue to 0.1 points per view |
+| 2026-03-30 | New redemption tiers: 1000pts (full station), 500pts (parts), 100pts (coin slots), 50pts (cable) |
+| 2026-03-30 | Premium toggle changed to Set Premium / Unset Premium single button |
+| 2026-03-30 | Added view tracking call to StationMap when station is clicked |
+| 2026-03-30 | Added redemptions section to company owner dashboard for processing |

@@ -6,6 +6,8 @@ import { StationMap, Station } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
 import { apiFetch } from "@/lib/api-fetch";
 
+interface Redemption { id: number; user_id: number; user_email: string; user_name: string; redemption_type: string; redemption_label: string; amount: number; status: string; contact_name: string | null; contact_number: string | null; delivery_address: string | null; created_at: string; }
+
 const PLAN_PRICES: Record<string, number> = {
   "1_day": 20,
   "1_week": 60,
@@ -42,6 +44,7 @@ export default function CompanyOwnerDashboard() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [subRequests, setSubRequests] = useState<SubscriptionRequest[]>([]);
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
+  const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [approvingRequest, setApprovingRequest] = useState<SubscriptionRequest | null>(null);
   const [approveDays, setApproveDays] = useState(1);
@@ -58,7 +61,8 @@ export default function CompanyOwnerDashboard() {
       apiFetch("/api/notifications").then((r) => r.json()),
       apiFetch("/api/subscription-requests").then((r) => r.json()),
       apiFetch("/api/monthly-payments").then((r) => r.json()),
-    ]).then(([meR, stR, hiR, usR, noR, srR, mpR]) => {
+      apiFetch("/api/redemptions").then((r) => r.json()),
+    ]).then(([meR, stR, hiR, usR, noR, srR, mpR, rdR]) => {
       if (meR.status === "fulfilled" && meR.value.user) setUserData(meR.value.user);
       if (stR.status === "fulfilled" && stR.value.stations) setStations(stR.value.stations);
       if (hiR.status === "fulfilled" && hiR.value.history) setHistory(hiR.value.history);
@@ -66,6 +70,7 @@ export default function CompanyOwnerDashboard() {
       if (noR.status === "fulfilled" && noR.value.notifications) setNotifications(noR.value.notifications);
       if (srR.status === "fulfilled" && srR.value.requests) setSubRequests(srR.value.requests);
       if (mpR.status === "fulfilled" && mpR.value.payments) setMonthlyPayments(mpR.value.payments);
+      if (rdR.status === "fulfilled" && rdR.value.redemptions) setRedemptions(rdR.value.redemptions);
     }).catch(() => {});
   }, []);
 
@@ -221,6 +226,23 @@ export default function CompanyOwnerDashboard() {
       }
     } catch (err) {
       console.error("Error deleting payment:", err);
+      alert("Error: " + String(err));
+    }
+  }
+
+  async function handleRedemption(redemptionId: number, approve: boolean) {
+    playClick();
+    try {
+      const res = await apiFetch("/api/redemptions", { method: "PATCH", body: JSON.stringify({ redemptionId, approve }) });
+      const data = await res.json();
+      if (res.ok) {
+        setRedemptions((prev) => prev.map((r) => r.id === redemptionId ? { ...r, status: approve ? "approved" : "rejected" } : r));
+        alert(`Redemption ${approve ? "approved" : "rejected"}!`);
+      } else {
+        alert("Failed: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Error handling redemption:", err);
       alert("Error: " + String(err));
     }
   }
@@ -747,6 +769,54 @@ export default function CompanyOwnerDashboard() {
                           </button>
                         )}
                       </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Redemption Requests */}
+        <section id="redemptions" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Redemption Requests</h3>
+          <p className="text-sm text-slate-400">1000 pts = Full Station | 500 pts = Parts | 100 pts = 3 Coin Slots | 50 pts = Cable</p>
+          {redemptions.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No redemption requests yet.</div>
+          ) : (
+            <div className="space-y-3">
+              {redemptions.map((r) => (
+                <div key={r.id} className="glass-card rounded-xl p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{r.user_name}</p>
+                      <p className="text-xs text-slate-400">{r.user_email}</p>
+                      <p className="text-xs text-amber-400 mt-1">{r.redemption_label || r.redemption_type} - {r.amount} pts</p>
+                      {(r.contact_name || r.delivery_address) && (
+                        <div className="mt-2 p-2 bg-slate-800/50 rounded-lg">
+                          <p className="text-xs text-slate-400">Deliver to:</p>
+                          <p className="text-xs text-white">{r.contact_name} - {r.contact_number}</p>
+                          <p className="text-xs text-slate-400">{r.delivery_address}</p>
+                        </div>
+                      )}
+                      <p className="text-xs text-slate-500 mt-1">{new Date(r.created_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${r.status === "approved" ? "bg-green-400/10 text-green-400" : r.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
+                        {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
+                      </span>
+                      {r.status === "pending" && (
+                        <div className="flex gap-2 mt-1">
+                          <button onClick={() => handleRedemption(r.id, true)}
+                            className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                            Approve
+                          </button>
+                          <button onClick={() => handleRedemption(r.id, false)}
+                            className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                            Reject
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

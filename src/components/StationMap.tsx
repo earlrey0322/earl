@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiFetch } from "@/lib/api-fetch";
 
 export interface Station {
   id: number; name: string; companyName: string; brand: string;
@@ -38,6 +39,8 @@ export function StationMap({
   const handleSelect = (s: Station) => {
     setSelected(s);
     onSelect?.(s);
+    // Track station view - 0.1 points per view
+    apiFetch("/api/stations/view", { method: "POST", body: JSON.stringify({ stationId: s.id }) }).catch(() => {});
   };
 
   return (
