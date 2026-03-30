@@ -4,14 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npx @cloudflare/next-on-pages",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "preview": "wrangler pages dev .vercel/output/static"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cloudflare/next-on-pages": "^1.13.0",
     "@supabase/supabase-js": "^2.100.1",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.2",
