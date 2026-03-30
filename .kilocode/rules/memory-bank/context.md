@@ -58,6 +58,9 @@ The application is a complete web app for KLEOXM 111's Powered Solar Piso Chargi
 - [x] Locked station feature - regular users see "Buy premium to unlock" for non-KLEOXM stations
 - [x] Account Status section (Premium/Regular) added to branch owner and customer dashboards
 - [x] Subscription requests show "User X wants Y subscription" format
+- [x] StationMap filter buttons: All, Active, Inactive, KLEOXM 111, Other Station
+- [x] Color-coded company badges: KLEOXM 111 = yellow, Other = blue
+- [x] Locked station message with "Subscribe Now" link to subscription section
 
 ## Current Structure
 
@@ -169,3 +172,6 @@ The app is complete and ready for use. All features are implemented:
 | 2026-03-30 | Added locked station feature - regular users see "Buy premium to unlock" when clicking non-KLEOXM stations |
 | 2026-03-30 | Added Account Status section to branch owner and customer dashboards showing Premium/Regular |
 | 2026-03-30 | Subscription requests now show "User X wants Y subscription" format for company owner |
+| 2026-03-30 | Updated StationMap with filter buttons: All, Active, Inactive, KLEOXM 111, Other Station |
+| 2026-03-30 | Color-coded company badges: KLEOXM 111 = yellow, Other = blue |
+| 2026-03-30 | StationMap now handles locked station display internally with "Subscribe Now" link |
