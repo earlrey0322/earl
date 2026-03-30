@@ -35,10 +35,10 @@ export async function POST(req: Request) {
     // Send actual email using Resend
     const resendApiKey = process.env.RESEND_API_KEY;
     
-    if (!resendApiKey) {
+    if (!resendApiKey || resendApiKey === "re_your_api_key_here") {
+      console.log("RESEND_API_KEY not configured. Email code:", code);
       return NextResponse.json({ 
-        error: "Email service not configured. Please add RESEND_API_KEY in deployment settings.",
-        code: code // Fallback for testing
+        error: "Email service not configured. Please add RESEND_API_KEY in .env.local or Cloudflare Workers settings. Get free key at https://resend.com",
       });
     }
 
