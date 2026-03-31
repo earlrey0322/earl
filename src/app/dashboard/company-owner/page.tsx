@@ -693,7 +693,7 @@ export default function CompanyOwnerDashboard() {
 
         {/* Charging Calculator */}
         <section id="sessions" className="space-y-4">
-          <h3 className="text-lg font-bold text-white mb-4">Charging Calculator</h3>
+          <h3 className="text-lg font-bold text-white mb-4">PSPCS-based Calculator</h3>
           {selectedStation && <p className="text-sm text-amber-400 mb-2">Selected Station: {selectedStation.name}</p>}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ChargingCalculator stationId={selectedStation?.id} stationName={selectedStation?.name} />
@@ -718,7 +718,7 @@ export default function CompanyOwnerDashboard() {
           <div className="glass-card rounded-xl p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30">
             <div className="flex justify-between items-center">
               <p className="text-sm font-bold text-green-400">Total Revenue</p>
-              <p className="text-2xl font-bold text-green-400">₱{subscriptionRevenue + monthlyPaymentRevenue}</p>
+              <p className="text-2xl font-bold text-green-400">₱{totalRevenue}</p>
             </div>
           </div>
         </section>

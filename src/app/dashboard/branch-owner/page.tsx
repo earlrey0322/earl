@@ -461,9 +461,9 @@ export default function BranchOwnerDashboard() {
           <StationMap stations={stations} onSelect={handleSelectStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
         </section>
 
-        {/* Charging Calculator */}
+        {/* PSPCS-based Calculator */}
         <section id="sessions" className="space-y-4">
-          <h3 className="text-lg font-bold text-white mb-4">Charging Calculator</h3>
+          <h3 className="text-lg font-bold text-white mb-4">PSPCS-based Calculator</h3>
           {selectedStation && <p className="text-sm text-amber-400 mb-2">Selected Station: {selectedStation.name}</p>}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <ChargingCalculator stationId={selectedStation?.id} stationName={selectedStation?.name} />
