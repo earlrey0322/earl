@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap, Station } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
@@ -12,7 +12,7 @@ interface HistoryItem {
 }
 
 interface SubscriptionRequest { id: number; plan: string; status: string; created_at: string; reference_number: string; }
-interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionExpiry: string | null; }
+interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionExpiry: string | null; subscriptionPlan: string | null; }
 
 const PLANS = [
   { id: "1_day", label: "1 Day", days: 1, price: 20 },
@@ -32,7 +32,6 @@ export default function CustomerDashboard() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
   const [requesting, setRequesting] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
   // Handle station selection and track view
   async function handleSelectStation(station: Station) {
@@ -58,15 +57,24 @@ export default function CustomerDashboard() {
     }).catch(() => {});
   }, []);
 
-  // Subscription timer
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  const expiryRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!userData?.isSubscribed || !userData?.subscriptionExpiry) {
-      return;
-    }
-    const updateTimer = () => {
-      const expiry = new Date(userData.subscriptionExpiry!).getTime();
+    expiryRef.current = userData?.subscriptionExpiry || null;
+  }, [userData?.subscriptionExpiry]);
+
+  // Subscription timer with seconds
+  useEffect(() => {
+    const updateCountdown = () => {
+      const expiry = expiryRef.current;
+      if (!expiry) {
+        setTimeLeft(null);
+        return;
+      }
+      const exp = new Date(expiry).getTime();
       const now = Date.now();
-      const diff = expiry - now;
+      const diff = exp - now;
       if (diff <= 0) {
         setTimeLeft("Expired");
         return;
@@ -74,14 +82,14 @@ export default function CustomerDashboard() {
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      if (days > 0) setTimeLeft(`${days}d ${hours}h ${minutes}m`);
-      else if (hours > 0) setTimeLeft(`${hours}h ${minutes}m`);
-      else setTimeLeft(`${minutes}m`);
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
     };
-    updateTimer();
-    const interval = setInterval(updateTimer, 60000);
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
     return () => clearInterval(interval);
-  }, [userData?.isSubscribed, userData?.subscriptionExpiry]);
+  }, []);
 
   async function requestSubscription() {
     if (!selectedPlan || !referenceNumber.trim()) {
@@ -170,14 +178,16 @@ export default function CustomerDashboard() {
               <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/20 to-orange-500/20">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h4 className="font-bold text-white">Premium Active</h4>
-                    <p className="text-sm text-slate-400">Full access to all features</p>
+                    <h4 className="font-bold text-white">★ PREMIUM Active</h4>
+                    <p className="text-sm text-amber-400">
+                      {userData?.subscriptionPlan ? userData.subscriptionPlan.replace(/_/g, " ").toUpperCase() : "MONTHLY"}
+                    </p>
                   </div>
                   <div className="px-3 py-1 bg-amber-400 text-[#0f172a] text-xs font-bold rounded-full">★ PREMIUM</div>
                 </div>
                 <div className="p-4 bg-slate-900/50 rounded-xl">
                   <p className="text-xs text-slate-400 mb-1">Time Remaining</p>
-                  <p className="text-2xl font-bold text-amber-400">{timeLeft}</p>
+                  <p className="text-2xl font-bold font-mono text-amber-400">{timeLeft}</p>
                   <p className="text-xs text-slate-500 mt-1">Expires: {userData?.subscriptionExpiry ? new Date(userData.subscriptionExpiry).toLocaleDateString() : "N/A"}</p>
                 </div>
               </div>

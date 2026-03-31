@@ -13,11 +13,25 @@ export async function GET() {
     const { data: user, error } = await supabase.from("users").select("*").eq("id", auth.id).single();
     if (error || !user) return NextResponse.json({ error: "User not found" });
 
+    // Check if subscription has expired
+    let isSubscribed = user.is_subscribed || false;
+    if (isSubscribed && user.subscription_expiry) {
+      const expiry = new Date(user.subscription_expiry).getTime();
+      if (expiry < Date.now()) {
+        // Subscription expired - update user
+        isSubscribed = false;
+        await supabase
+          .from("users")
+          .update({ is_subscribed: false })
+          .eq("id", user.id);
+      }
+    }
+
     return NextResponse.json({
       user: {
         id: user.id, email: user.email, fullName: user.full_name, role: user.role,
         phoneBrand: user.phone_brand, contactNumber: user.contact_number, address: user.address,
-        isSubscribed: user.is_subscribed || false, subscriptionPlan: user.subscription_plan,
+        isSubscribed, subscriptionPlan: user.subscription_plan,
         subscriptionExpiry: user.subscription_expiry,
       },
     });

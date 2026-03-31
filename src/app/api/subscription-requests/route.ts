@@ -111,7 +111,7 @@ export async function PATCH(req: Request) {
     if (auth.role !== "company_owner") return NextResponse.json({ error: "Only company owner can approve" });
 
     const body = await req.json();
-    const { requestId, approve, days } = body;
+    const { requestId, approve } = body;
 
     if (!requestId) return NextResponse.json({ error: "requestId required" });
 
@@ -134,8 +134,11 @@ export async function PATCH(req: Request) {
       .eq("id", requestId);
 
     if (approve) {
-      // Company owner sets the duration in days
-      const daysToAdd = Number(days) || 1;
+      // Auto-calculate days from plan
+      const planDays: Record<string, number> = {
+        "1_day": 1, "1_week": 7, "1_month": 30, "3_months": 90, "6_months": 180, "1_year": 365
+      };
+      const daysToAdd = planDays[request.plan] || 1;
       const expiry = new Date();
       expiry.setDate(expiry.getDate() + daysToAdd);
 

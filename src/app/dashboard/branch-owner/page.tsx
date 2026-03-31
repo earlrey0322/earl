@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { StationMap, Station } from "@/components/StationMap";
 import { ChargingCalculator } from "@/components/ChargingCalculator";
@@ -20,6 +20,39 @@ export default function BranchOwnerDashboard() {
   const [stations, setStations] = useState<Station[]>([]);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
+  const expiryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    expiryRef.current = userData?.subscriptionExpiry || null;
+  }, [userData?.subscriptionExpiry]);
+
+  // Countdown timer for subscription expiry
+  useEffect(() => {
+    const updateCountdown = () => {
+      const expiry = expiryRef.current;
+      if (!expiry) {
+        setTimeRemaining(null);
+        return;
+      }
+      const exp = new Date(expiry).getTime();
+      const now = Date.now();
+      const diff = exp - now;
+      if (diff <= 0) {
+        setTimeRemaining("Expired");
+        return;
+      }
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeRemaining(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Handle station selection and track view
   async function handleSelectStation(station: Station) {
@@ -702,14 +735,16 @@ export default function BranchOwnerDashboard() {
               <p className="text-sm text-slate-400">
                 {userData?.isSubscribed ? "You can view all company stations" : "Only KLEOXM 111 stations visible"}
               </p>
-              <p className="text-xs text-slate-500 mt-1">isSubscribed: {String(userData?.isSubscribed)}</p>
             </div>
             <div className="flex items-center gap-3">
               {userData?.isSubscribed ? (
-                <div className="px-4 py-2 bg-amber-400/10 rounded-lg">
+                <div className="px-4 py-2 bg-amber-400/10 rounded-lg text-center">
                   <span className="text-amber-400 font-bold">★ PREMIUM</span>
-                  {userData?.subscriptionExpiry && (
-                    <p className="text-[10px] text-slate-400 mt-1">Expires: {new Date(userData.subscriptionExpiry).toLocaleDateString()}</p>
+                  {timeRemaining && timeRemaining !== "Expired" && (
+                    <p className="text-sm font-mono text-amber-300 mt-1">{timeRemaining}</p>
+                  )}
+                  {timeRemaining === "Expired" && (
+                    <p className="text-sm text-red-400 mt-1">EXPIRED</p>
                   )}
                 </div>
               ) : (
@@ -717,15 +752,11 @@ export default function BranchOwnerDashboard() {
                   <span className="text-slate-400 font-bold">Regular</span>
                 </div>
               )}
-              <button onClick={refreshUserData}
-                className="px-3 py-2 text-xs font-medium text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10">
-                Refresh
-              </button>
             </div>
           </div>
           {!userData?.isSubscribed && (
             <div className="mt-4 p-3 bg-amber-400/10 border border-amber-400/30 rounded-lg">
-              <p className="text-xs text-amber-400">🔒 Pay monthly fee to become premium and unlock all features.</p>
+              <p className="text-xs text-amber-400">🔒 Pay monthly fee (₱{userData?.role === "other_branch" ? "100" : "75"}/month) to become premium and unlock all features.</p>
             </div>
           )}
         </section>
