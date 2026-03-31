@@ -14,7 +14,7 @@ export async function GET() {
 
     const { data: users, error } = await supabase
       .from("users")
-      .select("id, email, full_name, role, is_subscribed, subscription_plan, created_at")
+      .select("id, email, full_name, role, is_subscribed, subscription_plan, subscription_expiry, created_at")
       .order("created_at", { ascending: false });
 
     if (error) return NextResponse.json({ error: error.message });
@@ -39,13 +39,32 @@ export async function PATCH(req: Request) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
+    // Get user to check role
+    const { data: targetUser } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", userId)
+      .single();
+
     const updateData: any = {
       is_subscribed: isPremium,
-      subscription_plan: isPremium ? "lifetime" : null,
     };
-    
-    // Clear expiry when removing premium
-    if (!isPremium) {
+
+    if (isPremium) {
+      // Only company owner gets lifetime, others get 30 days
+      if (targetUser?.role === "company_owner") {
+        updateData.subscription_plan = "lifetime";
+        updateData.subscription_expiry = null; // No expiry for lifetime
+      } else {
+        // Branch owner / other branch - 30 days only
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + 30);
+        updateData.subscription_plan = "monthly";
+        updateData.subscription_expiry = expiry.toISOString();
+      }
+    } else {
+      // Clear when removing premium
+      updateData.subscription_plan = null;
       updateData.subscription_expiry = null;
     }
 
