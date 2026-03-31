@@ -156,10 +156,10 @@ export default function CustomerDashboard() {
         </section>
 
         <section id="sessions">
-          <h3 className="text-lg font-bold text-white mb-4">Charging Sessions</h3>
+          <h3 className="text-lg font-bold text-white mb-4">PSPCS-based Calculator</h3>
           {selectedStation && <p className="text-sm text-amber-400 mb-2">Selected: {selectedStation.name}</p>}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ChargingCalculator stationId={selectedStation?.id} stationName={selectedStation?.name} onSessionStart={handleStartSession} history={history} />
+            <ChargingCalculator stationId={selectedStation?.id} stationName={selectedStation?.name} companyName={selectedStation?.companyName} onSessionStart={handleStartSession} history={history} />
             <div className="glass-card rounded-2xl p-6">
               <h3 className="font-bold text-white mb-4">PSPCS Info</h3>
               <div className="space-y-2 text-sm">

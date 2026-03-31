@@ -30,14 +30,16 @@ function compute(phoneBrand: string, current: number, target: number) {
 }
 
 export function ChargingCalculator({
-  stationId, stationName, onSessionStart, history, showAllHistory = false,
+  stationId, stationName, companyName, onSessionStart, history, showAllHistory = false,
 }: {
   stationId?: number;
   stationName?: string;
+  companyName?: string;
   onSessionStart?: (data: { stationId: number; phoneBrand: string; startBattery: number; targetBattery: number; costPesos: number; durationMinutes: number }) => void;
   history?: HistoryItem[];
   showAllHistory?: boolean;
 }) {
+  const isKleoxm = companyName === "KLEOXM 111";
   const [phoneBrand, setPhoneBrand] = useState("");
   const [currentBattery, setCurrentBattery] = useState(55);
   const [targetBattery, setTargetBattery] = useState(100);
@@ -52,10 +54,18 @@ export function ChargingCalculator({
             <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
           </div>
           <div>
-            <h3 className="font-bold text-white">Charging Calculator</h3>
-            <p className="text-xs text-slate-400">Calculate estimated charging time and cost</p>
+            <h3 className="font-bold text-white">PSPCS-based Calculator</h3>
+            <p className="text-xs text-slate-400">
+              {isKleoxm ? "Accurate estimate for KLEOXM 111 stations" : "Approximate estimate (most accurate for KLEOXM 111)"}
+            </p>
           </div>
         </div>
+
+        {stationId && companyName && !isKleoxm && (
+          <div className="p-3 bg-amber-400/10 border border-amber-400/30 rounded-lg">
+            <p className="text-xs text-amber-400">⚠️ This estimate is optimized for KLEOXM 111 stations. Results may vary for other stations.</p>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-slate-300 mb-1">Phone Brand</label>
