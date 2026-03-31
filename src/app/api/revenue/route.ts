@@ -17,15 +17,23 @@ export async function GET() {
     // Get total revenue from company_revenue table (non-refundable)
     const { data, error } = await supabase
       .from("company_revenue")
-      .select("amount");
+      .select("amount, source");
 
     if (error) {
       return NextResponse.json({ error: error.message, totalRevenue: 0 });
     }
 
-    const totalRevenue = (data || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+    const subscriptionRevenue = (data || [])
+      .filter((r: any) => r.source === "subscription")
+      .reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
 
-    return NextResponse.json({ totalRevenue });
+    const monthlyPaymentRevenue = (data || [])
+      .filter((r: any) => r.source === "monthly_payment")
+      .reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
+
+    const totalRevenue = subscriptionRevenue + monthlyPaymentRevenue;
+
+    return NextResponse.json({ totalRevenue, subscriptionRevenue, monthlyPaymentRevenue });
   } catch (e) {
     return NextResponse.json({ error: "Server error: " + String(e), totalRevenue: 0 });
   }

@@ -55,6 +55,8 @@ export default function CompanyOwnerDashboard() {
   const [monthlyPayments, setMonthlyPayments] = useState<MonthlyPayment[]>([]);
   const [redemptions, setRedemptions] = useState<Redemption[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [apiSubscriptionRevenue, setApiSubscriptionRevenue] = useState(0);
+  const [apiMonthlyPaymentRevenue, setApiMonthlyPaymentRevenue] = useState(0);
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
@@ -81,7 +83,11 @@ export default function CompanyOwnerDashboard() {
       if (srR.status === "fulfilled" && srR.value.requests) setSubRequests(srR.value.requests);
       if (mpR.status === "fulfilled" && mpR.value.payments) setMonthlyPayments(mpR.value.payments);
       if (rdR.status === "fulfilled" && rdR.value.redemptions) setRedemptions(rdR.value.redemptions);
-      if (rvR.status === "fulfilled" && rvR.value.totalRevenue !== undefined) setTotalRevenue(rvR.value.totalRevenue);
+      if (rvR.status === "fulfilled" && rvR.value.totalRevenue !== undefined) {
+        setTotalRevenue(rvR.value.totalRevenue);
+        setApiSubscriptionRevenue(rvR.value.subscriptionRevenue || 0);
+        setApiMonthlyPaymentRevenue(rvR.value.monthlyPaymentRevenue || 0);
+      }
     }).catch((err) => console.error("Dashboard fetch error:", err));
   }, []);
 
@@ -94,6 +100,21 @@ export default function CompanyOwnerDashboard() {
       if (data.users) setUsersData(data);
     } catch (err) {
       console.error("Error refreshing users:", err);
+    }
+  }
+
+  // Function to refresh revenue data
+  async function refreshRevenue() {
+    try {
+      const res = await apiFetch("/api/revenue");
+      const data = await res.json();
+      if (data.totalRevenue !== undefined) {
+        setTotalRevenue(data.totalRevenue);
+        setApiSubscriptionRevenue(data.subscriptionRevenue || 0);
+        setApiMonthlyPaymentRevenue(data.monthlyPaymentRevenue || 0);
+      }
+    } catch (err) {
+      console.error("Error refreshing revenue:", err);
     }
   }
 
@@ -181,14 +202,16 @@ export default function CompanyOwnerDashboard() {
           const usData = await usRes.json();
           if (srData.requests) setSubRequests(srData.requests);
           if (usData.totalUsers !== undefined) setUsersData(usData);
+          // Refresh revenue after approval
+          if (approve) await refreshRevenue();
         } catch (refreshErr) {
           console.error("Error refreshing:", refreshErr);
         }
       } else {
         alert("Failed: " + (data.error || "Unknown error"));
       }
-    } catch (err) { 
-      alert("Error: " + String(err)); 
+    } catch (err) {
+      alert("Error: " + String(err));
     }
   }
 
@@ -210,14 +233,16 @@ export default function CompanyOwnerDashboard() {
           const usData = await usRes.json();
           if (mpData.payments) setMonthlyPayments(mpData.payments);
           if (usData.totalUsers !== undefined) setUsersData(usData);
+          // Refresh revenue after approval
+          if (approve) await refreshRevenue();
         } catch (refreshErr) {
           console.error("Error refreshing:", refreshErr);
         }
       } else {
         alert("Failed: " + (data.error || "Unknown error"));
       }
-    } catch (err) { 
-      alert("Error: " + String(err)); 
+    } catch (err) {
+      alert("Error: " + String(err));
     }
   }
 
@@ -712,8 +737,8 @@ export default function CompanyOwnerDashboard() {
         <section id="revenue" className="space-y-4">
           <h3 className="text-lg font-bold text-white">Revenue</h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-blue-400">₱{subscriptionRevenue}</div><div className="text-xs text-slate-400">Subscriptions</div></div>
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-purple-400">₱{monthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Monthly Payments</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-blue-400">₱{apiSubscriptionRevenue}</div><div className="text-xs text-slate-400">Subscriptions</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-purple-400">₱{apiMonthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Monthly Payments</div></div>
           </div>
           <div className="glass-card rounded-xl p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30">
             <div className="flex justify-between items-center">
