@@ -80,7 +80,7 @@ export default function BranchOwnerDashboard() {
   const [requestingRedeem, setRequestingRedeem] = useState(false);
   const [newStation, setNewStation] = useState({
     name: "", address: "", latitude: 14.5995, longitude: 120.9842,
-    cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1,
+    companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1,
   });
 
   useEffect(() => {
@@ -197,7 +197,7 @@ export default function BranchOwnerDashboard() {
       if (res.ok && data.station) {
         setStations((prev) => [...prev, data.station]);
         setShowAdd(false);
-        setNewStation({ name: "", address: "", latitude: 14.5995, longitude: 120.9842, cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
+        setNewStation({ name: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
       } else {
         alert("Error: " + (data.error || "Failed to add station"));
       }
@@ -313,6 +313,11 @@ export default function BranchOwnerDashboard() {
                 <label className="block text-sm text-slate-300 mb-1">Exact Location / Address</label>
                 <input type="text" value={newStation.address} onChange={(e) => setNewStation((p) => ({ ...p, address: e.target.value }))}
                   className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="Full address" />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-300 mb-1">Company Name</label>
+                <input type="text" value={newStation.companyName} onChange={(e) => setNewStation((p) => ({ ...p, companyName: e.target.value }))}
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="KLEOXM 111" />
               </div>
               <div>
                 <label className="block text-sm text-slate-300 mb-1">Latitude</label>
