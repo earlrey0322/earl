@@ -105,7 +105,7 @@ export function StationMap({
           className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
             filter === "other" ? "bg-blue-400 text-[#0f172a]" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
           }`}>
-          Other Station ({otherCount})
+          Other Company ({otherCount})
         </button>
       </div>
 

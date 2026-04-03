@@ -9,21 +9,11 @@ import { apiFetch } from "@/lib/api-fetch";
 interface Redemption { id: number; user_id: number; user_email: string; user_name: string; redemption_type: string; redemption_label: string; amount: number; status: string; contact_name: string | null; contact_number: string | null; delivery_address: string | null; created_at: string; }
 
 const PLAN_PRICES: Record<string, number> = {
-  "1_day": 20,
-  "1_week": 60,
-  "1_month": 100,
-  "3_months": 170,
-  "6_months": 220,
-  "1_year": 300,
+  "1_day": 25,
 };
 
 const PLAN_DAYS: Record<string, number> = {
   "1_day": 1,
-  "1_week": 7,
-  "1_month": 30,
-  "3_months": 90,
-  "6_months": 180,
-  "1_year": 365,
 };
 
 interface HistoryItem {
@@ -359,7 +349,7 @@ export default function CompanyOwnerDashboard() {
             <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
             <div className="px-4 py-3 bg-orange-400/10 rounded-lg"><div className="text-2xl font-bold text-orange-400">{companyOwnerCount}</div><div className="text-xs text-slate-400">Company Owner</div></div>
             <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{branchOwnerCount}</div><div className="text-xs text-slate-400">Branch Owner</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranchCount}</div><div className="text-xs text-slate-400">Other Station</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranchCount}</div><div className="text-xs text-slate-400">Other Company</div></div>
             <div className="px-4 py-3 bg-emerald-400/10 rounded-lg"><div className="text-2xl font-bold text-emerald-400">{customerCount}</div><div className="text-xs text-slate-400">Customer</div></div>
             <div className="px-4 py-3 bg-cyan-400/10 rounded-lg"><div className="text-2xl font-bold text-cyan-400">₱{totalRevenue}</div><div className="text-xs text-slate-400">Revenue</div></div>
           </div>
@@ -758,17 +748,12 @@ export default function CompanyOwnerDashboard() {
           <div className="mt-4 pt-4 border-t border-slate-700/50">
             <h5 className="text-xs font-bold text-slate-500 uppercase mb-2">Subscription Plans</h5>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-slate-400">1 Day</span><span className="text-amber-400 font-bold">₱20</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">1 Week</span><span className="text-amber-400 font-bold">₱60</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">1 Month</span><span className="text-amber-400 font-bold">₱100</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">3 Months</span><span className="text-amber-400 font-bold">₱170</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">6 Months</span><span className="text-amber-400 font-bold">₱220</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">1 Year</span><span className="text-amber-400 font-bold">₱300</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">1 Day</span><span className="text-amber-400 font-bold">₱25</span></div>
             </div>
             <h5 className="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Monthly Fees</h5>
             <div className="space-y-1 text-sm">
               <div className="flex justify-between"><span className="text-slate-400">Branch Owner</span><span className="text-amber-400 font-bold">₱75/month</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Other Branch</span><span className="text-amber-400 font-bold">₱100/month</span></div>
+              <div className="flex justify-between"><span className="text-slate-400">Other Company</span><span className="text-amber-400 font-bold">₱100/month</span></div>
             </div>
           </div>
         </section>

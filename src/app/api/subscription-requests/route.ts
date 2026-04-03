@@ -40,8 +40,8 @@ export async function POST(req: Request) {
 
     console.log("POST /api/subscription-requests:", { plan, referenceNumber, authId: auth.id });
 
-    if (!plan || !["1_day", "1_week", "1_month", "3_months", "6_months", "1_year"].includes(plan)) {
-      return NextResponse.json({ error: "Invalid plan. Choose: 1_day, 1_week, 1_month, 3_months, 6_months, 1_year" });
+    if (!plan || !["1_day"].includes(plan)) {
+      return NextResponse.json({ error: "Invalid plan. Choose: 1_day" });
     }
 
     if (!referenceNumber || !referenceNumber.trim()) {
@@ -136,7 +136,7 @@ export async function PATCH(req: Request) {
     if (approve) {
       // Auto-calculate days from plan
       const planDays: Record<string, number> = {
-        "1_day": 1, "1_week": 7, "1_month": 30, "3_months": 90, "6_months": 180, "1_year": 365
+        "1_day": 1
       };
       const daysToAdd = planDays[request.plan] || 1;
       const expiry = new Date();
@@ -154,7 +154,7 @@ export async function PATCH(req: Request) {
 
       // Track revenue in company_revenue table (non-refundable)
       const planPrices: Record<string, number> = {
-        "1_day": 20, "1_week": 60, "1_month": 100, "3_months": 170, "6_months": 220, "1_year": 300
+        "1_day": 25
       };
       const amount = planPrices[request.plan] || 0;
       if (amount > 0) {
