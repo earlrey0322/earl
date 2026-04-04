@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { apiFetch } from "@/lib/api-fetch";
 
-interface StoreItem { id: string; name: string; description: string; price: number; specs?: string[]; }
+interface StoreItem { id: string; name: string; description: string; price: number; image?: string; specs?: string[]; }
 interface StoreOrder { id: number; item_name: string; amount: number; full_name: string; contact_number: string; delivery_address: string; reference_number: string; status: string; created_at: string; }
 
 export default function StorePage() {
@@ -77,7 +77,7 @@ export default function StorePage() {
                 <div key={item.id} className="glass-card rounded-2xl overflow-hidden">
                   <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 p-8 flex items-center justify-center">
                     <img
-                      src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/14c8ce58-f984-482f-bbf8-0c4ce615ec7a.png"
+                      src={item.image || "https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/14c8ce58-f984-482f-bbf8-0c4ce615ec7a.png"}
                       alt={item.name}
                       className="w-48 h-48 object-contain"
                     />
