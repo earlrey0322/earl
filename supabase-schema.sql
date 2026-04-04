@@ -95,6 +95,14 @@ CREATE TABLE redemptions (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE TABLE station_views (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id BIGINT NOT NULL,
+  station_id BIGINT NOT NULL,
+  viewed_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id, station_id, viewed_at)
+);
+
 -- Allow all access (for this app)
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE charging_stations ENABLE ROW LEVEL SECURITY;
@@ -102,6 +110,7 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscription_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE monthly_payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE redemptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE station_views ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Allow all" ON users FOR ALL USING (true);
 CREATE POLICY "Allow all" ON charging_stations FOR ALL USING (true);
@@ -109,6 +118,8 @@ CREATE POLICY "Allow all" ON notifications FOR ALL USING (true);
 CREATE POLICY "Allow all" ON subscription_requests FOR ALL USING (true);
 CREATE POLICY "Allow all" ON monthly_payments FOR ALL USING (true);
 CREATE POLICY "Allow all" ON redemptions FOR ALL USING (true);
+CREATE POLICY "Allow all" ON station_views FOR ALL USING (true);
+CREATE POLICY "Allow all" ON station_views FOR ALL USING (true);
 
 -- Sample stations
 INSERT INTO charging_stations (name, company_name, owner_id, owner_name, latitude, longitude, address, location, is_active, battery_level, total_visits, cable_type_c, cable_iphone, cable_universal, outlets)

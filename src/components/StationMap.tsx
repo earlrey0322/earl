@@ -28,8 +28,8 @@ export function StationMap({
   const [filter, setFilter] = useState<FilterType>("all");
   const [selected, setSelected] = useState<Station | null>(null);
   const [lockedStation, setLockedStation] = useState<Station | null>(null);
+  const [viewToast, setViewToast] = useState<{ points: number; alreadyViewed: boolean } | null>(null);
 
-  // Filter stations based on current filter
   const filtered = stations.filter((s) => {
     if (filter === "active") return s.isActive;
     if (filter === "inactive") return !s.isActive;
@@ -47,10 +47,24 @@ export function StationMap({
   const kleoxmCount = stations.filter(s => s.companyName === "KLEOXM 111").length;
   const otherCount = stations.filter(s => s.companyName && s.companyName !== "KLEOXM 111").length;
 
+  const trackView = async (stationId: number) => {
+    try {
+      const res = await apiFetch("/api/stations/view", {
+        method: "POST",
+        body: JSON.stringify({ stationId }),
+      });
+      const data = await res.json();
+      if (data.pointsEarned > 0) {
+        setViewToast({ points: data.pointsEarned, alreadyViewed: false });
+      } else if (data.alreadyViewed) {
+        setViewToast({ points: 0, alreadyViewed: true });
+      }
+      setTimeout(() => setViewToast(null), 3000);
+    } catch {}
+  };
+
   const handleSelect = (s: Station) => {
-    // Check if user can view this station
     if (!showAllBrands && s.companyName && s.companyName !== "KLEOXM 111") {
-      // Regular user clicking on other company station - show locked
       setLockedStation(s);
       setSelected(null);
       return;
@@ -59,11 +73,12 @@ export function StationMap({
     setSelected(s);
     setLockedStation(null);
     onSelect?.(s);
+    trackView(s.id);
   };
 
   const getCompanyColor = (companyName: string) => {
-    if (companyName === "KLEOXM 111") return "text-amber-400"; // Yellow for KLEOXM 111
-    if (companyName) return "text-blue-400"; // Blue for other companies
+    if (companyName === "KLEOXM 111") return "text-amber-400";
+    if (companyName) return "text-blue-400";
     return "text-slate-400";
   };
 
@@ -75,6 +90,22 @@ export function StationMap({
 
   return (
     <div className="space-y-4">
+      {/* View Toast Notification */}
+      {viewToast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 ${
+          viewToast.alreadyViewed
+            ? "bg-slate-700 border border-slate-600"
+            : "bg-green-500/20 border border-green-400/30"
+        }`}>
+          <span className="text-lg">{viewToast.alreadyViewed ? "👁️" : "⭐"}</span>
+          <span className="text-sm font-medium text-white">
+            {viewToast.alreadyViewed
+              ? "Already viewed today"
+              : `+${viewToast.points} point earned!`}
+          </span>
+        </div>
+      )}
+
       {/* Filter Buttons */}
       <div className="flex gap-2 flex-wrap">
         <button onClick={() => setFilter("all")}
@@ -144,7 +175,7 @@ export function StationMap({
                   </div>
                 </div>
 
-                {/* Company Badge - Yellow for KLEOXM 111, Blue for others */}
+                {/* Company Badge */}
                 <div className="flex items-center gap-2 mb-2">
                   <span className={`text-[10px] px-2 py-0.5 rounded ${companyBadge.bg} ${companyBadge.text}`}>
                     {companyBadge.label}
@@ -239,7 +270,7 @@ export function StationMap({
         </div>
       )}
 
-      {/* Station Details Panel (shown when selected) */}
+      {/* Station Details Panel */}
       {selected && (
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-start justify-between mb-4">
