@@ -3,10 +3,7 @@ import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
 const ITEMS = [
-  { id: "full_station", name: "Full Charging Station", description: "Complete PSPCS solar-powered charging station", price: 25000 },
-  { id: "station_parts", name: "Station Parts", description: "All parts for charging station", price: 12000 },
-  { id: "coin_slots", name: "3 Coin Slots", description: "Coin slot mechanism x3", price: 2500 },
-  { id: "charging_cable", name: "Charging Cable", description: "USB charging cable", price: 500 },
+  { id: "full_station", name: "Full Charging Station", description: "Complete PSPCS solar-powered charging station", price: 25000, specs: ["Solar Panel w/ Rectifier Bridge Diode", "DC Output for Battery Charging", "Inverter: Battery to 220VAC", "Converter: Transformer to 12VAC", "Rectifier: 12VAC to DC", "Final Output: 3.6VDC Rotary", "All Device Types Compatible", "Brand: KLEOXM 111 PSPCS"] },
 ];
 
 export async function GET() {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { DashboardShell } from "@/components/DashboardShell";
 import { apiFetch } from "@/lib/api-fetch";
 
-interface StoreItem { id: string; name: string; description: string; price: number; }
+interface StoreItem { id: string; name: string; description: string; price: number; specs?: string[]; }
 interface StoreOrder { id: number; item_name: string; amount: number; full_name: string; contact_number: string; delivery_address: string; reference_number: string; status: string; created_at: string; }
 
 export default function StorePage() {
@@ -39,7 +39,6 @@ export default function StorePage() {
         setShowBuyModal(false);
         setSelectedItem(null);
         setForm({ fullName: "", contactNumber: "", deliveryAddress: "", referenceNumber: "" });
-        // Refresh orders
         const refresh = await apiFetch("/api/store");
         const refreshData = await refresh.json();
         if (refreshData.orders) setOrders(refreshData.orders);
@@ -70,23 +69,56 @@ export default function StorePage() {
         {/* Store Items */}
         <div className="space-y-4">
           <h3 className="text-lg font-bold text-white">Available Items</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {items.map((item) => (
-              <div key={item.id} className="glass-card rounded-2xl p-5">
-                <h4 className="font-bold text-white text-lg">{item.name}</h4>
-                <p className="text-xs text-slate-400 mt-1">{item.description}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="text-2xl font-bold text-amber-400">₱{item.price.toLocaleString()}</span>
-                  <button
-                    onClick={() => { setSelectedItem(item); setShowBuyModal(true); }}
-                    className="px-4 py-2 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg"
-                  >
-                    Buy
-                  </button>
+          {items.length === 0 ? (
+            <p className="text-slate-400">Loading items...</p>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {items.map((item) => (
+                <div key={item.id} className="glass-card rounded-2xl overflow-hidden">
+                  <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 p-8 flex items-center justify-center">
+                    <img
+                      src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/14c8ce58-f984-482f-bbf8-0c4ce615ec7a.png"
+                      alt={item.name}
+                      className="w-48 h-48 object-contain"
+                    />
+                    <div className="absolute top-4 right-4 bg-green-400/20 text-green-400 text-xs font-bold px-3 py-1 rounded-full">
+                      IN STOCK
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h4 className="font-bold text-white text-xl">{item.name}</h4>
+                    <p className="text-sm text-slate-400 mt-1">{item.description}</p>
+                    
+                    {item.specs && item.specs.length > 0 && (
+                      <div className="mt-4">
+                        <h5 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">Specifications</h5>
+                        <ul className="space-y-1.5">
+                          {item.specs.map((spec, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                              <svg className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                              {spec}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <div className="mt-6 flex items-center justify-between">
+                      <span className="text-3xl font-bold text-amber-400">₱{item.price.toLocaleString()}</span>
+                      <button
+                        onClick={() => { setSelectedItem(item); setShowBuyModal(true); }}
+                        className="px-6 py-3 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg hover:shadow-lg hover:shadow-green-500/25 transition-all"
+                      >
+                        Buy Now
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Order History */}
