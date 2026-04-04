@@ -50,6 +50,7 @@ export default function CompanyOwnerDashboard() {
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState({ name: "", location: "", address: "", latitude: 14.5995, longitude: 120.9842, companyName: "KLEOXM 111", cableTypeC: 1, cableIPhone: 1, cableUniversal: 1, outlets: 1 });
+  const [storeOrders, setStoreOrders] = useState<any[]>([]);
 
   useEffect(() => {
     Promise.allSettled([
@@ -62,7 +63,8 @@ export default function CompanyOwnerDashboard() {
       apiFetch("/api/monthly-payments").then((r) => r.json()),
       apiFetch("/api/redemptions").then((r) => r.json()),
       apiFetch("/api/revenue").then((r) => r.json()),
-    ]).then(([meR, stR, hiR, usR, noR, srR, mpR, rdR, rvR]) => {
+      apiFetch("/api/store").then((r) => r.json()),
+    ]).then(([meR, stR, hiR, usR, noR, srR, mpR, rdR, rvR, storeR]) => {
       if (meR.status === "fulfilled" && meR.value.user) setUserData(meR.value.user);
       if (stR.status === "fulfilled" && stR.value.stations) setStations(stR.value.stations);
       if (hiR.status === "fulfilled" && hiR.value.history) setHistory(hiR.value.history);
@@ -78,6 +80,7 @@ export default function CompanyOwnerDashboard() {
         setApiSubscriptionRevenue(rvR.value.subscriptionRevenue || 0);
         setApiMonthlyPaymentRevenue(rvR.value.monthlyPaymentRevenue || 0);
       }
+      if (storeR.status === "fulfilled" && storeR.value.orders) setStoreOrders(storeR.value.orders);
     }).catch((err) => console.error("Dashboard fetch error:", err));
   }, []);
 
@@ -506,6 +509,43 @@ export default function CompanyOwnerDashboard() {
                         Approve
                       </button>
                       <button onClick={() => handleRedemption(r.id, false)}
+                        className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Store Orders */}
+        <section id="store-orders" className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Store Orders</h3>
+          {storeOrders.filter(o => o.status === "pending").length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No pending store orders.</div>
+          ) : (
+            <div className="space-y-3">
+              {storeOrders.filter(o => o.status === "pending").map((order) => (
+                <div key={order.id} className="glass-card rounded-xl p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-white">{order.full_name}</p>
+                      <p className="text-xs text-slate-400">{order.user_email}</p>
+                      <p className="text-xs text-amber-400 mt-1">{order.item_name} - ₱{order.amount}</p>
+                      <div className="mt-2 p-2 bg-slate-800/50 rounded-lg">
+                        <p className="text-xs text-white">📞 {order.contact_number}</p>
+                        <p className="text-xs text-slate-400">📍 {order.delivery_address}</p>
+                        <p className="text-xs text-green-400 mt-1">Ref: {order.reference_number}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => apiFetch("/api/store", { method: "PATCH", body: JSON.stringify({ orderId: order.id, status: "approved" }) }).then(() => { setStoreOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: "approved" } : o)); alert("Order approved!"); })}
+                        className="px-3 py-1 text-xs font-bold text-green-400 border border-green-400/30 rounded hover:bg-green-400/10">
+                        Approve
+                      </button>
+                      <button onClick={() => apiFetch("/api/store", { method: "PATCH", body: JSON.stringify({ orderId: order.id, status: "rejected" }) }).then(() => { setStoreOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: "rejected" } : o)); alert("Order rejected."); })}
                         className="px-3 py-1 text-xs font-bold text-red-400 border border-red-400/30 rounded hover:bg-red-400/10">
                         Reject
                       </button>

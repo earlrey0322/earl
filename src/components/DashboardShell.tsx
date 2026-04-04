@@ -114,6 +114,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
         ...common,
         { id: "requests", label: "Requests", icon: "inbox", section: "requests" },
         { id: "redemptions", label: "Redemptions", icon: "gift", section: "redemptions" },
+        { id: "store-orders", label: "Store Orders", icon: "cart", section: "store-orders" },
         { id: "users", label: "All Users", icon: "users", section: "users-timeline" },
         { id: "revenue", label: "Revenue", icon: "money", section: "revenue" },
       ];
@@ -211,6 +212,12 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
               );
             })}
             <div className="my-2 border-t border-slate-800" />
+            <Link href="/dashboard/store" onClick={() => { playClick(); setSidebarOpen(false); }}>
+              <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === "/dashboard/store" ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
+                {icons.cart}
+                Store
+              </div>
+            </Link>
             <Link href="/dashboard/settings" onClick={() => { playClick(); setSidebarOpen(false); }}>
               <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === "/dashboard/settings" ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
                 {icons.gear}
