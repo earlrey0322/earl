@@ -4,7 +4,6 @@ import { getAuthUser } from "@/lib/api-auth";
 
 const ITEMS = [
   { id: "full_station", name: "Full Charging Station", description: "Complete PSPCS solar-powered charging station", price: 25000, image: "https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/41cecb50-f488-4446-a6dc-444e803c2d51.jpg", specs: ["Solar Panel w/ Rectifier Bridge Diode", "DC Output for Battery Charging", "Inverter: Battery to 220VAC", "Converter: Transformer to 12VAC", "Rectifier: 12VAC to DC", "Final Output: 3.6VDC Rotary", "All Device Types Compatible", "Brand: KLEOXM 111 PSPCS"] },
-  { id: "station_parts", name: "Station Parts Kit", description: "Complete parts for PSPCS charging station assembly", price: 12000, image: "https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/9ae2a17e-d06a-4024-b01a-11307eadae01.jpg", specs: ["Solar Panel Component", "Rectifier Bridge Diode", "Battery Housing", "Inverter Module", "Converter Transformer", "USB Charging Ports", "Coin Slot Mechanism", "Brand: KLEOXM 111 PSPCS"] },
 ];
 
 export async function GET() {
