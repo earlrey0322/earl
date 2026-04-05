@@ -2,7 +2,7 @@
 // Solar Panel -> Rectifier Bridge Diode -> DC Voltage -> Battery -> Inverter
 // Output: 220VAC -> Converter Transformer -> 12VAC -> Rectifier -> 3.6VDC
 //
-// 1 peso = 5 minutes of charging
+// 1 peso = 3 minutes of charging
 // Phone charging rate varies by brand (approximate watts)
 
 const PHONE_CHARGING_RATES: Record<string, number> = {
@@ -21,7 +21,7 @@ const PHONE_CHARGING_RATES: Record<string, number> = {
   "Other": 20,
 };
 
-const PESO_PER_MINUTE = 1 / 5; // 1 peso = 5 minutes
+const PESO_PER_MINUTE = 1 / 3; // 1 peso = 3 minutes
 const OUTPUT_VOLTAGE_DC = 3.6; // 3.6VDC rotary output
 const MAX_POWER_WATTS = 50; // Solar panel typical capacity
 
@@ -46,12 +46,12 @@ export function calculateChargingSession(
   const durationHours = energyNeeded / chargingRate;
   const durationMinutes = Math.ceil(durationHours * 60);
 
-  // Cost: 1 peso per 5 minutes
+  // Cost: 1 peso per 3 minutes
   const costPesos = Math.ceil(durationMinutes * PESO_PER_MINUTE);
 
   return {
     estimatedWatts: chargingRate,
-    durationMinutes: Math.max(durationMinutes, 5), // Minimum 5 minutes
+    durationMinutes: Math.max(durationMinutes, 3), // Minimum 3 minutes
     costPesos: Math.max(costPesos, 1), // Minimum 1 peso
     energyNeeded: Math.round(energyNeeded * 100) / 100,
   };
@@ -68,5 +68,5 @@ export const PSPCS_SPECS = {
   converter: "Converter Transformer, Output 12VAC",
   rectifier: "Rectifier for 12VAC to DC",
   rotaryOutput: "3.6VDC Rotary Output - Charges All Types",
-  pesoRate: "1 peso = 5 minutes",
+  pesoRate: "1 peso = 3 minutes",
 };
