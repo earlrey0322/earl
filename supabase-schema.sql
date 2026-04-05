@@ -10,6 +10,8 @@ CREATE TABLE users (
   phone_brand TEXT,
   contact_number TEXT,
   address TEXT,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
   is_subscribed BOOLEAN DEFAULT false,
   subscription_plan TEXT,
   subscription_expiry TIMESTAMPTZ,

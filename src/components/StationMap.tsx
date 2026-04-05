@@ -10,6 +10,7 @@ export interface Station {
   isActive: boolean;
   solarWatts: number; batteryLevel: number; totalVisits?: number; views?: number; viewRevenue?: number; revenue?: number;
   cableTypeC: number; cableIPhone: number; cableUniversal: number; outlets: number;
+  distanceKm?: number;
 }
 
 type FilterType = "all" | "active" | "inactive" | "kleoxm" | "other";
@@ -18,16 +19,15 @@ export function StationMap({
   stations,
   onSelect,
   selectedId,
-  showAllBrands = false,
+  isPremium = false,
 }: {
   stations: Station[];
   onSelect?: (station: Station) => void;
   selectedId?: number;
-  showAllBrands?: boolean;
+  isPremium?: boolean;
 }) {
   const [filter, setFilter] = useState<FilterType>("all");
   const [selected, setSelected] = useState<Station | null>(null);
-  const [lockedStation, setLockedStation] = useState<Station | null>(null);
   const [viewToast, setViewToast] = useState<{ points: number; alreadyViewed: boolean } | null>(null);
 
   const filtered = stations.filter((s) => {
@@ -64,14 +64,7 @@ export function StationMap({
   };
 
   const handleSelect = (s: Station) => {
-    if (!showAllBrands && s.companyName && s.companyName !== "KLEOXM 111") {
-      setLockedStation(s);
-      setSelected(null);
-      return;
-    }
-    
     setSelected(s);
-    setLockedStation(null);
     onSelect?.(s);
     trackView(s.id);
   };
@@ -140,10 +133,10 @@ export function StationMap({
         </button>
       </div>
 
-      {/* Premium Notice for Regular Users */}
-      {!showAllBrands && (
+      {/* Non-premium notice */}
+      {!isPremium && (
         <div className="p-3 bg-amber-400/10 border border-amber-400/30 rounded-lg">
-          <p className="text-xs text-amber-400">🔒 Premium members can view all company stations. <span className="font-bold">Subscribe to unlock!</span></p>
+          <p className="text-xs text-amber-400">📍 Nearby stations are hidden. <span className="font-bold">Subscribe to see all stations near you!</span></p>
         </div>
       )}
 
@@ -153,7 +146,6 @@ export function StationMap({
         <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
           {filtered.map((s) => {
             const companyBadge = getCompanyBadge(s.companyName);
-            const isLocked = !showAllBrands && s.companyName && s.companyName !== "KLEOXM 111";
             
             return (
               <div
@@ -161,18 +153,14 @@ export function StationMap({
                 onClick={() => handleSelect(s)}
                 className={`cursor-pointer glass-card rounded-xl p-4 transition-all ${
                   selected?.id === s.id ? "border-2 border-amber-400 glow-solar" : 
-                  isLocked ? "border border-blue-400/30 hover:border-blue-400/50" :
                   "border border-slate-700/50 hover:border-amber-400/50"
-                } ${isLocked ? "opacity-90" : ""}`}
+                }`}
               >
                 <div className="flex items-start justify-between mb-2">
                   <h4 className="font-bold text-white text-sm">{s.name}</h4>
-                  <div className="flex gap-1">
-                    {isLocked && <span className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-400 rounded">🔒</span>}
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
-                      {s.isActive ? "Active" : "Offline"}
-                    </span>
-                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
+                    {s.isActive ? "Active" : "Offline"}
+                  </span>
                 </div>
 
                 {/* Company Badge */}
@@ -180,6 +168,11 @@ export function StationMap({
                   <span className={`text-[10px] px-2 py-0.5 rounded ${companyBadge.bg} ${companyBadge.text}`}>
                     {companyBadge.label}
                   </span>
+                  {s.distanceKm !== undefined && (
+                    <span className="text-[10px] px-2 py-0.5 bg-slate-700 text-slate-300 rounded">
+                      {s.distanceKm.toFixed(1)} km away
+                    </span>
+                  )}
                 </div>
 
                 {s.ownerName && (
@@ -248,28 +241,6 @@ export function StationMap({
         </div>
       </div>
 
-      {/* Locked Station Message */}
-      {lockedStation && (
-        <div className="glass-card rounded-2xl p-6 border-2 border-blue-400/30">
-          <div className="text-center">
-            <div className="text-4xl mb-3">🔒</div>
-            <h4 className="text-lg font-bold text-white mb-2">Buy Premium to Unlock</h4>
-            <p className="text-sm text-slate-400 mb-2">
-              This station belongs to <span className={`font-bold ${getCompanyColor(lockedStation.companyName)}`}>{lockedStation.companyName}</span>
-            </p>
-            <p className="text-sm text-slate-400 mb-4">Premium members can view all company stations. Subscribe now to unlock!</p>
-            <div className="flex gap-3 justify-center">
-              <button onClick={() => setLockedStation(null)} className="px-4 py-2 text-xs text-slate-400 border border-slate-600 rounded-lg hover:bg-slate-700">
-                Dismiss
-              </button>
-              <a href="#subscription" onClick={() => setLockedStation(null)} className="px-4 py-2 text-xs font-bold text-[#0f172a] bg-amber-400 rounded-lg hover:bg-amber-300">
-                Subscribe Now
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Station Details Panel */}
       {selected && (
         <div className="glass-card rounded-2xl p-6">
@@ -302,6 +273,12 @@ export function StationMap({
                 <p className="text-[10px] text-slate-500 uppercase tracking-wider">Coordinates</p>
                 <p className="text-sm text-slate-300">{selected.latitude.toFixed(6)}, {selected.longitude.toFixed(6)}</p>
               </div>
+              {selected.distanceKm !== undefined && (
+                <div>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">Distance</p>
+                  <p className="text-sm text-amber-400">{selected.distanceKm.toFixed(1)} km away</p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-3">

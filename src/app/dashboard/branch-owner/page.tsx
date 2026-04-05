@@ -463,7 +463,7 @@ export default function BranchOwnerDashboard() {
 
         <section id="stations">
           <h3 className="text-lg font-bold text-white mb-4">All PSPCS Stations</h3>
-          <StationMap stations={stations} onSelect={handleSelectStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+          <StationMap stations={stations} onSelect={handleSelectStation} selectedId={selectedStation?.id} isPremium={userData?.isSubscribed || false} />
         </section>
 
         {/* PSPCS-based Calculator */}

@@ -672,7 +672,7 @@ export default function CompanyOwnerDashboard() {
             </div>
           )}
 
-          <StationMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} showAllBrands={true} />
+          <StationMap stations={stations} onSelect={(s) => setSelectedStation(s)} selectedId={selectedStation?.id} isPremium={true} />
 
           <div className="glass-card rounded-2xl p-6">
             <h4 className="font-bold text-white mb-4">Manage Stations</h4>

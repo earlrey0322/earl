@@ -39,14 +39,24 @@ export default function CustomerDashboard() {
   }
 
   useEffect(() => {
+    const fetchStations = async (lat?: number, lon?: number) => {
+      const url = lat && lon ? `/api/stations?lat=${lat}&lon=${lon}` : "/api/stations";
+      const res = await apiFetch(url);
+      const data = await res.json();
+      if (data.stations) setStations(data.stations);
+    };
+
     Promise.allSettled([
       apiFetch("/api/auth/me").then((r) => r.json()),
-      apiFetch("/api/stations").then((r) => r.json()),
+      navigator.geolocation
+        ? new Promise<{ coords: { latitude: number; longitude: number } }>((resolve, reject) =>
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+          ).then((pos) => fetchStations(pos.coords.latitude, pos.coords.longitude)).catch(() => fetchStations())
+        : fetchStations(),
       apiFetch("/api/sessions").then((r) => r.json()),
       apiFetch("/api/subscription-requests").then((r) => r.json()),
-    ]).then(([meRes, stRes, hRes, srRes]) => {
+    ]).then(([meRes, , hRes, srRes]) => {
       if (meRes.status === "fulfilled" && meRes.value.user) setUserData(meRes.value.user);
-      if (stRes.status === "fulfilled" && stRes.value.stations) setStations(stRes.value.stations);
       if (hRes.status === "fulfilled" && hRes.value.history) setHistory(hRes.value.history);
       if (srRes.status === "fulfilled" && srRes.value.requests) setSubRequests(srRes.value.requests);
     }).catch(() => {});
@@ -147,7 +157,7 @@ export default function CustomerDashboard() {
 
         <section id="stations">
           <h3 className="text-lg font-bold text-white mb-4">Charging Stations</h3>
-          <StationMap stations={stations} onSelect={handleSelectStation} selectedId={selectedStation?.id} showAllBrands={userData?.isSubscribed || false} />
+          <StationMap stations={stations} onSelect={handleSelectStation} selectedId={selectedStation?.id} isPremium={userData?.isSubscribed || false} />
         </section>
 
         <section id="sessions">
@@ -262,7 +272,7 @@ export default function CustomerDashboard() {
             <div>
               <h4 className="font-bold text-white">Account Status</h4>
               <p className="text-sm text-slate-400">
-                {userData?.isSubscribed ? "You can view all company stations" : "Only KLEOXM 111 stations visible"}
+                {userData?.isSubscribed ? "You can see all stations nearby" : "Nearby stations hidden — subscribe to see them"}
               </p>
             </div>
             {userData?.isSubscribed ? (

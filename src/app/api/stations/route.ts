@@ -2,9 +2,18 @@ import { NextResponse } from "next/server";
 import { getSupabase } from "@/lib/supabase";
 import { getAuthUser } from "@/lib/api-auth";
 
+const NEARBY_RADIUS_KM = 5;
+
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function toStation(s: any, isPremium: boolean, isOwner: boolean) {
   const isKleoXM = !s.company_name || s.company_name === "" || s.company_name === "KLEOXM 111";
-  // Location visibility: KLEOXM 111 visible to all, other companies only for premium/owner
   const canSeeLocation = isKleoXM || isPremium || isOwner;
   
   return {
@@ -29,14 +38,20 @@ function toStation(s: any, isPremium: boolean, isOwner: boolean) {
     cableIPhone: s.cable_iphone,
     cableUniversal: s.cable_universal,
     outlets: s.outlets,
+    distanceKm: s._distanceKm,
   };
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const auth = await getAuthUser();
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
+
+    const url = new URL(req.url);
+    const userLat = parseFloat(url.searchParams.get("lat") || "0");
+    const userLon = parseFloat(url.searchParams.get("lon") || "0");
+    const hasLocation = userLat !== 0 && userLon !== 0;
 
     let isPremium = false;
     if (auth) {
@@ -44,12 +59,23 @@ export async function GET() {
       isPremium = !!user?.is_subscribed;
     }
 
-    // ALL users see ALL stations - visibility is controlled by toStation (location data hidden for non-premium)
     const { data, error } = await supabase.from("charging_stations").select("*").order("id");
     
     if (error) return NextResponse.json({ error: error.message });
+
+    let stations = (data || []).map((s: any) => {
+      const dist = hasLocation ? haversineDistance(userLat, userLon, s.latitude, s.longitude) : 0;
+      return { ...s, _distanceKm: dist };
+    });
+
+    // Non-premium users only see FAR stations (>5km away)
+    if (!isPremium && auth && hasLocation) {
+      stations = stations.filter((s: any) => s._distanceKm > NEARBY_RADIUS_KM);
+    }
+
     return NextResponse.json({
-      stations: (data || []).map((s: any) => toStation(s, isPremium, auth?.id === s.owner_id))
+      stations: stations.map((s: any) => toStation(s, isPremium, auth?.id === s.owner_id)),
+      isPremium,
     });
   } catch (e) {
     return NextResponse.json({ error: String(e) });
@@ -69,7 +95,6 @@ export async function POST(req: Request) {
     const supabase = getSupabase();
     if (!supabase) return NextResponse.json({ error: "Database not set up" });
 
-    // Branch owner and other branch must have active subscription to add stations
     if (auth.role === "branch_owner" || auth.role === "other_branch") {
       const { data: userProfile } = await supabase.from("users").select("is_subscribed").eq("id", auth.id).single();
       if (!userProfile?.is_subscribed) {
