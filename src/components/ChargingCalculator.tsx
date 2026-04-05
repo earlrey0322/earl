@@ -24,8 +24,8 @@ function compute(phoneBrand: string, current: number, target: number) {
   const rate = PHONE_RATES[phoneBrand] || 20;
   const wh = 16.65;
   const energy = ((target - current) / 100) * wh;
-  const minutes = Math.max(Math.ceil((energy / rate) * 60), 5);
-  const cost = Math.max(Math.ceil(minutes / 5), 1);
+  const minutes = Math.max(Math.ceil((energy / rate) * 60), 3);
+  const cost = Math.max(Math.ceil(minutes / 3), 1);
   return { watts: rate, minutes, cost, energy: Math.round(energy * 100) / 100 };
 }
 
