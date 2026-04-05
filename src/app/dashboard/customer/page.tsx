@@ -28,14 +28,9 @@ export default function CustomerDashboard() {
   const [referenceNumber, setReferenceNumber] = useState("");
   const [requesting, setRequesting] = useState(false);
 
-  // Handle station selection and track view
-  async function handleSelectStation(station: Station) {
+  // Handle station selection
+  function handleSelectStation(station: Station) {
     setSelectedStation(station);
-    try {
-      await apiFetch("/api/stations/view", { method: "POST", body: JSON.stringify({ stationId: station.id }) });
-    } catch (err) {
-      console.error("View tracking error:", err);
-    }
   }
 
   useEffect(() => {
