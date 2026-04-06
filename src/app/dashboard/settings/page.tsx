@@ -72,29 +72,29 @@ export default function SettingsPage() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-              <input type="text" value={form.fullName} onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+              <label className="block text-sm font-medium text-green-200 mb-1">Full Name</label>
+              <input type="text" value={form.fullName} onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-              <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+              <label className="block text-sm font-medium text-green-200 mb-1">Email</label>
+              <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">New Password (leave blank to keep current)</label>
-              <input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} placeholder="New password" className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" />
+              <label className="block text-sm font-medium text-green-200 mb-1">New Password (leave blank to keep current)</label>
+              <input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} placeholder="New password" className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Contact Number</label>
-              <input type="tel" value={form.contactNumber} onChange={(e) => setForm((p) => ({ ...p, contactNumber: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+              <label className="block text-sm font-medium text-green-200 mb-1">Contact Number</label>
+              <input type="tel" value={form.contactNumber} onChange={(e) => setForm((p) => ({ ...p, contactNumber: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Address</label>
-              <input type="text" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+              <label className="block text-sm font-medium text-green-200 mb-1">Address</label>
+              <input type="text" value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
             </div>
             {userData?.role === "customer" && (
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Phone Brand</label>
-                <select value={form.phoneBrand} onChange={(e) => setForm((p) => ({ ...p, phoneBrand: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400">
+                <label className="block text-sm font-medium text-green-200 mb-1">Phone Brand</label>
+                <select value={form.phoneBrand} onChange={(e) => setForm((p) => ({ ...p, phoneBrand: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400">
                   <option value="">Select phone brand</option>
                   {["Apple iPhone","Samsung Galaxy","Xiaomi","Huawei","OPPO","Vivo","Realme","OnePlus","Nokia","Google Pixel","Infinix","Tecno","Other"].map((b) => <option key={b} value={b}>{b}</option>)}
                 </select>
@@ -108,7 +108,7 @@ export default function SettingsPage() {
 
         <div className="glass-card rounded-2xl p-6 border border-red-500/20">
           <h3 className="text-lg font-bold text-red-400 mb-2">Danger Zone</h3>
-          <p className="text-sm text-slate-400 mb-4">Once you delete your account, there is no going back.</p>
+          <p className="text-sm text-green-300 mb-4">Once you delete your account, there is no going back.</p>
           {!showDelete ? (
             <button onClick={() => { playClick(); setShowDelete(true); }} className="px-4 py-2 text-sm font-medium text-red-400 border border-red-400/30 rounded-lg hover:bg-red-400/10 transition-all">
               Delete Account
@@ -118,7 +118,7 @@ export default function SettingsPage() {
               <button onClick={handleDelete} className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded-lg hover:bg-red-500 transition-all">
                 Confirm Delete
               </button>
-              <button onClick={() => { playClick(); setShowDelete(false); }} className="px-4 py-2 text-sm text-slate-400 border border-slate-600 rounded-lg hover:bg-slate-800 transition-all">
+              <button onClick={() => { playClick(); setShowDelete(false); }} className="px-4 py-2 text-sm text-green-300 border border-green-700 rounded-lg hover:bg-green-950 transition-all">
                 Cancel
               </button>
             </div>

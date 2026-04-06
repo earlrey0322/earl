@@ -142,11 +142,11 @@ export default function CustomerDashboard() {
       <div className="space-y-8">
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 to-orange-500/5">
           <h2 className="text-2xl font-bold text-white">Welcome, {userData?.fullName || "Customer"}!</h2>
-          <p className="text-slate-400 mt-1">Find stations, calculate cost, and start charging.</p>
+          <p className="text-green-300 mt-1">Find stations, calculate cost, and start charging.</p>
           <div className="flex gap-4 mt-4">
-            <div className="px-4 py-2 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{stations.length}</div><div className="text-xs text-slate-400">Stations</div></div>
-            <div className="px-4 py-2 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
-            <div className="px-4 py-2 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{history.length}</div><div className="text-xs text-slate-400">Sessions</div></div>
+            <div className="px-4 py-2 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{stations.length}</div><div className="text-xs text-green-300">Stations</div></div>
+            <div className="px-4 py-2 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-green-300">Active</div></div>
+            <div className="px-4 py-2 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{history.length}</div><div className="text-xs text-green-300">Sessions</div></div>
           </div>
         </div>
 
@@ -164,7 +164,7 @@ export default function CustomerDashboard() {
               <h3 className="font-bold text-white mb-4">PSPCS Info</h3>
               <div className="space-y-2 text-sm">
                 {[{ l: "Output", v: "3.6VDC" }, { l: "Cables", v: "All Types" }, { l: "Power", v: "Solar" }, { l: "AC", v: "220VAC" }, { l: "Brand", v: "KLEOXM 111" }].map((s) => (
-                  <div key={s.l} className="flex justify-between py-2 border-b border-slate-700/50"><span className="text-slate-400">{s.l}</span><span className="text-amber-400 font-medium">{s.v}</span></div>
+                  <div key={s.l} className="flex justify-between py-2 border-b border-green-800/50"><span className="text-green-300">{s.l}</span><span className="text-amber-400 font-medium">{s.v}</span></div>
                 ))}
               </div>
             </div>
@@ -185,10 +185,10 @@ export default function CustomerDashboard() {
                   </div>
                   <div className="px-3 py-1 bg-amber-400 text-[#0f172a] text-xs font-bold rounded-full">★ PREMIUM</div>
                 </div>
-                <div className="p-4 bg-slate-900/50 rounded-xl">
-                  <p className="text-xs text-slate-400 mb-1">Time Remaining</p>
+                <div className="p-4 bg-green-950/50 rounded-xl">
+                  <p className="text-xs text-green-300 mb-1">Time Remaining</p>
                   <p className="text-2xl font-bold font-mono text-amber-400">{timeLeft}</p>
-                  <p className="text-xs text-slate-500 mt-1">Expires: {userData?.subscriptionExpiry ? new Date(userData.subscriptionExpiry).toLocaleDateString() : "N/A"}</p>
+                  <p className="text-xs text-green-400 mt-1">Expires: {userData?.subscriptionExpiry ? new Date(userData.subscriptionExpiry).toLocaleDateString() : "N/A"}</p>
                 </div>
               </div>
             ) : !userData?.isSubscribed ? (
@@ -196,14 +196,14 @@ export default function CustomerDashboard() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h4 className="font-bold text-white">Request Premium Access</h4>
-                    <p className="text-sm text-slate-400">Select a plan and send request</p>
+                    <p className="text-sm text-green-300">Select a plan and send request</p>
                   </div>
-                  <span className="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-full">Free Plan</span>
+                  <span className="text-xs px-2 py-1 bg-green-900 text-green-300 rounded-full">Free Plan</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {PLANS.map((plan) => (
                     <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
-                      className={`p-3 rounded-xl border text-center transition-all ${selectedPlan === plan.id ? "border-amber-400 bg-amber-400/10" : "border-slate-600 hover:border-slate-500"}`}>
+                      className={`p-3 rounded-xl border text-center transition-all ${selectedPlan === plan.id ? "border-amber-400 bg-amber-400/10" : "border-green-700 hover:border-slate-500"}`}>
                       <div className="text-sm font-bold text-white">{plan.label}</div>
                       <div className="text-lg font-bold text-amber-400">₱{plan.price}</div>
                     </button>
@@ -215,17 +215,17 @@ export default function CustomerDashboard() {
                     <div className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl">
                       <p className="text-xs text-blue-400 mb-2">GCash Payment</p>
                       <div className="space-y-1 text-sm">
-                        <div className="flex justify-between"><span className="text-slate-400">Number</span><span className="text-white font-bold">09469086926</span></div>
-                        <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
-                        <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-amber-400 font-bold">₱{PLANS.find((p) => p.id === selectedPlan)?.price}</span></div>
+                        <div className="flex justify-between"><span className="text-green-300">Number</span><span className="text-white font-bold">09469086926</span></div>
+                        <div className="flex justify-between"><span className="text-green-300">Name</span><span className="text-white">Earl Christian Rey</span></div>
+                        <div className="flex justify-between"><span className="text-green-300">Amount</span><span className="text-amber-400 font-bold">₱{PLANS.find((p) => p.id === selectedPlan)?.price}</span></div>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm text-slate-300 mb-2">GCash Reference Number</label>
+                      <label className="block text-sm text-green-200 mb-2">GCash Reference Number</label>
                       <input type="text" value={referenceNumber} onChange={(e) => setReferenceNumber(e.target.value)}
                         placeholder="Enter reference number from GCash"
-                        className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                        className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                     </div>
 
                     <button onClick={requestSubscription} disabled={requesting || !referenceNumber.trim()}
@@ -242,12 +242,12 @@ export default function CustomerDashboard() {
                 <h4 className="font-bold text-white mb-4">Your Requests</h4>
                 <div className="space-y-2 max-h-[200px] overflow-y-auto">
                   {subRequests.map((req) => (
-                    <div key={req.id} className="p-3 bg-slate-800/50 rounded-lg">
+                    <div key={req.id} className="p-3 bg-green-950/50 rounded-lg">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-sm font-medium text-white">{req.plan.replace(/_/g, " ")}</p>
-                          <p className="text-xs text-slate-400">Ref: {req.reference_number || "N/A"}</p>
-                          <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleDateString()}</p>
+                          <p className="text-xs text-green-300">Ref: {req.reference_number || "N/A"}</p>
+                          <p className="text-xs text-green-400">{new Date(req.created_at).toLocaleDateString()}</p>
                         </div>
                         <span className={`text-xs px-2 py-1 rounded-full ${req.status === "approved" ? "bg-green-400/10 text-green-400" : req.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
                           {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
@@ -266,7 +266,7 @@ export default function CustomerDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-bold text-white">Account Status</h4>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-green-300">
                 {userData?.isSubscribed ? "You can see all stations nearby" : "Nearby stations hidden — subscribe to see them"}
               </p>
             </div>
@@ -274,12 +274,12 @@ export default function CustomerDashboard() {
               <div className="px-4 py-2 bg-amber-400/10 rounded-lg">
                 <span className="text-amber-400 font-bold">★ PREMIUM</span>
                 {userData?.subscriptionExpiry && (
-                  <p className="text-[10px] text-slate-400 mt-1">Expires: {new Date(userData.subscriptionExpiry).toLocaleDateString()}</p>
+                  <p className="text-[10px] text-green-300 mt-1">Expires: {new Date(userData.subscriptionExpiry).toLocaleDateString()}</p>
                 )}
               </div>
             ) : (
-              <div className="px-4 py-2 bg-slate-700 rounded-lg">
-                <span className="text-slate-400 font-bold">Regular</span>
+              <div className="px-4 py-2 bg-green-900 rounded-lg">
+                <span className="text-green-300 font-bold">Regular</span>
               </div>
             )}
           </div>

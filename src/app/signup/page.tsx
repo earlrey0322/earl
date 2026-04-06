@@ -88,15 +88,15 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4 py-12">
+    <main className="min-h-screen bg-[#0a1f0f] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/ad30a66a-ccea-4204-bb5d-83d87e90b9f6.jpg" alt="PSPCS Logo" className="w-20 h-20 mx-auto mb-3 rounded-xl object-contain" />
           <h1 className="text-2xl font-bold text-white">Create Account</h1>
-          <p className="text-slate-400 text-sm mt-1">Join PSPCS by KLEOXM 111 — Step {step} of 2</p>
+          <p className="text-green-300 text-sm mt-1">Join PSPCS by KLEOXM 111 — Step {step} of 2</p>
           <div className="flex gap-2 justify-center mt-4">
             {[1, 2].map((s) => (
-              <div key={s} className={`h-1.5 w-24 rounded-full ${s <= step ? "bg-amber-400" : "bg-slate-700"}`} />
+              <div key={s} className={`h-1.5 w-24 rounded-full ${s <= step ? "bg-amber-400" : "bg-green-900"}`} />
             ))}
           </div>
         </div>
@@ -116,10 +116,10 @@ export default function SignupPage() {
                 { value: "company_owner" as Role, title: "Company Owner", desc: "KLEOXM 111 management", icon: "🏢" },
               ]).map((r) => (
                 <button key={r.value} type="button" onClick={() => update("role", r.value)}
-                  className={`w-full text-left p-4 rounded-xl border transition-all ${form.role === r.value ? "border-amber-400 bg-amber-400/10" : "border-slate-600 hover:border-slate-500"}`}>
+                  className={`w-full text-left p-4 rounded-xl border transition-all ${form.role === r.value ? "border-amber-400 bg-amber-400/10" : "border-green-700 hover:border-slate-500"}`}>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{r.icon}</span>
-                    <div><h3 className="font-bold text-white">{r.title}</h3><p className="text-xs text-slate-400">{r.desc}</p></div>
+                    <div><h3 className="font-bold text-white">{r.title}</h3><p className="text-xs text-green-300">{r.desc}</p></div>
                   </div>
                 </button>
               ))}
@@ -133,44 +133,44 @@ export default function SignupPage() {
               <h2 className="text-lg font-bold text-white">Account Details</h2>
               
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
+                <label className="block text-sm font-medium text-green-200 mb-1">Full Name</label>
                 <input type="text" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} required
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Juan Dela Cruz" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Juan Dela Cruz" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Username</label>
+                <label className="block text-sm font-medium text-green-200 mb-1">Username</label>
                 <input type="text" value={form.username} onChange={(e) => update("username", e.target.value)} required
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="juandelacruz" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="juandelacruz" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Contact Number</label>
+                <label className="block text-sm font-medium text-green-200 mb-1">Contact Number</label>
                 <input type="tel" value={form.contactNumber} onChange={(e) => update("contactNumber", e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="09XXXXXXXXX" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="09XXXXXXXXX" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Worklife Answer</label>
+                <label className="block text-sm font-medium text-green-200 mb-1">Worklife Answer</label>
                 <input type="text" value={form.worklifeAnswer} onChange={(e) => update("worklifeAnswer", e.target.value)} required
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 uppercase focus:outline-none focus:border-amber-400"
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 uppercase focus:outline-none focus:border-amber-400"
                   placeholder="Enter worklife answer" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                <label className="block text-sm font-medium text-green-200 mb-1">Password</label>
                 <input type="password" value={form.password} onChange={(e) => update("password", e.target.value)} required minLength={6}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Min. 6 characters" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Min. 6 characters" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
+                <label className="block text-sm font-medium text-green-200 mb-1">Confirm Password</label>
                 <input type="password" value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} required
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Confirm password" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Confirm password" />
               </div>
 
               <div className="flex gap-3">
-                <button type="button" onClick={() => setStep(1)} className="flex-1 py-3 font-medium text-slate-300 border border-slate-600 rounded-lg">Back</button>
+                <button type="button" onClick={() => setStep(1)} className="flex-1 py-3 font-medium text-green-200 border border-green-700 rounded-lg">Back</button>
                 <button type="submit" disabled={loading || !form.username || !form.password || !form.confirmPassword || !form.worklifeAnswer}
                   className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg disabled:opacity-50">
                   {loading ? "Creating..." : "Create Account"}
@@ -179,7 +179,7 @@ export default function SignupPage() {
             </div>
           )}
 
-          <p className="text-center text-sm text-slate-400">
+          <p className="text-center text-sm text-green-300">
             Already have an account? <a href="/login" className="text-amber-400 hover:underline">Log In</a>
           </p>
         </form>

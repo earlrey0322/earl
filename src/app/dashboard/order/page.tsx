@@ -101,44 +101,44 @@ export default function OrderPage() {
         {!isOwner && (
           <div className="glass-card rounded-2xl p-6">
             <h2 className="text-xl font-bold text-white mb-2">Order PSPCS Station</h2>
-            <p className="text-sm text-slate-400 mb-6">Order your own Powered Solar Piso Charging Station. Pay via GCash to confirm.</p>
+            <p className="text-sm text-green-300 mb-6">Order your own Powered Solar Piso Charging Station. Pay via GCash to confirm.</p>
 
             {message && <div className="mb-4 bg-green-500/10 border border-green-500/30 rounded-lg px-4 py-3 text-green-400 text-sm">{message}</div>}
             {error && <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-3 text-red-400 text-sm">{error}</div>}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Full Name</label>
+                <label className="block text-sm text-green-200 mb-1">Full Name</label>
                 <input type="text" value={buyerName} onChange={(e) => setBuyerName(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
               </div>
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Phone Number</label>
+                <label className="block text-sm text-green-200 mb-1">Phone Number</label>
                 <input type="tel" value={buyerPhone} onChange={(e) => setBuyerPhone(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="09XXXXXXXXX" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="09XXXXXXXXX" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm text-slate-300 mb-1">Delivery Address</label>
+                <label className="block text-sm text-green-200 mb-1">Delivery Address</label>
                 <input type="text" value={buyerAddress} onChange={(e) => setBuyerAddress(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="Full address for delivery" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="Full address for delivery" />
               </div>
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Product</label>
+                <label className="block text-sm text-green-200 mb-1">Product</label>
                 <select value={selectedProduct} onChange={(e) => setSelectedProduct(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400">
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400">
                   <option value="">Select product</option>
                   {products.map((p) => <option key={p.id} value={p.id}>{p.name} — ₱{p.price}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-slate-300 mb-1">Quantity</label>
+                <label className="block text-sm text-green-200 mb-1">Quantity</label>
                 <input type="number" min={1} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm text-slate-300 mb-1">Notes (optional)</label>
+                <label className="block text-sm text-green-200 mb-1">Notes (optional)</label>
                 <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="Special instructions" />
+                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="Special instructions" />
               </div>
             </div>
 
@@ -146,11 +146,11 @@ export default function OrderPage() {
               <div className="mt-4 p-4 bg-amber-400/10 border border-amber-400/30 rounded-xl">
                 <div>
                   <p className="font-bold text-white">{selectedProd.name}</p>
-                  <p className="text-xs text-slate-400">{selectedProd.desc}</p>
-                  <p className="text-xs text-slate-400 mt-1">Qty: {quantity}</p>
+                  <p className="text-xs text-green-300">{selectedProd.desc}</p>
+                  <p className="text-xs text-green-300 mt-1">Qty: {quantity}</p>
                   <div className="mt-2 space-y-1 text-sm">
-                    <div className="flex justify-between"><span className="text-slate-400">Product</span><span className="text-white">₱{productTotal.toLocaleString()}</span></div>
-                    <div className="flex justify-between"><span className="text-slate-400">Shipping Fee</span><span className="text-white">₱{SHIPPING_FEE.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-green-300">Product</span><span className="text-white">₱{productTotal.toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span className="text-green-300">Shipping Fee</span><span className="text-white">₱{SHIPPING_FEE.toLocaleString()}</span></div>
                     <div className="flex justify-between border-t border-amber-400/30 pt-1"><span className="text-amber-400 font-bold">Total</span><span className="text-amber-400 font-bold">₱{totalPrice.toLocaleString()}</span></div>
                   </div>
                 </div>
@@ -174,9 +174,9 @@ export default function OrderPage() {
             <h3 className="font-bold text-white mb-4">Available Products</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((p) => (
-                <div key={p.id} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div key={p.id} className="bg-green-950/50 rounded-xl p-4 border border-green-800/50">
                   <h4 className="font-bold text-white text-sm">{p.name}</h4>
-                  <p className="text-xs text-slate-400 mt-1">{p.desc}</p>
+                  <p className="text-xs text-green-300 mt-1">{p.desc}</p>
                   <p className="text-lg font-bold text-amber-400 mt-2">₱{p.price.toLocaleString()}</p>
                   <button onClick={() => { playClick(); setSelectedProduct(p.id); }}
                     className="w-full mt-2 py-2 text-xs font-medium text-amber-400 border border-amber-400/30 rounded-lg hover:bg-amber-400/10">
@@ -192,31 +192,31 @@ export default function OrderPage() {
         <div className="glass-card rounded-2xl p-6">
           <h3 className="font-bold text-white mb-4">{isOwner ? "All Orders" : "Your Orders"}</h3>
           {orders.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">No orders yet.</p>
+            <p className="text-sm text-green-300 text-center py-8">No orders yet.</p>
           ) : (
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {orders.map((order) => (
-                <div key={order.id} className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                <div key={order.id} className="p-4 bg-green-950/50 rounded-lg border border-green-800/50">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-bold text-white">{order.product}</p>
                       {isOwner && <p className="text-xs text-blue-400">{order.buyerName} — {order.buyerPhone}</p>}
-                      <p className="text-xs text-slate-400 mt-1">{order.buyerAddress}</p>
-                      <p className="text-xs text-slate-500">Qty: {order.quantity} | {new Date(order.createdAt).toLocaleDateString()}</p>
-                      {order.notes && <p className="text-xs text-slate-500 mt-1">Notes: {order.notes}</p>}
+                      <p className="text-xs text-green-300 mt-1">{order.buyerAddress}</p>
+                      <p className="text-xs text-green-400">Qty: {order.quantity} | {new Date(order.createdAt).toLocaleDateString()}</p>
+                      {order.notes && <p className="text-xs text-green-400 mt-1">Notes: {order.notes}</p>}
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-amber-400">₱{order.totalPrice.toLocaleString()}</p>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_COLORS[order.status] || "bg-slate-700 text-slate-400"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_COLORS[order.status] || "bg-green-900 text-green-300"}`}>
                         {order.status}
                       </span>
                     </div>
                   </div>
                   {isOwner && (
-                    <div className="flex gap-2 mt-3 pt-3 border-t border-slate-700/50">
+                    <div className="flex gap-2 mt-3 pt-3 border-t border-green-800/50">
                       {["confirmed", "shipped", "delivered", "cancelled"].map((s) => (
                         <button key={s} onClick={() => updateStatus(order.id, s)}
-                          className={`px-3 py-1 text-[10px] font-bold rounded-full ${order.status === s ? STATUS_COLORS[s] : "bg-slate-700 text-slate-400 hover:bg-slate-600"}`}>
+                          className={`px-3 py-1 text-[10px] font-bold rounded-full ${order.status === s ? STATUS_COLORS[s] : "bg-green-900 text-green-300 hover:bg-slate-600"}`}>
                           {s.charAt(0).toUpperCase() + s.slice(1)}
                         </button>
                       ))}
@@ -232,16 +232,16 @@ export default function OrderPage() {
         <div className="glass-card rounded-2xl p-6">
           <h3 className="font-bold text-white mb-4">Payment Info</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between py-2 border-b border-slate-700/50">
-              <span className="text-slate-400">GCash Number</span>
+            <div className="flex justify-between py-2 border-b border-green-800/50">
+              <span className="text-green-300">GCash Number</span>
               <span className="text-white font-bold">09469086926</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-slate-700/50">
-              <span className="text-slate-400">Account Name</span>
+            <div className="flex justify-between py-2 border-b border-green-800/50">
+              <span className="text-green-300">Account Name</span>
               <span className="text-white font-bold">Earl Christian Rey</span>
             </div>
-            <div className="flex justify-between py-2 border-b border-slate-700/50">
-              <span className="text-slate-400">Email</span>
+            <div className="flex justify-between py-2 border-b border-green-800/50">
+              <span className="text-green-300">Email</span>
               <span className="text-white font-bold">earlrey0322@gmail.com</span>
             </div>
           </div>

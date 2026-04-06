@@ -37,7 +37,7 @@ export function RealMap({
       <div className="flex gap-2 flex-wrap">
         {(["all", "active", "kleoxm"] as const).map((f) => (
           <button key={f} onClick={() => { playClick(); setFilter(f); }}
-            className={`px-4 py-1.5 text-xs font-medium rounded-full ${filter === f ? "bg-amber-400 text-[#0f172a]" : "bg-slate-800 text-slate-400"}`}>
+            className={`px-4 py-1.5 text-xs font-medium rounded-full ${filter === f ? "bg-amber-400 text-[#0f172a]" : "bg-green-950 text-green-300"}`}>
             {f === "all" ? `All (${stations.length})` : f === "active" ? `Active (${stations.filter(s => s.isActive).length})` : "KLEOXM 111"}
           </button>
         ))}
@@ -48,7 +48,7 @@ export function RealMap({
         {filtered.map((s) => (
           <div key={s.id}
             onClick={() => { playClick(); onSelect?.(s); }}
-            className={`cursor-pointer glass-card rounded-xl p-5 transition-all ${selectedId === s.id ? "border-2 border-amber-400 glow-solar" : "border border-slate-700/50 hover:border-amber-400/50"}`}>
+            className={`cursor-pointer glass-card rounded-xl p-5 transition-all ${selectedId === s.id ? "border-2 border-amber-400 glow-solar" : "border border-green-800/50 hover:border-amber-400/50"}`}>
             {/* Header */}
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
@@ -66,25 +66,25 @@ export function RealMap({
             </div>
 
             {/* Location - always visible */}
-            <div className="bg-slate-800/50 rounded-lg p-3 mb-3">
+            <div className="bg-green-950/50 rounded-lg p-3 mb-3">
               <div className="flex items-start gap-2">
                 <svg className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                 <div>
                   <p className="text-sm text-white font-medium">{s.address}</p>
-                  <p className="text-[10px] text-slate-500 mt-1">{(s.latitude ?? 0).toFixed(4)}, {(s.longitude ?? 0).toFixed(4)}</p>
+                  <p className="text-[10px] text-green-400 mt-1">{(s.latitude ?? 0).toFixed(4)}, {(s.longitude ?? 0).toFixed(4)}</p>
                 </div>
               </div>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-2 mb-3">
-              <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+              <div className="bg-green-950/50 rounded-lg p-2 text-center">
                 <div className={`text-sm font-bold ${(s.batteryLevel || 0) > 50 ? "text-green-400" : "text-amber-400"}`}>{s.batteryLevel || 0}%</div>
-                <div className="text-[10px] text-slate-500">Battery</div>
+                <div className="text-[10px] text-green-400">Battery</div>
               </div>
-              <div className="bg-slate-800/50 rounded-lg p-2 text-center">
+              <div className="bg-green-950/50 rounded-lg p-2 text-center">
                 <div className="text-sm font-bold text-blue-400">{s.totalVisits}</div>
-                <div className="text-[10px] text-slate-500">Visits</div>
+                <div className="text-[10px] text-green-400">Visits</div>
               </div>
             </div>
 
@@ -92,7 +92,7 @@ export function RealMap({
             <div className="flex gap-1.5 mb-3 flex-wrap">
               {s.cableTypeC > 0 && <span className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full">Type-C: {s.cableTypeC}</span>}
               {s.cableIPhone > 0 && <span className="text-[10px] px-2 py-0.5 bg-purple-500/10 text-purple-400 rounded-full">iPhone: {s.cableIPhone}</span>}
-              {s.cableUniversal > 0 && <span className="text-[10px] px-2 py-0.5 bg-slate-500/10 text-slate-400 rounded-full">USB: {s.cableUniversal}</span>}
+              {s.cableUniversal > 0 && <span className="text-[10px] px-2 py-0.5 bg-slate-500/10 text-green-300 rounded-full">USB: {s.cableUniversal}</span>}
               {s.outlets > 0 && <span className="text-[10px] px-2 py-0.5 bg-amber-500/10 text-amber-400 rounded-full">Outlets: {s.outlets}</span>}
             </div>
 
@@ -107,7 +107,7 @@ export function RealMap({
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-12 text-slate-400">
+        <div className="text-center py-12 text-green-300">
           <p className="text-4xl mb-2">📍</p>
           <p>No stations found</p>
         </div>

@@ -346,27 +346,27 @@ export default function CompanyOwnerDashboard() {
         {/* Welcome */}
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-amber-400/10 via-orange-500/5 to-red-500/5">
           <h2 className="text-2xl font-bold text-white">KLEOXM 111 Management</h2>
-          <p className="text-slate-400 mt-1">Welcome, {userData?.fullName || "Company Owner"}</p>
+          <p className="text-green-300 mt-1">Welcome, {userData?.fullName || "Company Owner"}</p>
           <div className="grid grid-cols-2 md:grid-cols-7 gap-4 mt-4">
-            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-2xl font-bold text-amber-400">{stations.length}</div><div className="text-xs text-slate-400">Stations</div></div>
-            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-slate-400">Active</div></div>
-            <div className="px-4 py-3 bg-orange-400/10 rounded-lg"><div className="text-2xl font-bold text-orange-400">{companyOwnerCount}</div><div className="text-xs text-slate-400">Company Owner</div></div>
-            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{branchOwnerCount}</div><div className="text-xs text-slate-400">Branch Owner</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranchCount}</div><div className="text-xs text-slate-400">Other Company</div></div>
-            <div className="px-4 py-3 bg-emerald-400/10 rounded-lg"><div className="text-2xl font-bold text-emerald-400">{customerCount}</div><div className="text-xs text-slate-400">Customer</div></div>
-            <div className="px-4 py-3 bg-cyan-400/10 rounded-lg"><div className="text-2xl font-bold text-cyan-400">₱{totalRevenue}</div><div className="text-xs text-slate-400">Revenue</div></div>
+            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-2xl font-bold text-amber-400">{stations.length}</div><div className="text-xs text-green-300">Stations</div></div>
+            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-2xl font-bold text-green-400">{stations.filter((s) => s.isActive).length}</div><div className="text-xs text-green-300">Active</div></div>
+            <div className="px-4 py-3 bg-orange-400/10 rounded-lg"><div className="text-2xl font-bold text-orange-400">{companyOwnerCount}</div><div className="text-xs text-green-300">Company Owner</div></div>
+            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-2xl font-bold text-blue-400">{branchOwnerCount}</div><div className="text-xs text-green-300">Branch Owner</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-2xl font-bold text-purple-400">{otherBranchCount}</div><div className="text-xs text-green-300">Other Company</div></div>
+            <div className="px-4 py-3 bg-emerald-400/10 rounded-lg"><div className="text-2xl font-bold text-emerald-400">{customerCount}</div><div className="text-xs text-green-300">Customer</div></div>
+            <div className="px-4 py-3 bg-cyan-400/10 rounded-lg"><div className="text-2xl font-bold text-cyan-400">₱{totalRevenue}</div><div className="text-xs text-green-300">Revenue</div></div>
           </div>
         </div>
 
         {/* Notifications */}
         <div className="glass-card rounded-2xl p-6">
           <h3 className="font-bold text-white mb-4">Notifications ({notifications.filter((n) => !n.isRead).length})</h3>
-          {notifications.length === 0 ? <p className="text-sm text-slate-400 text-center py-4">No notifications yet.</p> : (
+          {notifications.length === 0 ? <p className="text-sm text-green-300 text-center py-4">No notifications yet.</p> : (
             <div className="space-y-2 max-h-[200px] overflow-y-auto">
               {notifications.map((n) => (
-                <div key={n.id} className={`p-3 rounded-lg border ${n.isRead ? "bg-slate-800/50 border-slate-700/50" : "bg-amber-400/5 border-amber-400/30"}`}>
+                <div key={n.id} className={`p-3 rounded-lg border ${n.isRead ? "bg-green-950/50 border-green-800/50" : "bg-amber-400/5 border-amber-400/30"}`}>
                   <p className="text-sm font-medium text-white">{n.subject}</p>
-                  <p className="text-xs text-slate-400">{n.message}</p>
+                  <p className="text-xs text-green-300">{n.message}</p>
                 </div>
               ))}
             </div>
@@ -379,7 +379,7 @@ export default function CompanyOwnerDashboard() {
           
           {/* Pending Requests */}
           {pendingSubRequests.length === 0 && pendingMonthlyPayments.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No pending requests.</div>
+            <div className="glass-card rounded-2xl p-6 text-center text-green-300">No pending requests.</div>
           ) : (
             <div className="space-y-3">
               {/* Subscription Requests */}
@@ -388,9 +388,9 @@ export default function CompanyOwnerDashboard() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-bold text-white">{req.user_name} wants to have a {req.plan.replace(/_/g, " ")}</p>
-                      <p className="text-xs text-slate-400">{req.user_email} ({req.user_role})</p>
-                      <p className="text-xs text-slate-500">Ref: {req.reference_number || "N/A"}</p>
-                      <p className="text-xs text-slate-500">{new Date(req.created_at).toLocaleString()}</p>
+                      <p className="text-xs text-green-300">{req.user_email} ({req.user_role})</p>
+                      <p className="text-xs text-green-400">Ref: {req.reference_number || "N/A"}</p>
+                      <p className="text-xs text-green-400">{new Date(req.created_at).toLocaleString()}</p>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => handleSubscriptionRequest(req.id, true)}
@@ -412,9 +412,9 @@ export default function CompanyOwnerDashboard() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-bold text-white">{payment.user_name} wants to pay monthly fee</p>
-                      <p className="text-xs text-slate-400">{payment.user_email} ({payment.user_role})</p>
+                      <p className="text-xs text-green-300">{payment.user_email} ({payment.user_role})</p>
                       <p className="text-xs text-amber-400">₱{payment.amount} for {payment.paid_for_month}</p>
-                      <p className="text-xs text-slate-500">Ref: {payment.reference_number || "N/A"}</p>
+                      <p className="text-xs text-green-400">Ref: {payment.reference_number || "N/A"}</p>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => handleMonthlyPayment(payment.id, true)}
@@ -435,7 +435,7 @@ export default function CompanyOwnerDashboard() {
           {/* Approved Requests (collapsible) */}
           {(approvedSubRequests.length > 0 || approvedMonthlyPayments.length > 0) && (
             <details className="mt-4">
-              <summary className="text-sm text-slate-400 cursor-pointer hover:text-slate-300">
+              <summary className="text-sm text-green-300 cursor-pointer hover:text-green-200">
                 View Approved History ({approvedSubRequests.length + approvedMonthlyPayments.length})
               </summary>
               <div className="mt-3 space-y-3">
@@ -446,7 +446,7 @@ export default function CompanyOwnerDashboard() {
                         <p className="text-sm font-bold text-white">{req.user_name} - {req.plan.replace(/_/g, " ")}</p>
                         <p className="text-xs text-green-400">Approved</p>
                         {req.subscription_expiry && (
-                          <p className="text-xs text-slate-500">Expires: {new Date(req.subscription_expiry).toLocaleString()}</p>
+                          <p className="text-xs text-green-400">Expires: {new Date(req.subscription_expiry).toLocaleString()}</p>
                         )}
                       </div>
                       <div className="flex gap-2">
@@ -455,7 +455,7 @@ export default function CompanyOwnerDashboard() {
                           Remove Premium
                         </button>
                         <button onClick={() => deleteSubscriptionRequest(req.id)}
-                          className="px-3 py-1 text-xs text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
+                          className="px-3 py-1 text-xs text-green-300 border border-green-700 rounded hover:bg-green-900">
                           Delete
                         </button>
                       </div>
@@ -470,7 +470,7 @@ export default function CompanyOwnerDashboard() {
                         <p className="text-xs text-green-400">Approved for {payment.paid_for_month}</p>
                       </div>
                       <button onClick={() => deleteMonthlyPayment(payment.id)}
-                        className="px-3 py-1 text-xs text-slate-400 border border-slate-600 rounded hover:bg-slate-700">
+                        className="px-3 py-1 text-xs text-green-300 border border-green-700 rounded hover:bg-green-900">
                         Delete
                       </button>
                     </div>
@@ -484,9 +484,9 @@ export default function CompanyOwnerDashboard() {
         {/* Redemption Requests */}
         <section id="redemptions" className="space-y-4">
           <h3 className="text-lg font-bold text-white">Redemption Requests</h3>
-          <p className="text-sm text-slate-400">1000 pts = Full Station | 500 pts = Parts | 100 pts = 3 Coin Slots | 50 pts = Cable</p>
+          <p className="text-sm text-green-300">1000 pts = Full Station | 500 pts = Parts | 100 pts = 3 Coin Slots | 50 pts = Cable</p>
           {redemptions.filter((r) => r.status === "pending").length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No pending redemptions.</div>
+            <div className="glass-card rounded-2xl p-6 text-center text-green-300">No pending redemptions.</div>
           ) : (
             <div className="space-y-3">
               {redemptions.filter((r) => r.status === "pending").map((r) => (
@@ -494,12 +494,12 @@ export default function CompanyOwnerDashboard() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-bold text-white">{r.user_name}</p>
-                      <p className="text-xs text-slate-400">{r.user_email}</p>
+                      <p className="text-xs text-green-300">{r.user_email}</p>
                       <p className="text-xs text-amber-400 mt-1">{r.redemption_label || r.redemption_type} - {r.amount} pts</p>
                       {(r.contact_name || r.delivery_address) && (
-                        <div className="mt-2 p-2 bg-slate-800/50 rounded-lg">
+                        <div className="mt-2 p-2 bg-green-950/50 rounded-lg">
                           <p className="text-xs text-white">{r.contact_name} - {r.contact_number}</p>
-                          <p className="text-xs text-slate-400">{r.delivery_address}</p>
+                          <p className="text-xs text-green-300">{r.delivery_address}</p>
                         </div>
                       )}
                     </div>
@@ -524,7 +524,7 @@ export default function CompanyOwnerDashboard() {
         <section id="store-orders" className="space-y-4">
           <h3 className="text-lg font-bold text-white">Store Orders</h3>
           {storeOrders.filter(o => o.status === "pending").length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No pending store orders.</div>
+            <div className="glass-card rounded-2xl p-6 text-center text-green-300">No pending store orders.</div>
           ) : (
             <div className="space-y-3">
               {storeOrders.filter(o => o.status === "pending").map((order) => (
@@ -532,11 +532,11 @@ export default function CompanyOwnerDashboard() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-bold text-white">{order.full_name}</p>
-                      <p className="text-xs text-slate-400">{order.user_email}</p>
+                      <p className="text-xs text-green-300">{order.user_email}</p>
                       <p className="text-xs text-amber-400 mt-1">{order.item_name} - ₱{order.amount}</p>
-                      <div className="mt-2 p-2 bg-slate-800/50 rounded-lg">
+                      <div className="mt-2 p-2 bg-green-950/50 rounded-lg">
                         <p className="text-xs text-white">📞 {order.contact_number}</p>
-                        <p className="text-xs text-slate-400">📍 {order.delivery_address}</p>
+                        <p className="text-xs text-green-300">📍 {order.delivery_address}</p>
                         <p className="text-xs text-green-400 mt-1">Ref: {order.reference_number}</p>
                       </div>
                     </div>
@@ -562,7 +562,7 @@ export default function CompanyOwnerDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-white">All Users ({allUsers.length})</h3>
-              <p className="text-sm text-slate-400">All registered users with email, phone, and status.</p>
+              <p className="text-sm text-green-300">All registered users with email, phone, and status.</p>
             </div>
             <button onClick={() => { refreshUsers(); }}
               className="px-4 py-2 text-xs font-medium text-blue-400 border border-blue-400/30 rounded-lg hover:bg-blue-400/10">
@@ -570,25 +570,25 @@ export default function CompanyOwnerDashboard() {
             </button>
           </div>
           {allUsers.length === 0 ? (
-            <div className="glass-card rounded-2xl p-6 text-center text-slate-400">No users yet. Users will appear here when they sign up.</div>
+            <div className="glass-card rounded-2xl p-6 text-center text-green-300">No users yet. Users will appear here when they sign up.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left py-2 text-slate-400">Email</th>
-                    <th className="text-left py-2 text-slate-400">Phone</th>
-                    <th className="text-left py-2 text-slate-400">Role</th>
-                    <th className="text-left py-2 text-slate-400">Status</th>
-                    <th className="text-left py-2 text-slate-400">Time Remaining</th>
-                    <th className="text-left py-2 text-slate-400">Action</th>
+                  <tr className="border-b border-green-800">
+                    <th className="text-left py-2 text-green-300">Email</th>
+                    <th className="text-left py-2 text-green-300">Phone</th>
+                    <th className="text-left py-2 text-green-300">Role</th>
+                    <th className="text-left py-2 text-green-300">Status</th>
+                    <th className="text-left py-2 text-green-300">Time Remaining</th>
+                    <th className="text-left py-2 text-green-300">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {allUsers.map((u) => (
                     <tr key={u.id} className="border-b border-slate-800">
                       <td className="py-3 text-white font-medium">{u.email}</td>
-                      <td className="py-3 text-slate-300">{(u as any).contactNumber || "N/A"}</td>
+                      <td className="py-3 text-green-200">{(u as any).contactNumber || "N/A"}</td>
                       <td className="py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${
                           u.role === "branch_owner" ? "bg-blue-400/10 text-blue-400" :
@@ -605,7 +605,7 @@ export default function CompanyOwnerDashboard() {
                             ★ Premium
                           </span>
                         ) : (
-                          <span className="text-xs px-2 py-1 bg-slate-700 text-slate-400 rounded-full">
+                          <span className="text-xs px-2 py-1 bg-green-900 text-green-300 rounded-full">
                             Regular
                           </span>
                         )}
@@ -619,7 +619,7 @@ export default function CompanyOwnerDashboard() {
                         ) : u.isSubscribed ? (
                           <span className="text-xs text-amber-400 font-bold">Lifetime</span>
                         ) : (
-                          <span className="text-xs text-slate-500">-</span>
+                          <span className="text-xs text-green-400">-</span>
                         )}
                       </td>
                       <td className="py-3">
@@ -653,20 +653,20 @@ export default function CompanyOwnerDashboard() {
             <div className="glass-card rounded-2xl p-6">
               <h4 className="font-bold text-white mb-4">Add New Station</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><label className="block text-sm text-slate-300 mb-1">Name</label><input type="text" value={addForm.name} onChange={(e) => setAddForm((p) => ({ ...p, name: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="PSPCS Station - Name" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Location</label><input type="text" value={addForm.location} onChange={(e) => setAddForm((p) => ({ ...p, location: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="e.g. Lucena City, Quezon" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Company Name</label><input type="text" value={addForm.companyName} onChange={(e) => setAddForm((p) => ({ ...p, companyName: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Address</label><input type="text" value={addForm.address} onChange={(e) => setAddForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Latitude</label><input type="number" step="0.0001" value={addForm.latitude} onChange={(e) => setAddForm((p) => ({ ...p, latitude: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Longitude</label><input type="number" step="0.0001" value={addForm.longitude} onChange={(e) => setAddForm((p) => ({ ...p, longitude: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Name</label><input type="text" value={addForm.name} onChange={(e) => setAddForm((p) => ({ ...p, name: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="PSPCS Station - Name" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Location</label><input type="text" value={addForm.location} onChange={(e) => setAddForm((p) => ({ ...p, location: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" placeholder="e.g. Lucena City, Quezon" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Company Name</label><input type="text" value={addForm.companyName} onChange={(e) => setAddForm((p) => ({ ...p, companyName: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Address</label><input type="text" value={addForm.address} onChange={(e) => setAddForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Latitude</label><input type="number" step="0.0001" value={addForm.latitude} onChange={(e) => setAddForm((p) => ({ ...p, latitude: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Longitude</label><input type="number" step="0.0001" value={addForm.longitude} onChange={(e) => setAddForm((p) => ({ ...p, longitude: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div className="md:col-span-2"><button onClick={useLocation} className="w-full py-3 text-sm font-medium text-green-400 border border-green-400/30 rounded-lg hover:bg-green-400/10">Use Current Location</button></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Type-C</label><input type="number" min={0} value={addForm.cableTypeC} onChange={(e) => setAddForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">iPhone</label><input type="number" min={0} value={addForm.cableIPhone} onChange={(e) => setAddForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">USB</label><input type="number" min={0} value={addForm.cableUniversal} onChange={(e) => setAddForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Outlets</label><input type="number" min={0} value={addForm.outlets} onChange={(e) => setAddForm((p) => ({ ...p, outlets: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Type-C</label><input type="number" min={0} value={addForm.cableTypeC} onChange={(e) => setAddForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">iPhone</label><input type="number" min={0} value={addForm.cableIPhone} onChange={(e) => setAddForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">USB</label><input type="number" min={0} value={addForm.cableUniversal} onChange={(e) => setAddForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Outlets</label><input type="number" min={0} value={addForm.outlets} onChange={(e) => setAddForm((p) => ({ ...p, outlets: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div className="md:col-span-2 flex gap-3">
                   <button onClick={addStation} disabled={!addForm.name || !addForm.address} className="flex-1 py-3 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg disabled:opacity-50">Add Station</button>
-                  <button onClick={() => setShowAdd(false)} className="px-6 py-3 text-sm text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
+                  <button onClick={() => setShowAdd(false)} className="px-6 py-3 text-sm text-green-300 border border-green-700 rounded-lg">Cancel</button>
                 </div>
               </div>
             </div>
@@ -678,7 +678,7 @@ export default function CompanyOwnerDashboard() {
             <h4 className="font-bold text-white mb-4">Manage Stations</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {stations.map((s) => (
-                <div key={s.id} className="bg-slate-800/50 rounded-xl p-4">
+                <div key={s.id} className="bg-green-950/50 rounded-xl p-4">
                   <h4 className="font-bold text-white text-sm">{s.name}</h4>
                   <div className="flex items-center gap-2 mt-1">
                     <p className="text-xs text-amber-400">{s.companyName || "Pending"}</p>
@@ -689,15 +689,15 @@ export default function CompanyOwnerDashboard() {
                       <span className="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-400 rounded">Regular</span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">{s.address}</p>
+                  <p className="text-xs text-green-300 mt-1">{s.address}</p>
                   <div className="flex gap-1.5 mt-2">
                     {s.cableTypeC > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded">TC:{s.cableTypeC}</span>}
                     {s.cableIPhone > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded">iP:{s.cableIPhone}</span>}
-                    {s.cableUniversal > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-slate-500/10 text-slate-400 rounded">USB:{s.cableUniversal}</span>}
+                    {s.cableUniversal > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-slate-500/10 text-green-300 rounded">USB:{s.cableUniversal}</span>}
                     {s.outlets > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">O:{s.outlets}</span>}
                   </div>
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
-                    <span className="text-[10px] text-slate-500">{s.totalVisits} visits</span>
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-green-800/50">
+                    <span className="text-[10px] text-green-400">{s.totalVisits} visits</span>
                     <div className="flex gap-2">
                       <button onClick={() => toggleStation(s)} className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
                         {s.isActive ? "Active" : "Inactive"}
@@ -718,21 +718,21 @@ export default function CompanyOwnerDashboard() {
             <div className="glass-card rounded-2xl p-6 w-full max-w-md">
               <h3 className="text-lg font-bold text-white mb-4">Edit Station</h3>
               <div className="space-y-4">
-                <div><label className="block text-sm text-slate-300 mb-1">Name</label><input type="text" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                <div><label className="block text-sm text-slate-300 mb-1">Location</label><input type="text" value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Name</label><input type="text" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Location</label><input type="text" value={editForm.location} onChange={(e) => setEditForm((p) => ({ ...p, location: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div>
-                  <label className="block text-sm text-slate-300 mb-1">Company Name</label>
-                  <input type="text" value={editForm.company} onChange={(e) => setEditForm((p) => ({ ...p, company: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
-                  <p className="text-xs text-slate-500 mt-1">KLEOXM 111 = Regular (visible to all), Other = Premium only</p>
+                  <label className="block text-sm text-green-200 mb-1">Company Name</label>
+                  <input type="text" value={editForm.company} onChange={(e) => setEditForm((p) => ({ ...p, company: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  <p className="text-xs text-green-400 mt-1">KLEOXM 111 = Regular (visible to all), Other = Premium only</p>
                 </div>
-                <div><label className="block text-sm text-slate-300 mb-1">Address</label><input type="text" value={editForm.address} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                <div><label className="block text-sm text-green-200 mb-1">Address</label><input type="text" value={editForm.address} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 <div className="flex gap-4">
-                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">Type-C</label><input type="number" min={0} value={editForm.cableTypeC} onChange={(e) => setEditForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">iPhone</label><input type="number" min={0} value={editForm.cableIPhone} onChange={(e) => setEditForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                  <div className="flex-1"><label className="block text-sm text-green-200 mb-1">Type-C</label><input type="number" min={0} value={editForm.cableTypeC} onChange={(e) => setEditForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                  <div className="flex-1"><label className="block text-sm text-green-200 mb-1">iPhone</label><input type="number" min={0} value={editForm.cableIPhone} onChange={(e) => setEditForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 </div>
                 <div className="flex gap-4">
-                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">USB</label><input type="number" min={0} value={editForm.cableUniversal} onChange={(e) => setEditForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
-                  <div className="flex-1"><label className="block text-sm text-slate-300 mb-1">Outlets</label><input type="number" min={0} value={editForm.outlets} onChange={(e) => setEditForm((p) => ({ ...p, outlets: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                  <div className="flex-1"><label className="block text-sm text-green-200 mb-1">USB</label><input type="number" min={0} value={editForm.cableUniversal} onChange={(e) => setEditForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
+                  <div className="flex-1"><label className="block text-sm text-green-200 mb-1">Outlets</label><input type="number" min={0} value={editForm.outlets} onChange={(e) => setEditForm((p) => ({ ...p, outlets: Number(e.target.value) }))} className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" /></div>
                 </div>
                 <div className="flex items-center gap-3">
                   <button onClick={() => setEditForm((p) => ({ ...p, active: !p.active }))} className={`px-4 py-2 text-sm font-bold rounded-lg ${editForm.active ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>{editForm.active ? "Active" : "Inactive"}</button>
@@ -740,7 +740,7 @@ export default function CompanyOwnerDashboard() {
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={saveEdit} className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg">Save</button>
-                <button onClick={() => { playClick(); setEditStation(null); }} className="px-6 py-3 text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
+                <button onClick={() => { playClick(); setEditStation(null); }} className="px-6 py-3 text-green-300 border border-green-700 rounded-lg">Cancel</button>
               </div>
             </div>
           </div>
@@ -756,7 +756,7 @@ export default function CompanyOwnerDashboard() {
               <h3 className="font-bold text-white mb-4">PSPCS Specs</h3>
               <div className="space-y-2 text-sm">
                 {[{ l: "Output", v: "3.6VDC" }, { l: "Cables", v: "All Types" }, { l: "Power", v: "Solar" }, { l: "AC", v: "220VAC" }, { l: "Brand", v: "KLEOXM 111" }].map((s) => (
-                  <div key={s.l} className="flex justify-between py-2 border-b border-slate-700/50"><span className="text-slate-400">{s.l}</span><span className="text-amber-400 font-medium">{s.v}</span></div>
+                  <div key={s.l} className="flex justify-between py-2 border-b border-green-800/50"><span className="text-green-300">{s.l}</span><span className="text-amber-400 font-medium">{s.v}</span></div>
                 ))}
               </div>
             </div>
@@ -767,8 +767,8 @@ export default function CompanyOwnerDashboard() {
         <section id="revenue" className="space-y-4">
           <h3 className="text-lg font-bold text-white">Revenue</h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-blue-400">₱{apiSubscriptionRevenue}</div><div className="text-xs text-slate-400">Subscriptions</div></div>
-            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-purple-400">₱{apiMonthlyPaymentRevenue}</div><div className="text-xs text-slate-400">Monthly Payments</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-blue-400">₱{apiSubscriptionRevenue}</div><div className="text-xs text-green-300">Subscriptions</div></div>
+            <div className="glass-card rounded-xl p-4"><div className="text-2xl font-bold text-purple-400">₱{apiMonthlyPaymentRevenue}</div><div className="text-xs text-green-300">Monthly Payments</div></div>
           </div>
           <div className="glass-card rounded-xl p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30">
             <div className="flex justify-between items-center">
@@ -782,18 +782,18 @@ export default function CompanyOwnerDashboard() {
         <section className="glass-card rounded-2xl p-6">
           <h4 className="font-bold text-white mb-4">GCash Payment Details</h4>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-slate-400">GCash</span><span className="text-white font-bold">09469086926</span></div>
-            <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
+            <div className="flex justify-between"><span className="text-green-300">GCash</span><span className="text-white font-bold">09469086926</span></div>
+            <div className="flex justify-between"><span className="text-green-300">Name</span><span className="text-white">Earl Christian Rey</span></div>
           </div>
-          <div className="mt-4 pt-4 border-t border-slate-700/50">
-            <h5 className="text-xs font-bold text-slate-500 uppercase mb-2">Subscription Plans</h5>
+          <div className="mt-4 pt-4 border-t border-green-800/50">
+            <h5 className="text-xs font-bold text-green-400 uppercase mb-2">Subscription Plans</h5>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-slate-400">1 Day</span><span className="text-amber-400 font-bold">₱25</span></div>
+              <div className="flex justify-between"><span className="text-green-300">1 Day</span><span className="text-amber-400 font-bold">₱25</span></div>
             </div>
-            <h5 className="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Monthly Fees</h5>
+            <h5 className="text-xs font-bold text-green-400 uppercase mt-4 mb-2">Monthly Fees</h5>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-slate-400">Branch Owner</span><span className="text-amber-400 font-bold">₱75/month</span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Other Company</span><span className="text-amber-400 font-bold">₱100/month</span></div>
+              <div className="flex justify-between"><span className="text-green-300">Branch Owner</span><span className="text-amber-400 font-bold">₱75/month</span></div>
+              <div className="flex justify-between"><span className="text-green-300">Other Company</span><span className="text-amber-400 font-bold">₱100/month</span></div>
             </div>
           </div>
         </section>

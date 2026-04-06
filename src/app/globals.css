@@ -8,9 +8,9 @@
   --color-eco-dark: #15803d;
   --color-pspcs-blue: #3b82f6;
   --color-pspcs-dark: #1e3a5f;
-  --color-dark-bg: #0f172a;
-  --color-dark-card: #1e293b;
-  --color-dark-border: #334155;
+  --color-dark-bg: #0a1f0f;
+  --color-dark-card: #14291a;
+  --color-dark-border: #1e3a28;
   --color-dark-text: #e2e8f0;
 }
 
@@ -20,9 +20,22 @@
   }
 
   body {
-    background: var(--color-dark-bg);
+    background: linear-gradient(135deg, #0a1f0f 0%, #0d2818 50%, #0a1f0f 100%);
     color: var(--color-dark-text);
     font-family: var(--font-geist-sans), system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-dark-bg);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-dark-border);
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar {
@@ -49,9 +62,9 @@
   }
 
   .glass-card {
-    background: rgba(30, 41, 59, 0.8);
+    background: rgba(20, 41, 26, 0.8);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(51, 65, 85, 0.5);
+    border: 1px solid rgba(30, 58, 40, 0.5);
   }
 
   .glow-solar {

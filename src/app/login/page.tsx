@@ -48,13 +48,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4">
+    <main className="min-h-screen bg-[#0a1f0f] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/ad30a66a-ccea-4204-bb5d-83d87e90b9f6.jpg" alt="PSPCS Logo" className="w-24 h-24 mx-auto mb-4 rounded-xl object-contain" />
           <h1 className="text-2xl font-bold text-white">KLEOXM 111</h1>
           <p className="text-amber-400 text-sm">Powered Solar Piso Charging Station</p>
-          <p className="text-slate-400 text-sm mt-2">Log in to your account</p>
+          <p className="text-green-300 text-sm mt-2">Log in to your account</p>
         </div>
 
         <form onSubmit={handleLogin} className="glass-card rounded-2xl p-8 space-y-5" suppressHydrationWarning>
@@ -65,15 +65,15 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Username</label>
+            <label className="block text-sm font-medium text-green-200 mb-1">Username</label>
             <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required suppressHydrationWarning
-              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Enter your username" />
+              className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Enter your username" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
+            <label className="block text-sm font-medium text-green-200 mb-1">Password</label>
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required suppressHydrationWarning
-              className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Enter your password" />
+              className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-amber-400" placeholder="Enter your password" />
           </div>
 
           <button type="submit" disabled={loading} suppressHydrationWarning
@@ -81,7 +81,7 @@ export default function LoginPage() {
             {loading ? "Logging in..." : "Log In"}
           </button>
 
-          <p className="text-center text-sm text-slate-400">
+          <p className="text-center text-sm text-green-300">
             Don&apos;t have an account? <a href="/signup" className="text-amber-400 hover:underline">Sign Up</a>
           </p>
         </form>

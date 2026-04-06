@@ -79,12 +79,12 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a1f0f] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <svg className="w-10 h-10 animate-spin text-amber-400" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4 31.4" strokeLinecap="round" />
           </svg>
-          <span className="text-slate-400 text-sm">Loading...</span>
+          <span className="text-green-300 text-sm">Loading...</span>
         </div>
       </div>
     );
@@ -137,12 +137,12 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
   })();
 
   return (
-    <div className="min-h-screen bg-[#0f172a]">
+    <div className="min-h-screen bg-[#0a1f0f]">
       {/* Top Bar */}
-      <header className="sticky top-0 z-50 glass-card border-b border-slate-700/50">
+      <header className="sticky top-0 z-50 glass-card border-b border-green-800/50">
         <div className="flex items-center justify-between px-4 md:px-6 py-3">
           <div className="flex items-center gap-3">
-            <button onClick={() => { playClick(); setSidebarOpen(!sidebarOpen); }} className="md:hidden p-2 text-slate-400 hover:text-white">
+            <button onClick={() => { playClick(); setSidebarOpen(!sidebarOpen); }} className="md:hidden p-2 text-green-300 hover:text-white">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -153,11 +153,11 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
               </div>
               <div className="hidden sm:block">
                 <h1 className="text-sm font-bold text-amber-400">PSPCS</h1>
-                <p className="text-[10px] text-slate-500">KLEOXM 111</p>
+                <p className="text-[10px] text-green-400">KLEOXM 111</p>
               </div>
             </div>
-            <div className="h-6 w-px bg-slate-700 mx-2 hidden md:block" />
-            <h2 className="hidden md:block text-sm font-medium text-slate-300">{title}</h2>
+            <div className="h-6 w-px bg-green-900 mx-2 hidden md:block" />
+            <h2 className="hidden md:block text-sm font-medium text-green-200">{title}</h2>
           </div>
 
           <div className="flex items-center gap-3">
@@ -167,7 +167,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
               </div>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-white">{user.fullName}</p>
-                <p className="text-[10px] text-slate-500">
+                <p className="text-[10px] text-green-400">
                   {roleLabels[user.role]}
                   {user.isSubscribed && <span className="ml-1 text-amber-400">★</span>}
                 </p>
@@ -182,7 +182,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:sticky top-[57px] left-0 z-40 w-64 h-[calc(100vh-57px)] bg-[#0f172a] border-r border-slate-800 transition-transform overflow-y-auto`}>
+        <aside className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 fixed md:sticky top-[57px] left-0 z-40 w-64 h-[calc(100vh-57px)] bg-[#0a1f0f] border-r border-slate-800 transition-transform overflow-y-auto`}>
           <nav className="p-4 space-y-1">
             {sidebarItems.map((item) => {
               const isActive = pathname === dashboardPath && (!item.section || window.location.hash === `#${item.section}`);
@@ -193,7 +193,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
                   <button
                     key={item.id}
                     onClick={() => scrollToSection(item.section)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${isActive ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${isActive ? "bg-amber-400/10 text-amber-400" : "text-green-300 hover:bg-green-950 hover:text-white"}`}
                   >
                     {icons[item.icon]}
                     {item.label}
@@ -204,7 +204,7 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
               // Dashboard link - navigate to dashboard page
               return (
                 <Link key={item.id} href={dashboardPath} onClick={() => { playClick(); setSidebarOpen(false); }}>
-                  <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === dashboardPath && !window.location.hash ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
+                  <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === dashboardPath && !window.location.hash ? "bg-amber-400/10 text-amber-400" : "text-green-300 hover:bg-green-950 hover:text-white"}`}>
                     {icons[item.icon]}
                     {item.label}
                   </div>
@@ -213,13 +213,13 @@ export function DashboardShell({ children, title }: { children: React.ReactNode;
             })}
             <div className="my-2 border-t border-slate-800" />
             <Link href="/dashboard/store" onClick={() => { playClick(); setSidebarOpen(false); }}>
-              <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === "/dashboard/store" ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
+              <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === "/dashboard/store" ? "bg-amber-400/10 text-amber-400" : "text-green-300 hover:bg-green-950 hover:text-white"}`}>
                 {icons.cart}
                 Store
               </div>
             </Link>
             <Link href="/dashboard/settings" onClick={() => { playClick(); setSidebarOpen(false); }}>
-              <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === "/dashboard/settings" ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}>
+              <div className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all text-left ${pathname === "/dashboard/settings" ? "bg-amber-400/10 text-amber-400" : "text-green-300 hover:bg-green-950 hover:text-white"}`}>
                 {icons.gear}
                 Settings
               </div>

@@ -57,11 +57,11 @@ export function SubscriptionCard({
 
   return (
     <div className="glass-card rounded-2xl overflow-hidden">
-      <div className={`p-6 ${isSubscribed ? "bg-gradient-to-r from-amber-400/20 to-orange-500/20" : "bg-slate-800/50"}`}>
+      <div className={`p-6 ${isSubscribed ? "bg-gradient-to-r from-amber-400/20 to-orange-500/20" : "bg-green-950/50"}`}>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-bold text-white">{role === "customer" ? "Customer" : role === "branch_owner" ? "Branch Owner" : "Company Owner"} Plan</h3>
-            <p className="text-sm text-slate-400">{isSubscribed ? "Premium Active" : "Free Plan"}</p>
+            <p className="text-sm text-green-300">{isSubscribed ? "Premium Active" : "Free Plan"}</p>
           </div>
           {isSubscribed && <div className="px-3 py-1 bg-amber-400 text-[#0f172a] text-xs font-bold rounded-full">★ PREMIUM</div>}
         </div>
@@ -69,10 +69,10 @@ export function SubscriptionCard({
 
       <div className="p-6 space-y-4">
         <div>
-          <h4 className="text-xs font-bold text-slate-500 uppercase mb-2">{isSubscribed ? "Premium Features" : "Current Plan"}</h4>
+          <h4 className="text-xs font-bold text-green-400 uppercase mb-2">{isSubscribed ? "Premium Features" : "Current Plan"}</h4>
           <ul className="space-y-2">
             {features.map((f, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-slate-300">
+              <li key={i} className="flex items-center gap-2 text-sm text-green-200">
                 <svg className="w-4 h-4 text-green-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 {f}
               </li>
@@ -92,7 +92,7 @@ export function SubscriptionCard({
                   className={`p-3 rounded-xl border text-center transition-all ${
                     selectedPlan === plan.id
                       ? "border-amber-400 bg-amber-400/10"
-                      : "border-slate-600 hover:border-slate-500"
+                      : "border-green-700 hover:border-slate-500"
                   }`}
                 >
                   <div className="text-sm font-bold text-white">{plan.label}</div>
@@ -105,10 +105,10 @@ export function SubscriptionCard({
               <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl p-4 space-y-3">
                 <h4 className="text-sm font-bold text-blue-400">GCash Payment</h4>
                 <div className="space-y-1 text-sm">
-                  <div className="flex justify-between"><span className="text-slate-400">Plan</span><span className="text-white">{PLANS.find((p) => p.id === selectedPlan)?.label}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-white font-bold">₱{PLANS.find((p) => p.id === selectedPlan)?.price}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">GCash</span><span className="text-white font-bold">09469086926</span></div>
-                  <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
+                  <div className="flex justify-between"><span className="text-green-300">Plan</span><span className="text-white">{PLANS.find((p) => p.id === selectedPlan)?.label}</span></div>
+                  <div className="flex justify-between"><span className="text-green-300">Amount</span><span className="text-white font-bold">₱{PLANS.find((p) => p.id === selectedPlan)?.price}</span></div>
+                  <div className="flex justify-between"><span className="text-green-300">GCash</span><span className="text-white font-bold">09469086926</span></div>
+                  <div className="flex justify-between"><span className="text-green-300">Name</span><span className="text-white">Earl Christian Rey</span></div>
                 </div>
                 <a href="https://www.gcash.com" target="_blank" rel="noopener noreferrer" className="block w-full py-2 text-center text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-500">
                   Open GCash
@@ -117,7 +117,7 @@ export function SubscriptionCard({
                   className="w-full py-2 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg disabled:opacity-50">
                   {processing ? "Processing..." : "I Paid — Activate"}
                 </button>
-                <button onClick={() => setSelectedPlan(null)} className="w-full py-2 text-sm text-slate-400">Cancel</button>
+                <button onClick={() => setSelectedPlan(null)} className="w-full py-2 text-sm text-green-300">Cancel</button>
               </div>
             )}
           </>
@@ -126,7 +126,7 @@ export function SubscriptionCard({
         {isSubscribed && (
           <div className="text-center py-3 bg-amber-400/5 rounded-xl">
             <p className="text-sm text-amber-400 font-medium">Premium Active</p>
-            <p className="text-xs text-slate-500 mt-1">GCash: 09469086926 (Earl Christian Rey)</p>
+            <p className="text-xs text-green-400 mt-1">GCash: 09469086926 (Earl Christian Rey)</p>
           </div>
         )}
       </div>

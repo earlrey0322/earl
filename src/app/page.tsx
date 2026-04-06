@@ -119,7 +119,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#0f172a] relative overflow-hidden">
+    <main className="min-h-screen bg-[#0a1f0f] relative overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
 
       {/* Nav */}
@@ -128,7 +128,7 @@ export default function Home() {
           <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/ad30a66a-ccea-4204-bb5d-83d87e90b9f6.jpg" alt="PSPCS Logo" className="w-12 h-12 rounded-lg object-contain" />
           <div>
             <h1 className="text-xl font-bold text-amber-400">KLEOXM 111</h1>
-            <p className="text-xs text-slate-400">Powered Solar Piso Charging Station</p>
+            <p className="text-xs text-green-300">Powered Solar Piso Charging Station</p>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -167,7 +167,7 @@ export default function Home() {
           <br />
           <span className="text-white">Charging Station</span>
         </h2>
-        <p className="text-lg md:text-xl text-slate-300 max-w-2xl mb-8">
+        <p className="text-lg md:text-xl text-green-200 max-w-2xl mb-8">
           The <span className="text-amber-400 font-semibold">PSPCS</span> by KLEOXM 111 — 
           a solar-powered phone charging station. Find stations near you, track your charging, and go green!
         </p>
@@ -226,7 +226,7 @@ export default function Home() {
             >
               <div className="flex justify-center mb-4">{f.icon}</div>
               <h3 className="text-lg font-bold text-white mb-2">{f.title}</h3>
-              <p className="text-sm text-slate-400">{f.desc}</p>
+              <p className="text-sm text-green-300">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -246,8 +246,8 @@ export default function Home() {
               { label: "Final Output", value: "3.6VDC Rotary — All Types" },
               { label: "Brand", value: "KLEOXM 111 PSPCS" },
             ].map((spec, i) => (
-              <div key={i} className="flex justify-between items-center py-2 border-b border-slate-700/50">
-                <span className="text-sm text-slate-400">{spec.label}</span>
+              <div key={i} className="flex justify-between items-center py-2 border-b border-green-800/50">
+                <span className="text-sm text-green-300">{spec.label}</span>
                 <span className="text-sm font-medium text-amber-400">{spec.value}</span>
               </div>
             ))}
@@ -259,7 +259,7 @@ export default function Home() {
       <section className="relative z-10 px-6 py-16 text-center">
         <div className="max-w-2xl mx-auto">
           <h3 className="text-3xl font-bold text-white mb-4">Ready to Go Solar?</h3>
-          <p className="text-slate-300 mb-8">
+          <p className="text-green-200 mb-8">
             Join KLEOXM 111 and be part of the sustainable energy revolution. 
             Create your account now and start charging with clean energy.
           </p>
@@ -289,7 +289,7 @@ export default function Home() {
               "Wesca, Luckie Lorenz",
               "Zabaldica, Patrick",
             ].map((name, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg">
+              <div key={i} className="flex items-center gap-3 p-3 bg-green-950/50 rounded-lg">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[#0f172a] font-bold text-xs">
                   {name.charAt(0)}
                 </div>
@@ -305,9 +305,9 @@ export default function Home() {
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <SolarIcon className="w-6 h-6" />
-            <span className="text-sm text-slate-400">KLEOXM 111 — PSPCS</span>
+            <span className="text-sm text-green-300">KLEOXM 111 — PSPCS</span>
           </div>
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-green-400">
             Contact: 09469086926 (Earl Christian Rey) | earlrey0322@gmail.com
           </div>
         </div>

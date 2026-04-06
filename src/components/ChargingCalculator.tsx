@@ -55,7 +55,7 @@ export function ChargingCalculator({
           </div>
           <div>
             <h3 className="font-bold text-white">PSPCS-based Calculator</h3>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-green-300">
               {isKleoxm ? "Accurate estimate for KLEOXM 111 stations" : "Approximate estimate (most accurate for KLEOXM 111)"}
             </p>
           </div>
@@ -68,35 +68,35 @@ export function ChargingCalculator({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-1">Phone Brand</label>
+          <label className="block text-sm font-medium text-green-200 mb-1">Phone Brand</label>
           <select value={phoneBrand} onChange={(e) => setPhoneBrand(e.target.value)}
-            className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400">
+            className="w-full px-4 py-3 bg-green-950 border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400">
             <option value="">Select phone brand</option>
             {PHONE_BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Current Battery: <span className="text-amber-400 font-bold">{currentBattery}%</span></label>
+          <label className="block text-sm font-medium text-green-200 mb-2">Current Battery: <span className="text-amber-400 font-bold">{currentBattery}%</span></label>
           <input type="range" min={1} max={99} value={currentBattery} onChange={(e) => setCurrentBattery(Number(e.target.value))}
             className="w-full h-2 rounded-full appearance-none cursor-pointer"
             style={{ background: `linear-gradient(to right, ${currentBattery > 50 ? "#22c55e" : currentBattery > 20 ? "#f59e0b" : "#ef4444"} ${currentBattery}%, #334155 ${currentBattery}%)` }} />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-300 mb-2">Target Battery: <span className="text-green-400 font-bold">{targetBattery}%</span></label>
+          <label className="block text-sm font-medium text-green-200 mb-2">Target Battery: <span className="text-green-400 font-bold">{targetBattery}%</span></label>
           <input type="range" min={currentBattery + 1} max={100} value={targetBattery} onChange={(e) => setTargetBattery(Number(e.target.value))}
-            className="w-full h-2 rounded-full appearance-none cursor-pointer bg-slate-700" />
+            className="w-full h-2 rounded-full appearance-none cursor-pointer bg-green-900" />
         </div>
 
         {result && (
           <div className="bg-gradient-to-br from-amber-400/10 to-orange-500/10 border border-amber-400/30 rounded-xl p-5 space-y-3">
             <h4 className="text-sm font-bold text-amber-400">Result</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="text-center"><div className="text-2xl font-bold text-white">₱{result.cost}</div><div className="text-[10px] text-slate-400">Cost</div></div>
-              <div className="text-center"><div className="text-2xl font-bold text-white">{result.minutes}</div><div className="text-[10px] text-slate-400">Minutes</div></div>
-              <div className="text-center"><div className="text-lg font-bold text-white">{result.watts}W</div><div className="text-[10px] text-slate-400">Rate</div></div>
-              <div className="text-center"><div className="text-lg font-bold text-white">{result.energy}Wh</div><div className="text-[10px] text-slate-400">Energy</div></div>
+              <div className="text-center"><div className="text-2xl font-bold text-white">₱{result.cost}</div><div className="text-[10px] text-green-300">Cost</div></div>
+              <div className="text-center"><div className="text-2xl font-bold text-white">{result.minutes}</div><div className="text-[10px] text-green-300">Minutes</div></div>
+              <div className="text-center"><div className="text-lg font-bold text-white">{result.watts}W</div><div className="text-[10px] text-green-300">Rate</div></div>
+              <div className="text-center"><div className="text-lg font-bold text-white">{result.energy}Wh</div><div className="text-[10px] text-green-300">Energy</div></div>
             </div>
             {stationId && onSessionStart && (
               <button onClick={() => { playClick(); onSessionStart({ stationId, phoneBrand, startBattery: currentBattery, targetBattery, costPesos: result.cost, durationMinutes: result.minutes }); }}
@@ -113,17 +113,17 @@ export function ChargingCalculator({
           <h3 className="font-bold text-white mb-4">{showAllHistory ? "All Charging History" : "Your Charging History"}</h3>
           <div className="space-y-2 max-h-[400px] overflow-y-auto">
             {history.slice(0, 20).map((h) => (
-              <div key={h.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+              <div key={h.id} className="flex items-center justify-between p-3 bg-green-950/50 rounded-lg">
                 <div>
                   <p className="text-sm font-medium text-white">{h.phoneBrand}</p>
                   {showAllHistory && <p className="text-xs text-blue-400">{h.userEmail}</p>}
-                  <p className="text-xs text-slate-400">{h.stationName}</p>
-                  <p className="text-xs text-slate-500">{h.startBattery}% → {h.targetBattery}%</p>
+                  <p className="text-xs text-green-300">{h.stationName}</p>
+                  <p className="text-xs text-green-400">{h.startBattery}% → {h.targetBattery}%</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-amber-400">₱{h.costPesos}</p>
-                  <p className="text-xs text-slate-500">{h.durationMinutes} min</p>
-                  <p className="text-[10px] text-slate-600">{new Date(h.createdAt).toLocaleString()}</p>
+                  <p className="text-xs text-green-400">{h.durationMinutes} min</p>
+                  <p className="text-[10px] text-green-500">{new Date(h.createdAt).toLocaleString()}</p>
                 </div>
               </div>
             ))}

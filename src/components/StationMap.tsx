@@ -72,13 +72,13 @@ export function StationMap({
   const getCompanyColor = (companyName: string) => {
     if (companyName === "KLEOXM 111") return "text-amber-400";
     if (companyName) return "text-blue-400";
-    return "text-slate-400";
+    return "text-green-300";
   };
 
   const getCompanyBadge = (companyName: string) => {
     if (companyName === "KLEOXM 111") return { bg: "bg-amber-500/10", text: "text-amber-400", label: "KLEOXM 111" };
     if (companyName) return { bg: "bg-blue-500/10", text: "text-blue-400", label: companyName };
-    return { bg: "bg-slate-500/10", text: "text-slate-400", label: "No Company" };
+    return { bg: "bg-slate-500/10", text: "text-green-300", label: "No Company" };
   };
 
   return (
@@ -87,7 +87,7 @@ export function StationMap({
       {viewToast && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 ${
           viewToast.alreadyViewed
-            ? "bg-slate-700 border border-slate-600"
+            ? "bg-green-900 border border-green-700"
             : "bg-green-500/20 border border-green-400/30"
         }`}>
           <span className="text-lg">{viewToast.alreadyViewed ? "👁️" : "⭐"}</span>
@@ -103,31 +103,31 @@ export function StationMap({
       <div className="flex gap-2 flex-wrap">
         <button onClick={() => setFilter("all")}
           className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-            filter === "all" ? "bg-amber-400 text-[#0f172a]" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+            filter === "all" ? "bg-amber-400 text-[#0f172a]" : "bg-green-950 text-green-300 hover:bg-green-900"
           }`}>
           All ({stations.length})
         </button>
         <button onClick={() => setFilter("active")}
           className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-            filter === "active" ? "bg-green-400 text-[#0f172a]" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+            filter === "active" ? "bg-green-400 text-[#0f172a]" : "bg-green-950 text-green-300 hover:bg-green-900"
           }`}>
           Active ({activeCount})
         </button>
         <button onClick={() => setFilter("inactive")}
           className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-            filter === "inactive" ? "bg-red-400 text-[#0f172a]" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+            filter === "inactive" ? "bg-red-400 text-[#0f172a]" : "bg-green-950 text-green-300 hover:bg-green-900"
           }`}>
           Inactive ({inactiveCount})
         </button>
         <button onClick={() => setFilter("kleoxm")}
           className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-            filter === "kleoxm" ? "bg-amber-400 text-[#0f172a]" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+            filter === "kleoxm" ? "bg-amber-400 text-[#0f172a]" : "bg-green-950 text-green-300 hover:bg-green-900"
           }`}>
           KLEOXM 111 ({kleoxmCount})
         </button>
         <button onClick={() => setFilter("other")}
           className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all ${
-            filter === "other" ? "bg-blue-400 text-[#0f172a]" : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+            filter === "other" ? "bg-blue-400 text-[#0f172a]" : "bg-green-950 text-green-300 hover:bg-green-900"
           }`}>
           Other Company ({otherCount})
         </button>
@@ -153,7 +153,7 @@ export function StationMap({
                 onClick={() => handleSelect(s)}
                 className={`cursor-pointer glass-card rounded-xl p-4 transition-all ${
                   selected?.id === s.id ? "border-2 border-amber-400 glow-solar" : 
-                  "border border-slate-700/50 hover:border-amber-400/50"
+                  "border border-green-800/50 hover:border-amber-400/50"
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -169,25 +169,25 @@ export function StationMap({
                     {companyBadge.label}
                   </span>
                   {s.distanceKm !== undefined && (
-                    <span className="text-[10px] px-2 py-0.5 bg-slate-700 text-slate-300 rounded">
+                    <span className="text-[10px] px-2 py-0.5 bg-green-900 text-green-200 rounded">
                       {s.distanceKm.toFixed(1)} km away
                     </span>
                   )}
                 </div>
 
                 {s.ownerName && (
-                  <p className="text-[11px] text-slate-400 mb-1">
-                    <span className="text-slate-500">Owner:</span> {s.ownerName}
+                  <p className="text-[11px] text-green-300 mb-1">
+                    <span className="text-green-400">Owner:</span> {s.ownerName}
                   </p>
                 )}
 
-                <p className="text-xs text-slate-500 mt-1">{s.address}</p>
+                <p className="text-xs text-green-400 mt-1">{s.address}</p>
 
                 {(s.cableTypeC > 0 || s.cableIPhone > 0 || s.cableUniversal > 0) && (
                   <div className="flex gap-1.5 mt-2 flex-wrap">
                     {s.cableTypeC > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded">Type-C: {s.cableTypeC}</span>}
                     {s.cableIPhone > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded">iPhone: {s.cableIPhone}</span>}
-                    {s.cableUniversal > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-slate-500/10 text-slate-400 rounded">USB: {s.cableUniversal}</span>}
+                    {s.cableUniversal > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-slate-500/10 text-green-300 rounded">USB: {s.cableUniversal}</span>}
                   </div>
                 )}
               </div>
@@ -195,7 +195,7 @@ export function StationMap({
           })}
 
           {validStations.length === 0 && (
-            <div className="text-center py-12 text-slate-400">
+            <div className="text-center py-12 text-green-300">
               <p className="text-4xl mb-2">📍</p>
               <p>No stations found</p>
             </div>
@@ -206,7 +206,7 @@ export function StationMap({
         <div className="glass-card rounded-2xl overflow-hidden">
           {selected ? (
             <div className="h-full flex flex-col">
-              <div className="px-4 py-3 border-b border-slate-700/50 bg-[#1e293b]">
+              <div className="px-4 py-3 border-b border-green-800/50 bg-[#14291a]">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-sm font-bold text-white">{selected.name}</h4>
@@ -229,8 +229,8 @@ export function StationMap({
               </div>
             </div>
           ) : (
-            <div className="h-[400px] flex items-center justify-center bg-[#0f172a]">
-              <div className="text-center text-slate-400">
+            <div className="h-[400px] flex items-center justify-center bg-[#0a1f0f]">
+              <div className="text-center text-green-300">
                 <svg className="w-12 h-12 mx-auto mb-3 opacity-50" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
                 </svg>
@@ -260,22 +260,22 @@ export function StationMap({
             <div className="space-y-3">
               {selected.ownerName && (
                 <div>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">Owner</p>
+                  <p className="text-[10px] text-green-400 uppercase tracking-wider">Owner</p>
                   <p className="text-sm text-white">{selected.ownerName}</p>
                 </div>
               )}
               <div>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">Location</p>
+                <p className="text-[10px] text-green-400 uppercase tracking-wider">Location</p>
                 <p className="text-sm text-white">{selected.address}</p>
                 {selected.location && <p className="text-xs text-green-400 mt-0.5">📍 {selected.location}</p>}
               </div>
               <div>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">Coordinates</p>
-                <p className="text-sm text-slate-300">{selected.latitude.toFixed(6)}, {selected.longitude.toFixed(6)}</p>
+                <p className="text-[10px] text-green-400 uppercase tracking-wider">Coordinates</p>
+                <p className="text-sm text-green-200">{selected.latitude.toFixed(6)}, {selected.longitude.toFixed(6)}</p>
               </div>
               {selected.distanceKm !== undefined && (
                 <div>
-                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">Distance</p>
+                  <p className="text-[10px] text-green-400 uppercase tracking-wider">Distance</p>
                   <p className="text-sm text-amber-400">{selected.distanceKm.toFixed(1)} km away</p>
                 </div>
               )}
@@ -283,17 +283,17 @@ export function StationMap({
 
             <div className="space-y-3">
               <div>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider">Available Cables</p>
+                <p className="text-[10px] text-green-400 uppercase tracking-wider">Available Cables</p>
                 <div className="flex gap-2 mt-1 flex-wrap">
                   {selected.cableTypeC > 0 && <span className="text-xs px-2 py-1 bg-blue-500/10 text-blue-400 rounded-lg">Type-C: {selected.cableTypeC}</span>}
                   {selected.cableIPhone > 0 && <span className="text-xs px-2 py-1 bg-purple-500/10 text-purple-400 rounded-lg">iPhone: {selected.cableIPhone}</span>}
-                  {selected.cableUniversal > 0 && <span className="text-xs px-2 py-1 bg-slate-500/10 text-slate-400 rounded-lg">USB: {selected.cableUniversal}</span>}
+                  {selected.cableUniversal > 0 && <span className="text-xs px-2 py-1 bg-slate-500/10 text-green-300 rounded-lg">USB: {selected.cableUniversal}</span>}
                   {selected.outlets > 0 && <span className="text-xs px-2 py-1 bg-amber-500/10 text-amber-400 rounded-lg">Outlets: {selected.outlets}</span>}
                 </div>
               </div>
-              <div className="bg-slate-800/50 rounded-lg p-3 text-center mt-2">
+              <div className="bg-green-950/50 rounded-lg p-3 text-center mt-2">
                 <div className="text-lg font-bold text-blue-400">{selected.totalVisits || selected.views || 0}</div>
-                <div className="text-[10px] text-slate-500">Total Views</div>
+                <div className="text-[10px] text-green-400">Total Views</div>
               </div>
             </div>
           </div>
