@@ -15,7 +15,7 @@ interface SubscriptionRequest { id: number; plan: string; status: string; create
 interface UserData { id: number; email: string; fullName: string; role: string; isSubscribed: boolean; subscriptionExpiry: string | null; subscriptionPlan: string | null; }
 
 const PLANS = [
-  { id: "1_day", label: "1 Day", days: 1, price: 25 },
+  { id: "1_day", label: "1 Day", days: 1, price: 20 },
 ];
 
 export default function CustomerDashboard() {

@@ -788,7 +788,7 @@ export default function CompanyOwnerDashboard() {
           <div className="mt-4 pt-4 border-t border-slate-700/50">
             <h5 className="text-xs font-bold text-slate-500 uppercase mb-2">Subscription Plans</h5>
             <div className="space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-slate-400">1 Day</span><span className="text-amber-400 font-bold">₱25</span></div>
+              <div className="flex justify-between"><span className="text-green-400">1 Day</span><span className="text-amber-400 font-bold">₱20</span></div>
             </div>
             <h5 className="text-xs font-bold text-slate-500 uppercase mt-4 mb-2">Monthly Fees</h5>
             <div className="space-y-1 text-sm">
