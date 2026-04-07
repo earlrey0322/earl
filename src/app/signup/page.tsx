@@ -91,7 +91,7 @@ export default function SignupPage() {
     <main className="min-h-screen bg-[#0a1f0f] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/ad30a66a-ccea-4204-bb5d-83d87e90b9f6.jpg" alt="PSPCS Logo" className="w-20 h-20 mx-auto mb-3 rounded-xl object-contain" />
+          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/d0c16e01-147d-4146-b76d-cb1d5042efde.png" alt="PSPCS Logo" className="w-20 h-20 mx-auto mb-3 rounded-xl object-contain" />
           <h1 className="text-2xl font-bold text-white">Create Account</h1>
           <p className="text-green-300 text-sm mt-1">Join PSPCS by KLEOXM 111 — Step {step} of 2</p>
           <div className="flex gap-2 justify-center mt-4">

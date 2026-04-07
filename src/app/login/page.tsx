@@ -51,7 +51,7 @@ export default function LoginPage() {
     <main className="min-h-screen bg-[#0a1f0f] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/ad30a66a-ccea-4204-bb5d-83d87e90b9f6.jpg" alt="PSPCS Logo" className="w-24 h-24 mx-auto mb-4 rounded-xl object-contain" />
+          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/d0c16e01-147d-4146-b76d-cb1d5042efde.png" alt="PSPCS Logo" className="w-24 h-24 mx-auto mb-4 rounded-xl object-contain" />
           <h1 className="text-2xl font-bold text-white">KLEOXM 111</h1>
           <p className="text-amber-400 text-sm">Powered Solar Piso Charging Station</p>
           <p className="text-green-300 text-sm mt-2">Log in to your account</p>

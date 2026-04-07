@@ -125,7 +125,7 @@ export default function Home() {
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-4">
         <div className="flex items-center gap-3">
-          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/ad30a66a-ccea-4204-bb5d-83d87e90b9f6.jpg" alt="PSPCS Logo" className="w-12 h-12 rounded-lg object-contain" />
+          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/d0c16e01-147d-4146-b76d-cb1d5042efde.png" alt="PSPCS Logo" className="w-12 h-12 rounded-lg object-contain" />
           <div>
             <h1 className="text-xl font-bold text-amber-400">KLEOXM 111</h1>
             <p className="text-xs text-green-300">Powered Solar Piso Charging Station</p>
@@ -158,7 +158,7 @@ export default function Home() {
       {/* Hero */}
       <section className="relative z-10 flex flex-col items-center justify-center min-h-[85vh] px-6 text-center">
         <div className="float mb-6">
-          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/ad30a66a-ccea-4204-bb5d-83d87e90b9f6.jpg" alt="PSPCS Logo" className="w-40 h-40 md:w-56 md:h-56 rounded-2xl object-contain" />
+          <img src="https://assets.kiloapps.io/user_061af2b2-c2a5-4dde-be2d-578f8d4a3f18/f9f43215-05fa-484b-a516-be2eb8521f47/d0c16e01-147d-4146-b76d-cb1d5042efde.png" alt="PSPCS Logo" className="w-40 h-40 md:w-56 md:h-56 rounded-2xl object-contain" />
         </div>
         <h2 className="text-4xl md:text-6xl font-bold mb-4">
           <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-300 bg-clip-text text-transparent">
