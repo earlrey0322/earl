@@ -267,12 +267,12 @@ export default function BranchOwnerDashboard() {
       <div className="space-y-8">
         <div className="glass-card rounded-2xl p-6 bg-gradient-to-r from-green-400/10 to-emerald-500/5">
           <h2 className="text-2xl font-bold text-white">Welcome, {userData?.fullName || "Station Owner"}!</h2>
-          <p className="text-green-300 mt-1">Manage your PSPCS stations.</p>
+          <p className="text-slate-400 mt-1">Manage your PSPCS stations.</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{stations.length}</div><div className="text-xs text-green-300">All Stations</div></div>
-            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{allActiveStations.length}</div><div className="text-xs text-green-300">Active Stations</div></div>
-            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalViews}</div><div className="text-xs text-green-300">My Views</div></div>
-            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">{totalViewRevenue.toFixed(1)}</div><div className="text-xs text-green-300">My Points</div></div>
+            <div className="px-4 py-3 bg-green-400/10 rounded-lg"><div className="text-lg font-bold text-green-400">{stations.length}</div><div className="text-xs text-slate-400">All Stations</div></div>
+            <div className="px-4 py-3 bg-amber-400/10 rounded-lg"><div className="text-lg font-bold text-amber-400">{allActiveStations.length}</div><div className="text-xs text-slate-400">Active Stations</div></div>
+            <div className="px-4 py-3 bg-blue-400/10 rounded-lg"><div className="text-lg font-bold text-blue-400">{totalViews}</div><div className="text-xs text-slate-400">My Views</div></div>
+            <div className="px-4 py-3 bg-purple-400/10 rounded-lg"><div className="text-lg font-bold text-purple-400">{totalViewRevenue.toFixed(1)}</div><div className="text-xs text-slate-400">My Points</div></div>
           </div>
         </div>
 
@@ -294,7 +294,7 @@ export default function BranchOwnerDashboard() {
             <div className="text-center">
               <div className="text-4xl mb-3">💳</div>
               <h4 className="text-lg font-bold text-white mb-2">Monthly Payment Required</h4>
-              <p className="text-sm text-green-300 mb-4">You need to pay your monthly station fee (₱{monthlyFee}/month) before you can add stations.</p>
+              <p className="text-sm text-slate-400 mb-4">You need to pay your monthly station fee (₱{monthlyFee}/month) before you can add stations.</p>
               <p className="text-xs text-amber-400">Scroll down to the Monthly Station Fee section to make your payment.</p>
             </div>
           </div>
@@ -305,29 +305,29 @@ export default function BranchOwnerDashboard() {
             <h4 className="font-bold text-white mb-4">Add New Station</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-green-200 mb-1">Name</label>
+                <label className="block text-sm text-slate-300 mb-1">Name</label>
                 <input type="text" value={newStation.name} onChange={(e) => setNewStation((p) => ({ ...p, name: e.target.value }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="PSPCS Station - Marikina" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="PSPCS Station - Marikina" />
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">Exact Location / Address</label>
+                <label className="block text-sm text-slate-300 mb-1">Exact Location / Address</label>
                 <input type="text" value={newStation.address} onChange={(e) => setNewStation((p) => ({ ...p, address: e.target.value }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="Full address" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="Full address" />
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">Company Name</label>
+                <label className="block text-sm text-slate-300 mb-1">Company Name</label>
                 <input type="text" value={newStation.companyName} onChange={(e) => setNewStation((p) => ({ ...p, companyName: e.target.value }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="KLEOXM 111" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="KLEOXM 111" />
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">Latitude</label>
+                <label className="block text-sm text-slate-300 mb-1">Latitude</label>
                 <input type="number" step="0.0001" value={newStation.latitude} onChange={(e) => setNewStation((p) => ({ ...p, latitude: Number(e.target.value) }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" />
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">Longitude</label>
+                <label className="block text-sm text-slate-300 mb-1">Longitude</label>
                 <input type="number" step="0.0001" value={newStation.longitude} onChange={(e) => setNewStation((p) => ({ ...p, longitude: Number(e.target.value) }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" />
               </div>
               <div className="md:col-span-2">
                 <button type="button" onClick={useCurrentLocation}
@@ -336,29 +336,29 @@ export default function BranchOwnerDashboard() {
                 </button>
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">Type-C Cables</label>
+                <label className="block text-sm text-slate-300 mb-1">Type-C Cables</label>
                 <input type="number" min={0} value={newStation.cableTypeC} onChange={(e) => setNewStation((p) => ({ ...p, cableTypeC: Number(e.target.value) }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" />
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">iPhone Cables</label>
+                <label className="block text-sm text-slate-300 mb-1">iPhone Cables</label>
                 <input type="number" min={0} value={newStation.cableIPhone} onChange={(e) => setNewStation((p) => ({ ...p, cableIPhone: Number(e.target.value) }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" />
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">Universal USB Cables</label>
+                <label className="block text-sm text-slate-300 mb-1">Universal USB Cables</label>
                 <input type="number" min={0} value={newStation.cableUniversal} onChange={(e) => setNewStation((p) => ({ ...p, cableUniversal: Number(e.target.value) }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" />
               </div>
               <div>
-                <label className="block text-sm text-green-200 mb-1">Outlets</label>
+                <label className="block text-sm text-slate-300 mb-1">Outlets</label>
                 <input type="number" min={0} value={newStation.outlets} onChange={(e) => setNewStation((p) => ({ ...p, outlets: Number(e.target.value) }))}
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" />
               </div>
               <div className="flex items-end gap-3">
                 <button onClick={addStation} disabled={!newStation.name || !newStation.address}
                   className="flex-1 py-3 text-sm font-bold text-[#0f172a] bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg disabled:opacity-50">Add Station</button>
-                <button onClick={() => { playClick(); setShowAdd(false); }} className="px-4 py-3 text-sm text-green-300 border border-green-700 rounded-lg">Cancel</button>
+                <button onClick={() => { playClick(); setShowAdd(false); }} className="px-4 py-3 text-sm text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
               </div>
             </div>
           </div>
@@ -370,7 +370,7 @@ export default function BranchOwnerDashboard() {
             {myStations.map((s) => (
               <div key={s.id} className="glass-card rounded-xl p-4">
                 <h4 className="font-bold text-white text-sm">{s.name}</h4>
-                <p className="text-xs text-green-300 mt-1">{s.address}</p>
+                <p className="text-xs text-slate-400 mt-1">{s.address}</p>
                 <div className="flex items-center gap-2 mt-2">
                   {(s as any).companyName && (s as any).companyName !== "Pending" ? (
                     <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">{(s as any).companyName}</span>
@@ -381,11 +381,11 @@ export default function BranchOwnerDashboard() {
                 <div className="flex gap-1.5 mt-2">
                   {s.cableTypeC > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded">TC:{s.cableTypeC}</span>}
                   {s.cableIPhone > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded">iP:{s.cableIPhone}</span>}
-                  {s.cableUniversal > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-slate-500/10 text-green-300 rounded">USB:{s.cableUniversal}</span>}
+                  {s.cableUniversal > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-slate-500/10 text-slate-400 rounded">USB:{s.cableUniversal}</span>}
                   {s.outlets > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded">O:{s.outlets}</span>}
                 </div>
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-green-800/50">
-                  <span className="text-[10px] text-green-400">{s.views || 0} views | ₱{(s.viewRevenue || 0).toFixed(2)}</span>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/50">
+                  <span className="text-[10px] text-slate-500">{s.views || 0} views | ₱{(s.viewRevenue || 0).toFixed(2)}</span>
                   <div className="flex gap-2">
                     <button onClick={() => toggleStation(s)}
                       className={`px-3 py-1 text-[10px] font-bold rounded-full ${s.isActive ? "bg-green-400/10 text-green-400" : "bg-red-400/10 text-red-400"}`}>
@@ -413,37 +413,37 @@ export default function BranchOwnerDashboard() {
               <h3 className="text-lg font-bold text-white mb-4">Edit Station</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm text-green-200 mb-1">Name</label>
+                  <label className="block text-sm text-slate-300 mb-1">Name</label>
                   <input type="text" value={editForm.name} onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                 </div>
                 <div>
-                  <label className="block text-sm text-green-200 mb-1">Address</label>
+                  <label className="block text-sm text-slate-300 mb-1">Address</label>
                   <input type="text" value={editForm.address} onChange={(e) => setEditForm((p) => ({ ...p, address: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                    className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block text-sm text-green-200 mb-1">Type-C</label>
+                    <label className="block text-sm text-slate-300 mb-1">Type-C</label>
                     <input type="number" min={0} value={editForm.cableTypeC} onChange={(e) => setEditForm((p) => ({ ...p, cableTypeC: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-sm text-green-200 mb-1">iPhone</label>
+                    <label className="block text-sm text-slate-300 mb-1">iPhone</label>
                     <input type="number" min={0} value={editForm.cableIPhone} onChange={(e) => setEditForm((p) => ({ ...p, cableIPhone: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block text-sm text-green-200 mb-1">USB</label>
+                    <label className="block text-sm text-slate-300 mb-1">USB</label>
                     <input type="number" min={0} value={editForm.cableUniversal} onChange={(e) => setEditForm((p) => ({ ...p, cableUniversal: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-sm text-green-200 mb-1">Outlets</label>
+                    <label className="block text-sm text-slate-300 mb-1">Outlets</label>
                     <input type="number" min={0} value={editForm.outlets} onChange={(e) => setEditForm((p) => ({ ...p, outlets: Number(e.target.value) }))}
-                      className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -455,7 +455,7 @@ export default function BranchOwnerDashboard() {
               </div>
               <div className="flex gap-3 mt-6">
                 <button onClick={saveEdit} className="flex-1 py-3 font-bold text-[#0f172a] bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg">Save</button>
-                <button onClick={() => { playClick(); setEditStation(null); }} className="px-6 py-3 text-green-300 border border-green-700 rounded-lg">Cancel</button>
+                <button onClick={() => { playClick(); setEditStation(null); }} className="px-6 py-3 text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
               </div>
             </div>
           </div>
@@ -476,7 +476,7 @@ export default function BranchOwnerDashboard() {
               <h3 className="font-bold text-white mb-4">PSPCS Specs</h3>
               <div className="space-y-2 text-sm">
                 {[{ l: "Output", v: "3.6VDC" }, { l: "Cables", v: "All Types" }, { l: "Power", v: "Solar" }, { l: "AC", v: "220VAC" }, { l: "Brand", v: "KLEOXM 111" }].map((s) => (
-                  <div key={s.l} className="flex justify-between py-2 border-b border-green-800/50"><span className="text-green-300">{s.l}</span><span className="text-amber-400 font-medium">{s.v}</span></div>
+                  <div key={s.l} className="flex justify-between py-2 border-b border-slate-700/50"><span className="text-slate-400">{s.l}</span><span className="text-amber-400 font-medium">{s.v}</span></div>
                 ))}
               </div>
             </div>
@@ -486,20 +486,20 @@ export default function BranchOwnerDashboard() {
         {/* Revenue - Points Based */}
         <section id="revenue" className="space-y-4">
           <h3 className="text-lg font-bold text-white">Points System</h3>
-          <p className="text-sm text-green-300">Earn 0.1 points per view when someone views your station!</p>
+          <p className="text-sm text-slate-400">Earn 0.1 points per view when someone views your station!</p>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="glass-card rounded-xl p-4">
               <div className="text-2xl font-bold text-green-400">{myStations.length}</div>
-              <div className="text-xs text-green-300">Your Stations</div>
+              <div className="text-xs text-slate-400">Your Stations</div>
             </div>
             <div className="glass-card rounded-xl p-4">
               <div className="text-2xl font-bold text-amber-400">{totalViews}</div>
-              <div className="text-xs text-green-300">Total Views</div>
+              <div className="text-xs text-slate-400">Total Views</div>
             </div>
             <div className="glass-card rounded-xl p-4">
               <div className="text-2xl font-bold text-blue-400">{totalViewRevenue.toFixed(1)}</div>
-              <div className="text-xs text-green-300">Total Points</div>
+              <div className="text-xs text-slate-400">Total Points</div>
             </div>
           </div>
 
@@ -507,25 +507,25 @@ export default function BranchOwnerDashboard() {
           <div className="glass-card rounded-2xl p-6">
             <h4 className="font-bold text-white mb-4">Redeem Points</h4>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 1000 ? "border-green-400 bg-green-400/10" : "border-green-700"}`}>
-                <div className="text-xs text-green-300">Full Station</div>
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 1000 ? "border-green-400 bg-green-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">Full Station</div>
                 <div className="text-lg font-bold text-white">1000 pts</div>
-                <div className="text-[10px] text-green-400">Free Charging Station</div>
+                <div className="text-[10px] text-slate-500">Free Charging Station</div>
               </div>
-              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 500 ? "border-amber-400 bg-amber-400/10" : "border-green-700"}`}>
-                <div className="text-xs text-green-300">All Parts</div>
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 500 ? "border-amber-400 bg-amber-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">All Parts</div>
                 <div className="text-lg font-bold text-white">500 pts</div>
-                <div className="text-[10px] text-green-400">Station Parts</div>
+                <div className="text-[10px] text-slate-500">Station Parts</div>
               </div>
-              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 100 ? "border-blue-400 bg-blue-400/10" : "border-green-700"}`}>
-                <div className="text-xs text-green-300">Coin Slots</div>
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 100 ? "border-blue-400 bg-blue-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">Coin Slots</div>
                 <div className="text-lg font-bold text-white">100 pts</div>
-                <div className="text-[10px] text-green-400">3 Coin Slots</div>
+                <div className="text-[10px] text-slate-500">3 Coin Slots</div>
               </div>
-              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 50 ? "border-purple-400 bg-purple-400/10" : "border-green-700"}`}>
-                <div className="text-xs text-green-300">Cable</div>
+              <div className={`p-3 rounded-xl border ${totalViewRevenue >= 50 ? "border-purple-400 bg-purple-400/10" : "border-slate-600"}`}>
+                <div className="text-xs text-slate-400">Cable</div>
                 <div className="text-lg font-bold text-white">50 pts</div>
-                <div className="text-[10px] text-green-400">Charging Cable</div>
+                <div className="text-[10px] text-slate-500">Charging Cable</div>
               </div>
             </div>
             
@@ -543,14 +543,14 @@ export default function BranchOwnerDashboard() {
               <h4 className="font-bold text-white mb-4">Points per Station</h4>
               <div className="space-y-3">
                 {myStations.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between p-3 bg-green-950/50 rounded-lg">
+                  <div key={s.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
                     <div>
                       <p className="text-sm font-medium text-white">{s.name}</p>
-                      <p className="text-xs text-green-300">{s.views || 0} views</p>
+                      <p className="text-xs text-slate-400">{s.views || 0} views</p>
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-bold text-blue-400">{(s.viewRevenue || 0).toFixed(1)} pts</p>
-                      <p className="text-[10px] text-green-400">{s.isActive ? "Active" : "Inactive"}</p>
+                      <p className="text-[10px] text-slate-500">{s.isActive ? "Active" : "Inactive"}</p>
                     </div>
                   </div>
                 ))}
@@ -566,13 +566,13 @@ export default function BranchOwnerDashboard() {
             <div className="glass-card rounded-2xl p-6">
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {redemptions.map((r) => (
-                  <div key={r.id} className="p-3 bg-green-950/50 rounded-lg">
+                  <div key={r.id} className="p-3 bg-slate-800/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-white">
                           {r.amount} pts - {r.redemption_label || r.redemption_type}
                         </p>
-                        <p className="text-xs text-green-300">{new Date(r.created_at).toLocaleDateString()}</p>
+                        <p className="text-xs text-slate-400">{new Date(r.created_at).toLocaleDateString()}</p>
                       </div>
                       <span className={`text-xs px-2 py-1 rounded-full ${r.status === "approved" ? "bg-green-400/10 text-green-400" : r.status === "delivered" ? "bg-blue-400/10 text-blue-400" : r.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
                         {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
@@ -590,7 +590,7 @@ export default function BranchOwnerDashboard() {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <div className="glass-card rounded-2xl p-6 w-full max-w-md">
               <h3 className="text-lg font-bold text-white mb-2">Redeem Points</h3>
-              <p className="text-sm text-green-300 mb-4">Available: {totalViewRevenue.toFixed(1)} points</p>
+              <p className="text-sm text-slate-400 mb-4">Available: {totalViewRevenue.toFixed(1)} points</p>
               
               <div className="space-y-3">
                 {[
@@ -604,17 +604,17 @@ export default function BranchOwnerDashboard() {
                     disabled={totalViewRevenue < tier.points}
                     className={`w-full p-4 rounded-xl border text-left transition-all ${
                       redeemType === tier.type ? "border-green-400 bg-green-400/10" : 
-                      totalViewRevenue >= tier.points ? "border-green-700 hover:border-slate-500" : "border-green-800 opacity-50"
+                      totalViewRevenue >= tier.points ? "border-slate-600 hover:border-slate-500" : "border-slate-700 opacity-50"
                     }`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{tier.icon}</span>
                         <div>
                           <p className="text-sm font-bold text-white">{tier.label}</p>
-                          <p className="text-xs text-green-300">{tier.desc}</p>
+                          <p className="text-xs text-slate-400">{tier.desc}</p>
                         </div>
                       </div>
-                      <span className={`text-sm font-bold ${totalViewRevenue >= tier.points ? "text-green-400" : "text-green-400"}`}>
+                      <span className={`text-sm font-bold ${totalViewRevenue >= tier.points ? "text-green-400" : "text-slate-500"}`}>
                         {tier.points} pts
                       </span>
                     </div>
@@ -623,21 +623,21 @@ export default function BranchOwnerDashboard() {
               </div>
 
               {(redeemType === "free_station" || redeemType === "station_parts") && (
-                <div className="space-y-3 mt-4 p-4 bg-green-950/50 rounded-lg">
+                <div className="space-y-3 mt-4 p-4 bg-slate-800/50 rounded-lg">
                   <div>
-                    <label className="block text-sm text-green-200 mb-1">Full Name</label>
+                    <label className="block text-sm text-slate-300 mb-1">Full Name</label>
                     <input type="text" value={redeemForm.contactName} onChange={(e) => setRedeemForm((p) => ({ ...p, contactName: e.target.value }))}
-                      className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="Your full name" />
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="Your full name" />
                   </div>
                   <div>
-                    <label className="block text-sm text-green-200 mb-1">Contact Number</label>
+                    <label className="block text-sm text-slate-300 mb-1">Contact Number</label>
                     <input type="text" value={redeemForm.contactNumber} onChange={(e) => setRedeemForm((p) => ({ ...p, contactNumber: e.target.value }))}
-                      className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="09XX XXX XXXX" />
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" placeholder="09XX XXX XXXX" />
                   </div>
                   <div>
-                    <label className="block text-sm text-green-200 mb-1">Delivery Address</label>
+                    <label className="block text-sm text-slate-300 mb-1">Delivery Address</label>
                     <textarea value={redeemForm.deliveryAddress} onChange={(e) => setRedeemForm((p) => ({ ...p, deliveryAddress: e.target.value }))}
-                      className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-green-400" rows={3} placeholder="Full delivery address" />
+                      className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-green-400" rows={3} placeholder="Full delivery address" />
                   </div>
                 </div>
               )}
@@ -662,7 +662,7 @@ export default function BranchOwnerDashboard() {
                   {requestingRedeem ? "Submitting..." : "Submit Redemption"}
                 </button>
                 <button onClick={() => { setShowRedeemModal(false); setRedeemType(null); }}
-                  className="px-6 py-3 text-green-300 border border-green-700 rounded-lg">Cancel</button>
+                  className="px-6 py-3 text-slate-400 border border-slate-600 rounded-lg">Cancel</button>
               </div>
             </div>
           </div>
@@ -675,7 +675,7 @@ export default function BranchOwnerDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h4 className="font-bold text-white">Monthly Payment</h4>
-                <p className="text-sm text-green-300">
+                <p className="text-sm text-slate-400">
                   {userData?.role === "other_branch" ? "₱100/month" : "₱75/month"} - Non-refundable
                 </p>
               </div>
@@ -687,18 +687,18 @@ export default function BranchOwnerDashboard() {
             <div className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl mb-4">
               <p className="text-xs text-blue-400 mb-2">GCash Payment</p>
               <div className="space-y-1 text-sm">
-                <div className="flex justify-between"><span className="text-green-300">Number</span><span className="text-white font-bold">09469086926</span></div>
-                <div className="flex justify-between"><span className="text-green-300">Name</span><span className="text-white">Earl Christian Rey</span></div>
-                <div className="flex justify-between"><span className="text-green-300">Amount</span><span className="text-amber-400 font-bold">₱{userData?.role === "other_branch" ? "100" : "75"}</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Number</span><span className="text-white font-bold">09469086926</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Name</span><span className="text-white">Earl Christian Rey</span></div>
+                <div className="flex justify-between"><span className="text-slate-400">Amount</span><span className="text-amber-400 font-bold">₱{userData?.role === "other_branch" ? "100" : "75"}</span></div>
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm text-green-200 mb-2">GCash Reference Number</label>
+                <label className="block text-sm text-slate-300 mb-2">GCash Reference Number</label>
                 <input type="text" value={monthlyReferenceNumber} onChange={(e) => setMonthlyReferenceNumber(e.target.value)}
                   placeholder="Enter reference number from GCash"
-                  className="w-full px-4 py-3 bg-[#0a1f0f] border border-green-700 rounded-lg text-white focus:outline-none focus:border-amber-400" />
+                  className="w-full px-4 py-3 bg-[#0f172a] border border-slate-600 rounded-lg text-white focus:outline-none focus:border-amber-400" />
               </div>
 
               <button onClick={requestMonthlyPayment} disabled={requestingMonthly || !monthlyReferenceNumber.trim()}
@@ -714,12 +714,12 @@ export default function BranchOwnerDashboard() {
               <h4 className="font-bold text-white mb-4">Payment History</h4>
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {monthlyPayments.map((payment) => (
-                  <div key={payment.id} className="p-3 bg-green-950/50 rounded-lg">
+                  <div key={payment.id} className="p-3 bg-slate-800/50 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-white">₱{payment.amount} - {payment.paid_for_month}</p>
-                        <p className="text-xs text-green-300">Ref: {payment.reference_number || "N/A"}</p>
-                        <p className="text-xs text-green-400">{new Date(payment.created_at).toLocaleDateString()}</p>
+                        <p className="text-xs text-slate-400">Ref: {payment.reference_number || "N/A"}</p>
+                        <p className="text-xs text-slate-500">{new Date(payment.created_at).toLocaleDateString()}</p>
                       </div>
                       <span className={`text-xs px-2 py-1 rounded-full ${payment.status === "approved" ? "bg-green-400/10 text-green-400" : payment.status === "rejected" ? "bg-red-400/10 text-red-400" : "bg-amber-400/10 text-amber-400"}`}>
                         {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
@@ -737,7 +737,7 @@ export default function BranchOwnerDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-bold text-white">Account Status</h4>
-              <p className="text-sm text-green-300">
+              <p className="text-sm text-slate-400">
                 {userData?.isSubscribed ? "You can view all company stations" : "Only KLEOXM 111 stations visible"}
               </p>
             </div>
@@ -753,8 +753,8 @@ export default function BranchOwnerDashboard() {
                   )}
                 </div>
               ) : (
-                <div className="px-4 py-2 bg-green-900 rounded-lg">
-                  <span className="text-green-300 font-bold">Regular</span>
+                <div className="px-4 py-2 bg-slate-700 rounded-lg">
+                  <span className="text-slate-400 font-bold">Regular</span>
                 </div>
               )}
             </div>

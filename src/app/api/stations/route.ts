@@ -68,9 +68,11 @@ export async function GET(req: Request) {
       return { ...s, _distanceKm: dist };
     });
 
-    // Non-premium users only see FAR stations (>5km away)
-    if (!isPremium && auth && hasLocation) {
-      stations = stations.filter((s: any) => s._distanceKm > NEARBY_RADIUS_KM);
+    // Non-premium users only see 2 KLEOXM 111 stations
+    if (!isPremium && auth) {
+      stations = stations
+        .filter((s: any) => s.company_name === "KLEOXM 111" || !s.company_name || s.company_name === "")
+        .slice(0, 2);
     }
 
     return NextResponse.json({
